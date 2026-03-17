@@ -14,7 +14,7 @@
 <meta property="og:description" content="在使用 Colosseum（AirSim 的继任仿真平台）做仿真时，相机图像通常通过 RPC（如 simGetImages）从 Unreal 端传到 Python 客户端。默认要么返回原始 RGB 像素，要么用 PNG 压缩。原始数据体积大（例如 1920×1080×3 ≈ 6MB&#x2F;帧），PNG 虽能压缩但仍有明显体积和编码开销，在 WSL 或 远程连接 场景下容易成为瓶颈，帧率上不去。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-14T12:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-17T12:53:56.602Z">
+<meta property="article:modified_time" content="2026-03-17T13:12:30.671Z">
 <meta property="article:author" content="goodisok">
 <meta property="article:tag" content="AirSim">
 <meta property="article:tag" content="Colosseum">
@@ -306,7 +306,7 @@
 <li><strong>UE 5.7.x</strong>（含 5.7.2）：使用 <code>IImageWrapper::GetCompressed(quality)</code> 传质量，不要使用已废弃的 <code>SetQuality</code>。</li>
 <li><strong>Stride</strong>：渲染目标可能存在 stride（每行字节数大于 <code>width*4</code>），在压缩前已按行拷贝到紧凑的 <code>src_bmp</code>，避免 JPEG&#x2F;PNG 压缩读到多余 padding。</li>
 <li><strong>解码端</strong>：JPEG 返回的是完整 JPEG 文件二进制，客户端用 <code>cv2.imdecode</code> 或 PIL 解码即可，无需再区分 RGB&#x2F;BGR（OpenCV 的 <code>imdecode</code> 默认 BGR，与 OpenCV 其他接口一致）。</li>
-<li><strong>Python 路径</strong>：从 <code>PythonClient</code> 子目录（如 <code>multirotor/</code>）运行脚本时，需在 <code>import airsim</code> 前先 <code>import setup_path</code>（并视情况用 <code>sys.path.insert</code> 把 PythonClient 根目录加入路径），否则会报错找不到 <code>airsim</code>。若已通过 <code>pip install airsim</code> 安装则无需 setup_path。</li>
+<li><strong>Python 路径</strong>：从 <code>PythonClient</code> 子目录（如 <code>multirotor/</code>）运行脚本时，需在 <code>import airsim</code> 前先 <code>import setup_path</code>（并视情况用 <code>sys.path.insert</code> 把 PythonClient 根目录加入路径），否则会报错。</li>
 </ol>
 <hr>
 <h2 id="八、小结"><a href="#八、小结" class="headerlink" title="八、小结"></a>八、小结</h2><p>通过在 AirSim 中增加 <strong><code>compress_quality</code></strong> 参数，并在 Unreal 渲染管线中根据该参数在 <strong>JPEG &#x2F; PNG &#x2F; raw</strong> 三路中选择一路输出，我们实现了可调质量的 JPEG 压缩：在 WSL、远程或高分辨率场景下，能显著减小 RPC 传输体积、提高相机帧率，同时保持与原有 raw&#x2F;PNG 行为的兼容。实现上主要涉及 AirLib 请求结构、RPC 适配、Unreal 渲染参数与压缩分支、以及 Python 客户端的字段与序列化顺序；JPEG 编码本身复用 UE 的 <code>IImageWrapper</code>，无需自实现 DCT&#x2F;熵编码。</p>
