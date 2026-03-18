@@ -129,7 +129,11 @@
 <h2 id="编译插件"><a href="#编译插件" class="headerlink" title="编译插件"></a>编译插件</h2><figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /d D:\workspace\Colosseum</span><br><span class="line">build.<span class="built_in">cmd</span></span><br></pre></td></tr></table></figure>
 
 <p>产出在 <code>Unreal\Plugins</code>。找不到引擎时核对 UE 5.7 是否装全、是否与 <code>build.cmd</code> 期望一致。</p>
-<h2 id="打开环境工程"><a href="#打开环境工程" class="headerlink" title="打开环境工程"></a>打开环境工程</h2><p><code>build.cmd</code> 完成后，双击 <strong><code>Colosseum\Unreal\Environments\BlocksV2\BlocksV2.uproject</code></strong>，用 <strong>UE 5.7</strong> 打开（多版本时选对引擎），进编辑器后 <strong>Play</strong>。原点由关卡 <strong>PlayerStart</strong> 位置&#x2F;朝向决定。<br><code>Edit → Editor Preferences</code> 搜 <strong>CPU</strong>，取消 <strong>Use Less CPU when in Background</strong>。</p>
+<h2 id="打开环境工程"><a href="#打开环境工程" class="headerlink" title="打开环境工程"></a>打开环境工程</h2><p><code>build.cmd</code> 完成后，双击 <strong><code>Colosseum\Unreal\Environments\BlocksV2\BlocksV2.uproject</code></strong>，用 <strong>UE 5.7</strong> 打开（多版本时选对引擎）。<strong>首次</strong>可能出现：</p>
+<blockquote>
+<p>The following modules are missing or built with a different engine version:<br>BlocksV2<br>AirSim<br>Would you like to rebuild them now?</p>
+</blockquote>
+<p>点击 <strong>Yes</strong>，等待 <strong>BlocksV2</strong> &#x2F; <strong>AirSim</strong> 重新编译完成后再 <strong>Play</strong>。原点由关卡 <strong>PlayerStart</strong> 位置&#x2F;朝向决定。<br><code>Edit → Editor Preferences</code> 搜 <strong>CPU</strong>，取消 <strong>Use Less CPU when in Background</strong>。</p>
 <h2 id="在其它-UE-场景中使用插件"><a href="#在其它-UE-场景中使用插件" class="headerlink" title="在其它 UE 场景中使用插件"></a>在其它 UE 场景中使用插件</h2><p>要在自有 UE 工程里用 Colosseum（AirSim）插件：把 <strong><code>Colosseum\Unreal\Environments\BlocksV2\Plugins</code></strong> 整目录拷到目标工程根目录下的 <strong><code>Plugins</code></strong>（没有则新建），用 UE 5.7 打开工程。在 <strong>世界场景设置（World Settings）</strong> 里找到 <strong>游戏模式重载（Game Mode Override）</strong>，选 <strong>AirSimGameMode</strong>。<br>AirSim 与仿真原点对应的是关卡里的 <strong>Player Start</strong>：在场景中调整 <strong>PlayerStart</strong> 的位置与朝向，即设定 AirSim 的原点。视需要再改 <code>settings.json</code> 等。</p>
 <h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><ul>
 <li>PX4 &#x2F; 本分支细节：仓库 README、<a target="_blank" rel="noopener" href="https://codexlabsllc.github.io/Colosseum/build_windows/">MavLink and PX4</a></li>
