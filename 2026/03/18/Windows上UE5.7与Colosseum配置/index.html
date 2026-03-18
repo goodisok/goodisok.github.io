@@ -4,14 +4,23 @@
   <meta charset="utf-8">
   
   
-  <title>标签: RPC | goodisok 的博客</title>
+  <title>Windows 上 UE 5.7 + Colosseum 配置方法 | goodisok 的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="goodisok 的博客">
-<meta property="og:url" content="https://goodisok.github.io/tags/RPC/index.html">
+  <meta name="description" content="UE 5.7 + goodisok&#x2F;Colosseum 分支 feature&#x2F;jpeg-geomag-px4。路径自定；下文 D:\workspace、D:\Program Files\UE_5.7 仅为示例。参考 Build on Windows。 前置   项 说明    Git &#x2F; CMake &#x2F; 7-Zip 均安装；CMake 勾选加入 PATH   UE 5">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows 上 UE 5.7 + Colosseum 配置方法">
+<meta property="og:url" content="https://goodisok.github.io/2026/03/18/Windows%E4%B8%8AUE5.7%E4%B8%8EColosseum%E9%85%8D%E7%BD%AE/index.html">
 <meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="UE 5.7 + goodisok&#x2F;Colosseum 分支 feature&#x2F;jpeg-geomag-px4。路径自定；下文 D:\workspace、D:\Program Files\UE_5.7 仅为示例。参考 Build on Windows。 前置   项 说明    Git &#x2F; CMake &#x2F; 7-Zip 均安装；CMake 勾选加入 PATH   UE 5">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-18T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-18T03:34:39.079Z">
 <meta property="article:author" content="goodisok">
+<meta property="article:tag" content="Colosseum">
+<meta property="article:tag" content="PX4">
+<meta property="article:tag" content="UE5">
+<meta property="article:tag" content="Unreal Engine">
+<meta property="article:tag" content="Windows">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
@@ -69,39 +78,96 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2026" class="archive-year">2026</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2026/03/14/%E8%A7%A3%E5%86%B3AirSim%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E4%BC%A0%E8%BE%93%E6%85%A2%E5%B8%A7%E7%8E%87%E4%BD%8E-JPEG%E5%8E%8B%E7%BC%A9/" class="archive-article-date">
-  <time class="dt-published" datetime="2026-03-14T12:00:00.000Z" itemprop="datePublished">3月 14</time>
+        <section id="main"><article id="post-Windows上UE5.7与Colosseum配置" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/03/18/Windows%E4%B8%8AUE5.7%E4%B8%8EColosseum%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time class="dt-published" datetime="2026-03-18T04:00:00.000Z" itemprop="datePublished">2026-03-18</time>
 </a>
-      
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E4%BB%BF%E7%9C%9F/">仿真</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2026/03/14/%E8%A7%A3%E5%86%B3AirSim%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E4%BC%A0%E8%BE%93%E6%85%A2%E5%B8%A7%E7%8E%87%E4%BD%8E-JPEG%E5%8E%8B%E7%BC%A9/">解决 AirSim 相机图像传输慢、帧率低：可调质量 JPEG 压缩</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      Windows 上 UE 5.7 + Colosseum 配置方法
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>UE 5.7 + <a target="_blank" rel="noopener" href="https://github.com/goodisok/Colosseum">goodisok&#x2F;Colosseum</a> 分支 <strong><code>feature/jpeg-geomag-px4</code></strong>。路径自定；下文 <code>D:\workspace</code>、<code>D:\Program Files\UE_5.7</code> 仅为示例。参考 <a target="_blank" rel="noopener" href="https://codexlabsllc.github.io/Colosseum/build_windows/">Build on Windows</a>。</p>
+<h2 id="前置"><a href="#前置" class="headerlink" title="前置"></a>前置</h2><table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Git &#x2F; CMake &#x2F; 7-Zip</td>
+<td>均安装；CMake 勾选加入 PATH</td>
+</tr>
+<tr>
+<td>UE 5.7</td>
+<td>Epic Launcher 安装（示例 5.7.2）；确认 <code>Engine\Build\BatchFiles</code> 存在</td>
+</tr>
+<tr>
+<td>VS 2022</td>
+<td>工作负载「使用 C++ 的桌面开发」+ Windows 10 SDK + .NET SDK</td>
+</tr>
+<tr>
+<td>终端</td>
+<td><strong>Developer Command Prompt for VS 2022</strong>（开始菜单 → Visual Studio 2022）</td>
+</tr>
+</tbody></table>
+<h2 id="克隆（须带子模块）"><a href="#克隆（须带子模块）" class="headerlink" title="克隆（须带子模块）"></a>克隆（须带子模块）</h2><p>在 <strong>Developer Command Prompt for VS 2022</strong> 中：</p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /d D:\workspace</span><br><span class="line">git clone --recurse-submodules -b feature/jpeg-geomag-px4 https://github.com/goodisok/Colosseum.git</span><br><span class="line"><span class="built_in">cd</span> Colosseum</span><br></pre></td></tr></table></figure>
+
+<p>若曾未拉子模块：<code>git submodule update --init --recursive</code>。切换分支后同样再执行一次。</p>
+<h2 id="编译插件"><a href="#编译插件" class="headerlink" title="编译插件"></a>编译插件</h2><figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /d D:\workspace\Colosseum</span><br><span class="line">build.<span class="built_in">cmd</span></span><br></pre></td></tr></table></figure>
+
+<p>产出在 <code>Unreal\Plugins</code>。找不到引擎时核对 UE 5.7 是否装全、是否与 <code>build.cmd</code> 期望一致。</p>
+<h2 id="打开环境工程"><a href="#打开环境工程" class="headerlink" title="打开环境工程"></a>打开环境工程</h2><p><code>build.cmd</code> 完成后，双击 <strong><code>Colosseum\Unreal\Environments\BlocksV2\BlocksV2.uproject</code></strong>，用 <strong>UE 5.7</strong> 打开（多版本时选对引擎），进编辑器后 <strong>Play</strong>。原点由关卡 <strong>PlayerStart</strong> 位置&#x2F;朝向决定。<br><code>Edit → Editor Preferences</code> 搜 <strong>CPU</strong>，取消 <strong>Use Less CPU when in Background</strong>。</p>
+<h2 id="在其它-UE-场景中使用插件"><a href="#在其它-UE-场景中使用插件" class="headerlink" title="在其它 UE 场景中使用插件"></a>在其它 UE 场景中使用插件</h2><p>要在自有 UE 工程里用 Colosseum（AirSim）插件：把 <strong><code>Colosseum\Unreal\Environments\BlocksV2\Plugins</code></strong> 整目录拷到目标工程根目录下的 <strong><code>Plugins</code></strong>（没有则新建），用 UE 5.7 打开工程。在 <strong>世界场景设置（World Settings）</strong> 里找到 <strong>游戏模式重载（Game Mode Override）</strong>，选 <strong>AirSimGameMode</strong>。<br>AirSim 与仿真原点对应的是关卡里的 <strong>Player Start</strong>：在场景中调整 <strong>PlayerStart</strong> 的位置与朝向，即设定 AirSim 的原点。视需要再改 <code>settings.json</code> 等。</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><ul>
+<li>PX4 &#x2F; 本分支细节：仓库 README、<a target="_blank" rel="noopener" href="https://codexlabsllc.github.io/Colosseum/build_windows/">MavLink and PX4</a></li>
+</ul>
+<p><strong>链接</strong>：<a target="_blank" rel="noopener" href="https://codexlabsllc.github.io/Colosseum/build_windows/">官方 Windows 构建</a> · <a target="_blank" rel="noopener" href="https://github.com/goodisok/Colosseum">goodisok&#x2F;Colosseum</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://goodisok.github.io/2026/03/18/Windows%E4%B8%8AUE5.7%E4%B8%8EColosseum%E9%85%8D%E7%BD%AE/" data-id="cuidW5ADY-6TDhK4OGYhMZ0Fh" data-title="Windows 上 UE 5.7 + Colosseum 配置方法" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Colosseum/" rel="tag">Colosseum</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PX4/" rel="tag">PX4</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/UE5/" rel="tag">UE5</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Unreal-Engine/" rel="tag">Unreal Engine</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/03/17/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
