@@ -1,20 +1,25 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球八款主流截击无人机系统。   一、为什么需要截击无人机1.1 成本不对称困境俄乌战争让一个残酷的数学问题摆上了每个防空指挥官的桌面：    攻击手段 单价">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球十四款主流截击无人机系统，涵盖乌克兰、法国、美国、英国、以色列、拉脱维亚、德国、瑞士等八个国家的产品。   一、为什么需要截击无人机1.1 成本不对称困境俄">
 <meta property="og:type" content="article">
-<meta property="og:title" content="全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比">
+<meta property="og:title" content="全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览">
 <meta property="og:url" content="https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/index.html">
 <meta property="og:site_name" content="goodisok 的博客">
-<meta property="og:description" content="当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球八款主流截击无人机系统。   一、为什么需要截击无人机1.1 成本不对称困境俄乌战争让一个残酷的数学问题摆上了每个防空指挥官的桌面：    攻击手段 单价">
+<meta property="og:description" content="当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球十四款主流截击无人机系统，涵盖乌克兰、法国、美国、英国、以色列、拉脱维亚、德国、瑞士等八个国家的产品。   一、为什么需要截击无人机1.1 成本不对称困境俄">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
 <meta property="article:published_time" content="2026-04-21T12:00:00.000Z">
-<meta property="article:modified_time" content="2026-04-21T08:46:09.633Z">
+<meta property="article:modified_time" content="2026-04-21T08:57:18.597Z">
 <meta property="article:author" content="goodisok">
 <meta property="article:tag" content="Anvil">
 <meta property="article:tag" content="BLAZE">
 <meta property="article:tag" content="C-UAS">
+<meta property="article:tag" content="Cicada">
+<meta property="article:tag" content="Coyote">
 <meta property="article:tag" content="DroneHunter">
 <meta property="article:tag" content="GOBI">
+<meta property="article:tag" content="Hunter Eagle">
+<meta property="article:tag" content="Iron Drone">
 <meta property="article:tag" content="STING">
+<meta property="article:tag" content="Skyhammer">
 <meta property="article:tag" content="乌克兰">
 <meta property="article:tag" content="北约">
 <meta property="article:tag" content="反无人机">
@@ -25,11 +30,11 @@
 <meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比",
+  "headline": "全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览",
   "url": "https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/",
   "image": "https://goodisok.github.io/img/butterfly-icon.png",
   "datePublished": "2026-04-21T12:00:00.000Z",
-  "dateModified": "2026-04-21T08:46:09.633Z",
+  "dateModified": "2026-04-21T08:57:18.597Z",
   "author": [
     {
       "@type": "Person",
@@ -183,13 +188,13 @@ btf.addGlobalFn('pjaxComplete', () => {
   },
   autoDarkmode: false
 }</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
-  title: '全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比',
+  title: '全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览',
   isHighlightShrink: false,
   isToc: true,
   pageType: 'post'
 }</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
-</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">112</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-21T12:00:00.000Z" title="发表于 2026-04-21 20:00:00">2026-04-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-21T08:46:09.633Z" title="更新于 2026-04-21 16:46:09">2026-04-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/">技术前沿</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
-<p>当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球八款主流截击无人机系统。</p>
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">117</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-21T12:00:00.000Z" title="发表于 2026-04-21 20:00:00">2026-04-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-21T08:57:18.597Z" title="更新于 2026-04-21 16:57:18">2026-04-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/">技术前沿</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开源码、官方技术手册和战场验证数据，深度分析全球十四款主流截击无人机系统，涵盖乌克兰、法国、美国、英国、以色列、拉脱维亚、德国、瑞士等八个国家的产品。</p>
 </blockquote>
 <hr>
 <h2 id="一、为什么需要截击无人机"><a href="#一、为什么需要截击无人机" class="headerlink" title="一、为什么需要截击无人机"></a>一、为什么需要截击无人机</h2><h3 id="1-1-成本不对称困境"><a href="#1-1-成本不对称困境" class="headerlink" title="1.1 成本不对称困境"></a>1.1 成本不对称困境</h3><p>俄乌战争让一个残酷的数学问题摆上了每个防空指挥官的桌面：</p>
@@ -789,7 +794,476 @@ btf.addGlobalFn('pjaxComplete', () => {
 <p><strong>可对抗直升机</strong>：Block 2 的 3 kg 载荷和 70 km 射程使其不仅限于反无人机，官方明确列出直升机也在目标清单中。</p>
 <p><strong>AI 末段制导 + 电子战对抗</strong>：机载 AI 导引头结合电子战干扰能力，可在复杂电磁环境下完成末段制导。</p>
 <hr>
-<h2 id="九、综合对比：全球八款截击无人机参数一览"><a href="#九、综合对比：全球八款截击无人机参数一览" class="headerlink" title="九、综合对比：全球八款截击无人机参数一览"></a>九、综合对比：全球八款截击无人机参数一览</h2><table>
+<h2 id="九、英国-Cambridge-Aerospace-Skyhammer——闪电采购的涡喷拦截弹"><a href="#九、英国-Cambridge-Aerospace-Skyhammer——闪电采购的涡喷拦截弹" class="headerlink" title="九、英国 Cambridge Aerospace Skyhammer——闪电采购的涡喷拦截弹"></a>九、英国 Cambridge Aerospace Skyhammer——闪电采购的涡喷拦截弹</h2><h3 id="9-1-基本信息"><a href="#9-1-基本信息" class="headerlink" title="9.1 基本信息"></a>9.1 基本信息</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>研发方</td>
+<td>Cambridge Aerospace，英国（2024 年底成立）</td>
+</tr>
+<tr>
+<td>类型</td>
+<td>管式发射涡喷拦截弹</td>
+</tr>
+<tr>
+<td>首次飞行</td>
+<td>2025 年 1 月开发，6 周内完成首飞</td>
+</tr>
+<tr>
+<td>合同</td>
+<td>2026 年 4 月英国国防部签署数百万英镑合同</td>
+</tr>
+<tr>
+<td>首批交付</td>
+<td>2026 年 5 月</td>
+</tr>
+</tbody></table>
+<h3 id="9-2-技术参数"><a href="#9-2-技术参数" class="headerlink" title="9.2 技术参数"></a>9.2 技术参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最大速度</td>
+<td>700 km&#x2F;h（Mach 0.7）</td>
+</tr>
+<tr>
+<td>射程</td>
+<td>&gt;30 km</td>
+</tr>
+<tr>
+<td>重量</td>
+<td>~18 kg（40 lbs）</td>
+</tr>
+<tr>
+<td>长度</td>
+<td>&lt;1 m</td>
+</tr>
+<tr>
+<td>翼展</td>
+<td>1.3 m</td>
+</tr>
+<tr>
+<td>动力</td>
+<td>涡喷发动机</td>
+</tr>
+<tr>
+<td>导引头</td>
+<td>X 波段雷达导引头（全天候）</td>
+</tr>
+<tr>
+<td>战斗部</td>
+<td>爆破破片战斗部</td>
+</tr>
+<tr>
+<td>可拦截目标</td>
+<td>Shahed 级自杀无人机、亚音速巡航导弹</td>
+</tr>
+<tr>
+<td>构型</td>
+<td>折叠半翼 + 倒 V 尾翼，管式储存&#x2F;发射</td>
+</tr>
+</tbody></table>
+<h3 id="9-3-技术亮点"><a href="#9-3-技术亮点" class="headerlink" title="9.3 技术亮点"></a>9.3 技术亮点</h3><p><strong>从零到交付仅 16 个月</strong>：Cambridge Aerospace 2024 年底成立，2025 年 1 月开始研发 Skyhammer，6 周内完成首飞，2026 年 4 月获得英国国防部合同，5 月即开始交付。这是英国近代国防采购中最快的时间线之一。</p>
+<p><strong>真正的”拦截弹”</strong>：与大多数多旋翼截击无人机不同，Skyhammer 更接近微型导弹——涡喷推进、雷达制导、爆破破片战斗部。700 km&#x2F;h 的速度让它可以拦截不仅是慢速 Shahed，还包括亚音速巡航导弹。</p>
+<p><strong>X 波段雷达全天候能力</strong>：X 波段主动雷达导引头使 Skyhammer 不依赖光电&#x2F;红外传感器，可在雨、雾、沙尘暴等恶劣天气中工作。</p>
+<p><strong>英国-海湾双向部署</strong>：该合同不仅面向英军，还包括向海湾合作伙伴供货，附带集成支持、技术援助和操作员培训。</p>
+<hr>
+<h2 id="十、美国-RTX-Raytheon-Coyote-系列——美军-C-UAS-主力"><a href="#十、美国-RTX-Raytheon-Coyote-系列——美军-C-UAS-主力" class="headerlink" title="十、美国 RTX&#x2F;Raytheon Coyote 系列——美军 C-UAS 主力"></a>十、美国 RTX&#x2F;Raytheon Coyote 系列——美军 C-UAS 主力</h2><h3 id="10-1-型号谱系"><a href="#10-1-型号谱系" class="headerlink" title="10.1 型号谱系"></a>10.1 型号谱系</h3><p>Coyote 是美军 LIDS（低慢小无人机综合防御系统）的核心拦截弹，已发展出多个变体：</p>
+<table>
+<thead>
+<tr>
+<th>变体</th>
+<th>毁伤方式</th>
+<th>动力</th>
+<th>速度</th>
+<th>可回收</th>
+<th>采购量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Block 2+</td>
+<td>动能&#x2F;破片战斗部</td>
+<td>涡轮发动机 + 火箭助推</td>
+<td>555–595 km&#x2F;h</td>
+<td>否（消耗型）</td>
+<td>~6,700 枚</td>
+</tr>
+<tr>
+<td>Block 3NK</td>
+<td>非动能（电子战载荷）</td>
+<td>电动后推桨</td>
+<td>较低（巡飞优化）</td>
+<td>是（可回收重用）</td>
+<td>~700 枚</td>
+</tr>
+<tr>
+<td>LE SR</td>
+<td>多用途发射效应</td>
+<td>电动</td>
+<td>—</td>
+<td>否</td>
+<td>原型阶段</td>
+</tr>
+</tbody></table>
+<h3 id="10-2-技术参数（Block-2-）"><a href="#10-2-技术参数（Block-2-）" class="headerlink" title="10.2 技术参数（Block 2+）"></a>10.2 技术参数（Block 2+）</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>重量</td>
+<td>比 Block 1 的 5.9 kg 更重（具体保密）</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>555–595 km&#x2F;h（345–370 mph）</td>
+</tr>
+<tr>
+<td>射程</td>
+<td>10–15 km</td>
+</tr>
+<tr>
+<td>战斗部</td>
+<td>破片战斗部（针对小型无人机优化）</td>
+</tr>
+<tr>
+<td>配套雷达</td>
+<td>KuRFS Ku 波段 AESA 雷达（可探测 9 mm 弹头大小目标）</td>
+</tr>
+<tr>
+<td>单价</td>
+<td>~<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mo separator="true">,</mo><mn>000</mn><mi mathvariant="normal">/</mi><mtext>枚</mtext><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">100,000/枚 |</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">100</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">000/</span><span class="mord cjk_fallback">枚</span><span class="mord">∣</span></span></span></span></td>
+</tr>
+</tbody></table>
+<h3 id="10-3-技术亮点"><a href="#10-3-技术亮点" class="headerlink" title="10.3 技术亮点"></a>10.3 技术亮点</h3><p><strong>美军唯一成建制装备的 C-UAS 拦截弹</strong>：Coyote 是美国陆军 M-LIDS 和 FS-LIDS 系统的标准配置拦截弹，已实战部署。2023-2029 年间计划采购约 6,700 枚。</p>
+<p><strong>KuRFS 雷达配合</strong>：Ku 波段射频传感器可探测 16 km 外的小型无人机，最小可探测 9 mm 弹头大小的目标，为 Coyote 提供精确引导。</p>
+<p><strong>Block 3NK 非动能反蜂群</strong>：2026 年 2 月美军演示中，Block 3NK 成功击败无人机蜂群。它使用电子战载荷而非物理碰撞来瘫痪目标，一架 Block 3NK 可对抗多架无人机，且可回收重装后再次使用，从根本上改变了反蜂群的经济学。</p>
+<p><strong>多平台发射</strong>：Coyote LE SR 变体已成功从 M2 Bradley 战车的 TOW 发射器和 Bell 407 直升机上发射，展示了跨平台适配能力。</p>
+<hr>
+<h2 id="十一、以色列-Iron-Drone-Raider——加沙战场验证的自主拦截器"><a href="#十一、以色列-Iron-Drone-Raider——加沙战场验证的自主拦截器" class="headerlink" title="十一、以色列 Iron Drone Raider——加沙战场验证的自主拦截器"></a>十一、以色列 Iron Drone Raider——加沙战场验证的自主拦截器</h2><h3 id="11-1-基本信息"><a href="#11-1-基本信息" class="headerlink" title="11.1 基本信息"></a>11.1 基本信息</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>研发方</td>
+<td>Airobotics（Ondas Autonomous Systems 子公司），以色列</td>
+</tr>
+<tr>
+<td>类型</td>
+<td>八旋翼自主截击&#x2F;捕获无人机</td>
+</tr>
+<tr>
+<td>实战</td>
+<td>加沙冲突中实战验证</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>2025 年起进入美国国防市场</td>
+</tr>
+</tbody></table>
+<h3 id="11-2-技术参数"><a href="#11-2-技术参数" class="headerlink" title="11.2 技术参数"></a>11.2 技术参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>构型</td>
+<td>八旋翼（竞速无人机衍生）</td>
+</tr>
+<tr>
+<td>重量</td>
+<td>~4 kg（8 lbs）</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>竞速无人机级别（极高机动性）</td>
+</tr>
+<tr>
+<td>载荷</td>
+<td>1 kg 弹道网（含可选降落伞）</td>
+</tr>
+<tr>
+<td>可拦截目标</td>
+<td>Class-1 旋翼&#x2F;固定翼无人机</td>
+</tr>
+<tr>
+<td>拦截距离</td>
+<td>数英里（~3-5 km）</td>
+</tr>
+<tr>
+<td>发射箱容量</td>
+<td>3 架 Raider</td>
+</tr>
+<tr>
+<td>传感器</td>
+<td>地面雷达 + 机载微型雷达 + 热成像&#x2F;光学 + AI 视觉</td>
+</tr>
+<tr>
+<td>操作</td>
+<td>全自主（检测→发射→跟踪→捕获→返航全流程无人值守）</td>
+</tr>
+</tbody></table>
+<h3 id="11-3-技术亮点"><a href="#11-3-技术亮点" class="headerlink" title="11.3 技术亮点"></a>11.3 技术亮点</h3><p><strong>竞速无人机基因</strong>：Iron Drone Raider 源自高速竞速无人机平台，具备极高的加速度和机动性，可追上大多数消费级和军用小型无人机。</p>
+<p><strong>全自主闭环</strong>：从目标检测、Raider 发射、飞向目标区域、机载传感器接管、AI 视觉锁定、发射捕获网、目标降落、Raider 返航、装填新网、重新待命——整个流程<strong>全自主完成</strong>，无需人工飞手。</p>
+<p><strong>网+降落伞安全捕获</strong>：捕获网将目标无人机缠绕后，可选降落伞减缓坠落速度，减少地面冲击。这使其特别适合城市上空、机场、监狱等敏感区域。</p>
+<p><strong>加沙实战验证</strong>：在哈马斯-以色列冲突中加速升级并实战部署，积累了宝贵的实战经验，是少数真正经历过热战考验的截击系统。</p>
+<hr>
+<h2 id="十二、以色列-Rafael-Hunter-Eagle-Ghost-Hunter——从-Iron-Dome-到无人机对无人机"><a href="#十二、以色列-Rafael-Hunter-Eagle-Ghost-Hunter——从-Iron-Dome-到无人机对无人机" class="headerlink" title="十二、以色列 Rafael Hunter Eagle &amp; Ghost Hunter——从 Iron Dome 到无人机对无人机"></a>十二、以色列 Rafael Hunter Eagle &amp; Ghost Hunter——从 Iron Dome 到无人机对无人机</h2><h3 id="12-1-Hunter-Eagle（VTOL-动能截击型）"><a href="#12-1-Hunter-Eagle（VTOL-动能截击型）" class="headerlink" title="12.1 Hunter Eagle（VTOL 动能截击型）"></a>12.1 Hunter Eagle（VTOL 动能截击型）</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>研发方</td>
+<td>Rafael（以色列）</td>
+</tr>
+<tr>
+<td>构型</td>
+<td>VTOL，十字形翼 + 翼尖电动机</td>
+</tr>
+<tr>
+<td>高度</td>
+<td>0.4–0.5 m</td>
+</tr>
+<tr>
+<td>重量</td>
+<td>5–10 kg</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>估计 150–200 km&#x2F;h</td>
+</tr>
+<tr>
+<td>射程</td>
+<td>估计 10–15 km</td>
+</tr>
+<tr>
+<td>战斗部</td>
+<td>无爆炸物（纯动能）</td>
+</tr>
+<tr>
+<td>制导</td>
+<td>机鼻光电导引头 + AI 自主</td>
+</tr>
+<tr>
+<td>蜂群能力</td>
+<td>支持多机协同</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>2025 年底演示，2026 年交付</td>
+</tr>
+</tbody></table>
+<h3 id="12-2-Ghost-Hunter（涡喷远程截击型）"><a href="#12-2-Ghost-Hunter（涡喷远程截击型）" class="headerlink" title="12.2 Ghost Hunter（涡喷远程截击型）"></a>12.2 Ghost Hunter（涡喷远程截击型）</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>构型</td>
+<td>十字形三角翼 + 双涡喷发动机</td>
+</tr>
+<tr>
+<td>高度</td>
+<td>1.4–1.6 m</td>
+</tr>
+<tr>
+<td>重量</td>
+<td>50–60 kg</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>Hunter Eagle 的约 2 倍（估计 300-400 km&#x2F;h）</td>
+</tr>
+<tr>
+<td>制导</td>
+<td>机鼻 RF 雷达 + AI</td>
+</tr>
+<tr>
+<td>载荷</td>
+<td>数公斤级战斗部</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>2026 年底演示，2027 年量产交付</td>
+</tr>
+</tbody></table>
+<h3 id="12-3-技术亮点"><a href="#12-3-技术亮点" class="headerlink" title="12.3 技术亮点"></a>12.3 技术亮点</h3><p><strong>Rafael 防空体系的延伸</strong>：Rafael 是 Iron Dome（铁穹）的研发商。Hunter Eagle 和 Ghost Hunter 是 Rafael 将其防空能力向”反无人机”领域延伸的产物，与 Drone Dome（检测分类）、Lite Beam（10 kW 激光）共同构成分层 C-UAS 体系。</p>
+<p><strong>无爆炸物的城市安全设计</strong>：Hunter Eagle 不携带任何爆炸物，完全依靠动能撞击。如果拦截失败或任务取消，可自主返航垂直降落，避免”副作用”。这使它成为城市和人口密集区最安全的截击方案之一。</p>
+<p><strong>Ghost Hunter 的涡喷双发设计</strong>：50-60 kg 的起飞重量、双涡喷发动机、RF 雷达制导，Ghost Hunter 实质上是一枚微型空对空导弹，专门对付高速高价值无人机目标。</p>
+<hr>
+<h2 id="十三、德国-Diehl-Cicada——IRIS-T-家族的反无人机延伸"><a href="#十三、德国-Diehl-Cicada——IRIS-T-家族的反无人机延伸" class="headerlink" title="十三、德国 Diehl Cicada——IRIS-T 家族的反无人机延伸"></a>十三、德国 Diehl Cicada——IRIS-T 家族的反无人机延伸</h2><h3 id="13-1-基本信息"><a href="#13-1-基本信息" class="headerlink" title="13.1 基本信息"></a>13.1 基本信息</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>研发方</td>
+<td>Diehl Defence，德国（IRIS-T 防空导弹制造商）</td>
+</tr>
+<tr>
+<td>类型</td>
+<td>垂直起飞螺旋桨截击无人机</td>
+</tr>
+<tr>
+<td>首次展示</td>
+<td>EnforceTac 2025（纽伦堡）</td>
+</tr>
+<tr>
+<td>计划上市</td>
+<td>2026 年</td>
+</tr>
+<tr>
+<td>集成系统</td>
+<td>Guardion &#x2F; Sky Sphere &#x2F; Garmr C-UAS</td>
+</tr>
+</tbody></table>
+<h3 id="13-2-技术参数"><a href="#13-2-技术参数" class="headerlink" title="13.2 技术参数"></a>13.2 技术参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>长度</td>
+<td>700 mm</td>
+</tr>
+<tr>
+<td>直径</td>
+<td>300 mm</td>
+</tr>
+<tr>
+<td>构型</td>
+<td>圆柱机身 + X 形四三角翼（可折叠）</td>
+</tr>
+<tr>
+<td>动力</td>
+<td>机鼻五叶电动螺旋桨</td>
+</tr>
+<tr>
+<td>最大速度</td>
+<td>200 km&#x2F;h</td>
+</tr>
+<tr>
+<td>拦截距离</td>
+<td>4–5 km</td>
+</tr>
+<tr>
+<td>飞行时间</td>
+<td>~5 分钟</td>
+</tr>
+<tr>
+<td>中段制导</td>
+<td>无线电数据链 + 地面引导</td>
+</tr>
+<tr>
+<td>末段制导</td>
+<td>机载万向节主动雷达</td>
+</tr>
+<tr>
+<td>战斗部</td>
+<td>高爆破片（军用版）&#x2F; 捕获网（非致命版）</td>
+</tr>
+<tr>
+<td>可拦截目标</td>
+<td>Class 1-2 无人机（含 ~200 kg 级 Shahed-131）</td>
+</tr>
+</tbody></table>
+<h3 id="13-3-技术亮点"><a href="#13-3-技术亮点" class="headerlink" title="13.3 技术亮点"></a>13.3 技术亮点</h3><p><strong>IRIS-T 厂商背书</strong>：Diehl Defence 是德国 IRIS-T SLM 防空导弹系统的制造商，该系统在乌克兰战场已大量拦截俄方导弹和无人机。Cicada 是 Diehl 将其防空经验向低成本反无人机领域的延伸。</p>
+<p><strong>Garmr 系统集成</strong>：Cicada 不是独立产品，而是 Diehl Garmr 移动 C-UAS 系统的一部分。Garmr SRS（短程）版本搭载 15 枚 Cicada，Garmr MRS（中程）版本则换装 4 枚 Destinus Hornet Block 2，形成短程+中远程分层。</p>
+<p><strong>双模战斗部</strong>：军用高爆破片版本用于硬杀伤，民用捕获网版本用于机场、核电站等需要”零碎片”的场景。网版可回收重装。</p>
+<p><strong>主动雷达末制导</strong>：机鼻的万向节主动雷达可以在末段自主锁定目标，不依赖光电传感器，在夜间和恶劣天气中仍然有效。</p>
+<hr>
+<h2 id="十四、以色列-SpearUAV-Viper-I——装甲车辆的”随身防空盾”"><a href="#十四、以色列-SpearUAV-Viper-I——装甲车辆的”随身防空盾”" class="headerlink" title="十四、以色列 SpearUAV Viper I——装甲车辆的”随身防空盾”"></a>十四、以色列 SpearUAV Viper I——装甲车辆的”随身防空盾”</h2><h3 id="14-1-基本信息"><a href="#14-1-基本信息" class="headerlink" title="14.1 基本信息"></a>14.1 基本信息</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>研发方</td>
+<td>SpearUAV，以色列</td>
+</tr>
+<tr>
+<td>类型</td>
+<td>罐装发射拦截巡飞弹</td>
+</tr>
+<tr>
+<td>定位</td>
+<td>装甲车辆&#x2F;固定阵地上层攻击防御</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>系统集成阶段，即将交付</td>
+</tr>
+</tbody></table>
+<h3 id="14-2-技术参数"><a href="#14-2-技术参数" class="headerlink" title="14.2 技术参数"></a>14.2 技术参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发射重量</td>
+<td>3.5 kg</td>
+</tr>
+<tr>
+<td>载荷</td>
+<td>最大 1.3 kg（第三方战斗部）</td>
+</tr>
+<tr>
+<td>拦截距离</td>
+<td>2 km</td>
+</tr>
+<tr>
+<td>构型</td>
+<td>圆柱体机身，折叠旋翼臂，罐装发射</td>
+</tr>
+<tr>
+<td>制导</td>
+<td>AI 高速目标跟踪</td>
+</tr>
+<tr>
+<td>发射器</td>
+<td>Multi Canister Launcher（MCL），可载多枚</td>
+</tr>
+<tr>
+<td>平台兼容</td>
+<td>IFV、MBT、UGV、4×4 车辆、舰船</td>
+</tr>
+<tr>
+<td>开放架构</td>
+<td>兼容第三方传感器、通信设备、战斗部</td>
+</tr>
+</tbody></table>
+<h3 id="14-3-技术亮点"><a href="#14-3-技术亮点" class="headerlink" title="14.3 技术亮点"></a>14.3 技术亮点</h3><p><strong>车载一体化防空</strong>：Viper I 的核心理念是让每辆装甲车都拥有自己的反无人机能力。MCL 发射器可以直接安装在步战车、主战坦克、无人地面车辆上，车辆行进中即可发射。</p>
+<p><strong>与 Rafael Trophy 主动防护集成</strong>：Viper I 可以与 Rafael Trophy APS（主动防护系统）集成，为装甲车辆提供从反坦克导弹到无人机的全方位防护。</p>
+<p><strong>Viper 家族通用发射器</strong>：同一个 MCL 发射器可以混装 Viper 300（侦察巡飞弹）和 Viper I（截击型），使一辆车同时拥有侦察和防空能力。</p>
+<hr>
+<h2 id="十五、综合对比：全球十四款截击无人机参数一览"><a href="#十五、综合对比：全球十四款截击无人机参数一览" class="headerlink" title="十五、综合对比：全球十四款截击无人机参数一览"></a>十五、综合对比：全球十四款截击无人机参数一览</h2><table>
 <thead>
 <tr>
 <th>型号</th>
@@ -804,17 +1278,17 @@ btf.addGlobalFn('pjaxComplete', () => {
 </thead>
 <tbody><tr>
 <td><strong>STING</strong></td>
-<td>乌克兰</td>
+<td>🇺🇦 乌克兰</td>
 <td>343 km&#x2F;h</td>
 <td>25 km</td>
 <td>—</td>
 <td>动能+爆炸</td>
-<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo separator="true">,</mo><mn>100</mn><mi mathvariant="normal">∣</mi><mtext>击落</mtext><mn>3</mn><mo separator="true">,</mo><mn>900</mn><mo>+</mo><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">2,100 | 击落 3,900+ |</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100∣</span><span class="mord cjk_fallback">击落</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">900</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span></span></span></span></td>
+<td>~<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo separator="true">,</mo><mn>100</mn><mi mathvariant="normal">∣</mi><mtext>击落</mtext><mn>3</mn><mo separator="true">,</mo><mn>900</mn><mo>+</mo><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">2,100 | 击落 3,900+ |</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100∣</span><span class="mord cjk_fallback">击落</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">900</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span></span></span></span></td>
 <td><strong>GOBI</strong></td>
 </tr>
 <tr>
 <td><strong>BLAZE</strong></td>
-<td>拉脱维亚</td>
+<td>🇱🇻 拉脱维亚</td>
 <td>—</td>
 <td>10-20 km</td>
 <td>&lt;6 kg</td>
@@ -824,7 +1298,7 @@ btf.addGlobalFn('pjaxComplete', () => {
 </tr>
 <tr>
 <td><strong>DroneHunter F700</strong></td>
-<td>美国</td>
+<td>🇺🇸 美国</td>
 <td>—</td>
 <td>~4 km</td>
 <td>18 kg</td>
@@ -833,28 +1307,28 @@ btf.addGlobalFn('pjaxComplete', () => {
 <td>4,500+ 次捕获</td>
 </tr>
 <tr>
-<td><strong>Anvil</strong></td>
-<td>美国</td>
+<td><strong>Anvil &#x2F; Anvil-M</strong></td>
+<td>🇺🇸 美国</td>
 <td>高速</td>
 <td>短程</td>
 <td>5.3 kg</td>
-<td>动能&#x2F;高爆(M型)</td>
+<td>动能&#x2F;高爆</td>
 <td>—</td>
 <td>军事评估</td>
 </tr>
 <tr>
 <td><strong>X-Wing</strong></td>
-<td>法国&#x2F;乌克兰</td>
+<td>🇫🇷&#x2F;🇺🇦 法乌联合</td>
 <td>300 km&#x2F;h</td>
 <td>15 km</td>
 <td>3.5 kg</td>
-<td>AI 制导</td>
+<td>AI 动能</td>
 <td>—</td>
 <td>乌克兰实战</td>
 </tr>
 <tr>
 <td><strong>Black Bird</strong></td>
-<td>法国&#x2F;乌克兰</td>
+<td>🇫🇷&#x2F;🇺🇦 法乌联合</td>
 <td>670 km&#x2F;h</td>
 <td>30 km</td>
 <td>6 kg</td>
@@ -864,20 +1338,90 @@ btf.addGlobalFn('pjaxComplete', () => {
 </tr>
 <tr>
 <td><strong>Hornet Block 2</strong></td>
-<td>瑞士</td>
-<td>—</td>
+<td>🇨🇭 瑞士</td>
+<td>高亚音速</td>
 <td>&gt;70 km</td>
 <td>—</td>
 <td>高爆战斗部</td>
 <td>—</td>
 <td>展会展示</td>
 </tr>
+<tr>
+<td><strong>Skyhammer</strong></td>
+<td>🇬🇧 英国</td>
+<td>700 km&#x2F;h</td>
+<td>&gt;30 km</td>
+<td>18 kg</td>
+<td>雷达+破片</td>
+<td>数百万£合同</td>
+<td>2026.5 交付</td>
+</tr>
+<tr>
+<td><strong>Coyote Block 2+</strong></td>
+<td>🇺🇸 美国</td>
+<td>555-595 km&#x2F;h</td>
+<td>10-15 km</td>
+<td>—</td>
+<td>破片战斗部</td>
+<td>~<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mo separator="true">,</mo><mn>000</mn><mi mathvariant="normal">∣</mi><mtext>实战部署</mtext><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">100,000 | 实战部署 |</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">100</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">000∣</span><span class="mord cjk_fallback">实战部署</span><span class="mord">∣</span></span></span></span></td>
+<td><strong>Coyote Block 3NK</strong></td>
+</tr>
+<tr>
+<td><strong>Iron Drone Raider</strong></td>
+<td>🇮🇱 以色列</td>
+<td>竞速级</td>
+<td>3-5 km</td>
+<td>4 kg</td>
+<td>网捕获</td>
+<td>—</td>
+<td>加沙实战</td>
+</tr>
+<tr>
+<td><strong>Hunter Eagle</strong></td>
+<td>🇮🇱 以色列</td>
+<td>150-200 km&#x2F;h</td>
+<td>10-15 km</td>
+<td>5-10 kg</td>
+<td>纯动能（无爆炸物）</td>
+<td>—</td>
+<td>2026 交付</td>
+</tr>
+<tr>
+<td><strong>Ghost Hunter</strong></td>
+<td>🇮🇱 以色列</td>
+<td>~300-400 km&#x2F;h</td>
+<td>—</td>
+<td>50-60 kg</td>
+<td>RF 雷达+战斗部</td>
+<td>—</td>
+<td>2027 量产</td>
+</tr>
+<tr>
+<td><strong>Cicada</strong></td>
+<td>🇩🇪 德国</td>
+<td>200 km&#x2F;h</td>
+<td>4-5 km</td>
+<td>—</td>
+<td>破片&#x2F;捕获网</td>
+<td>—</td>
+<td>2026 上市</td>
+</tr>
+<tr>
+<td><strong>Viper I</strong></td>
+<td>🇮🇱 以色列</td>
+<td>高速</td>
+<td>2 km</td>
+<td>3.5 kg</td>
+<td>第三方战斗部</td>
+<td>—</td>
+<td>集成阶段</td>
+</tr>
 </tbody></table>
 <hr>
-<h2 id="十、技术趋势与未来展望"><a href="#十、技术趋势与未来展望" class="headerlink" title="十、技术趋势与未来展望"></a>十、技术趋势与未来展望</h2><h3 id="10-1-五大发展趋势"><a href="#10-1-五大发展趋势" class="headerlink" title="10.1 五大发展趋势"></a>10.1 五大发展趋势</h3><p><strong>1. AI 自主化程度持续提升</strong></p>
+<h2 id="十六、技术趋势与未来展望"><a href="#十六、技术趋势与未来展望" class="headerlink" title="十六、技术趋势与未来展望"></a>十六、技术趋势与未来展望</h2><h3 id="16-1-六大发展趋势"><a href="#16-1-六大发展趋势" class="headerlink" title="16.1 六大发展趋势"></a>16.1 六大发展趋势</h3><p><strong>1. AI 自主化程度持续提升</strong></p>
 <p>从 STING 的 AI 辅助热成像跟踪，到 GOBI 的完全自主末段制导，再到 Alta Ares 的无 GNSS Pixel Lock，截击无人机正快速走向”发射后不管”（fire-and-forget）。电子战环境下，不依赖外部数据链的自主能力将成为核心竞争力。</p>
 <p><strong>2. 速度竞赛</strong></p>
-<p>目标无人机在变快——俄罗斯 Geran-3 采用涡喷发动机，速度远超传统的活塞式 Shahed。截击机必须更快：Alta Ares Black Bird 达到 670 km&#x2F;h，Destinus Hornet 3 采用涡喷达到高亚音速。</p>
+<p>目标无人机在变快——俄罗斯 Geran-3 采用涡喷发动机，速度远超传统的活塞式 Shahed。截击机必须更快：Alta Ares Black Bird 达到 670 km&#x2F;h，Skyhammer 达到 700 km&#x2F;h（Mach 0.7），Destinus Hornet 3 采用涡喷达到高亚音速。速度已经从 200 km&#x2F;h 级别跃升到 700 km&#x2F;h 级别。</p>
 <p><strong>3. 成本竞赛</strong></p>
 <p>STING 的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo separator="true">,</mo><mn>100</mn><mtext>设定了价格标杆。未来的截击机必须维持在目标无人机成本的</mtext><mn>1</mn><mi mathvariant="normal">/</mi><mn>10</mn><mtext>到同等水平，否则就失去了相对于传统防空导弹的经济优势。</mtext><mn>3</mn><mi>D</mi><mtext>打印、消费级电子元器件、开源</mtext><mi>A</mi><mi>I</mi><mtext>模型的应用将继续压低成本。</mtext></mrow><annotation encoding="application/x-tex">2,100 设定了价格标杆。未来的截击机必须维持在目标无人机成本的 1/10 到同等水平，否则就失去了相对于传统防空导弹的经济优势。3D 打印、消费级电子元器件、开源 AI 模型的应用将继续压低成本。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mord cjk_fallback">设定了价格标杆。未来的截击机必须维持在目标无人机成本的</span><span class="mord">1/10</span><span class="mord cjk_fallback">到同等水平，否则就失去了相对于传统防空导弹的经济优势。</span><span class="mord">3</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord cjk_fallback">打印、消费级电子元器件、开源</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mord cjk_fallback">模型的应用将继续压低成本。</span></span></span></span><br><strong>4. 分层防御体系</strong></p>
 <p>没有单一系统能应对所有威胁。法国在中东已部署 GOBI + Alta Ares + Destinus 三重体系：</p>
@@ -887,36 +1431,60 @@ btf.addGlobalFn('pjaxComplete', () => {
 <li><strong>远程</strong>（&gt;45 km）：Hornet Block 1&#x2F;2——填补 VSHORAD 到 SHORAD 空白</li>
 </ul>
 <p><strong>5. 从专用走向通用平台</strong></p>
-<p>Destinus Hornet Block 2 已将反直升机纳入目标清单（70 km 射程、3 kg 载荷）。未来截击无人机可能演变为通用化的低成本制导弹药平台。</p>
-<h3 id="10-2-乌克兰战场的启示"><a href="#10-2-乌克兰战场的启示" class="headerlink" title="10.2 乌克兰战场的启示"></a>10.2 乌克兰战场的启示</h3><p>乌克兰战争作为人类历史上首次大规模无人机战争，为截击无人机的发展提供了无可替代的实战数据：</p>
+<p>Destinus Hornet Block 2 已将反直升机纳入目标清单（70 km 射程、3 kg 载荷）。Coyote LE SR 从 Bradley 战车和直升机上发射。未来截击无人机可能演变为通用化的低成本制导弹药平台。</p>
+<p><strong>6. 非动能反蜂群成为新方向</strong></p>
+<p>Coyote Block 3NK 的非动能电子战载荷开创了新范式——一架可回收的截击机通过电子战手段同时瘫痪多架敌方无人机。这从根本上改变了”一对一”消耗战的经济模型，使防御方在面对蜂群攻击时不再需要数量对等的拦截弹。</p>
+<h3 id="16-2-乌克兰战场的启示"><a href="#16-2-乌克兰战场的启示" class="headerlink" title="16.2 乌克兰战场的启示"></a>16.2 乌克兰战场的启示</h3><p>乌克兰战争作为人类历史上首次大规模无人机战争，为截击无人机的发展提供了无可替代的实战数据：</p>
 <ul>
 <li><strong>量比质更重要</strong>：乌克兰 2025 年生产了 10 万架截击无人机，STING 月产超过 1 万架。高技术、高成本的系统在面对饱和攻击时不如大批量、低成本的消耗品。</li>
 <li><strong>迭代速度决胜</strong>：从发现问题到改进设计的周期缩短到周级别。STING 经历了多次迭代，持续改进热成像制导精度和飞行速度。</li>
 <li><strong>国际合作模式创新</strong>：法国-乌克兰的 Alta Ares 模式——法方提供 AI 和系统集成，乌方提供战场测试和数据反馈——可能成为未来军事技术开发的典范。</li>
 </ul>
 <hr>
-<h2 id="十一、总结"><a href="#十一、总结" class="headerlink" title="十一、总结"></a>十一、总结</h2><p>截击无人机正在从一个新兴概念快速成长为现代防空体系的<strong>核心组成部分</strong>。乌克兰 STING 以 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo separator="true">,</mo><mn>100</mn><mtext>的单价和</mtext><mn>3</mn><mo separator="true">,</mo><mn>900</mn><mo>+</mo><mtext>的战绩证明了这一概念的可行性；法国</mtext><mi>G</mi><mi>O</mi><mi>B</mi><mi>I</mi><mtext>以</mtext><mn>2.2</mn><mi>k</mi><mi>g</mi><mtext>的极致轻量化展示了步兵班组级反无人机的可能；拉脱维亚</mtext><mi>B</mi><mi>L</mi><mi>A</mi><mi>Z</mi><mi>E</mi><mtext>率先获得</mtext><mi>N</mi><mi>A</mi><mi>T</mi><mi>O</mi><mtext>编码，推动了标准化进程；</mtext><mi>F</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>m</mi><mi>D</mi><mi>r</mi><mi>o</mi><mi>n</mi><mi>e</mi><mi>H</mi><mi>u</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>F</mi><mn>700</mn><mtext>的网枪捕获方案为敏感区域防御提供了独特选择；而</mtext><mi>D</mi><mi>e</mi><mi>s</mi><mi>t</mi><mi>i</mi><mi>n</mi><mi>u</mi><mi>s</mi><mi>H</mi><mi>o</mi><mi>r</mi><mi>n</mi><mi>e</mi><mi>t</mi><mtext>的</mtext><mn>70</mn><mi>k</mi><mi>m</mi><mtext>射程则将截击无人机的概念推向了传统防空导弹的领域。</mtext></mrow><annotation encoding="application/x-tex">2,100 的单价和 3,900+ 的战绩证明了这一概念的可行性；法国 GOBI 以 2.2 kg 的极致轻量化展示了步兵班组级反无人机的可能；拉脱维亚 BLAZE 率先获得 NATO 编码，推动了标准化进程；Fortem DroneHunter F700 的网枪捕获方案为敏感区域防御提供了独特选择；而 Destinus Hornet 的 70 km 射程则将截击无人机的概念推向了传统防空导弹的领域。</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mord cjk_fallback">的单价和</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">900</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord cjk_fallback">的战绩证明了这一概念的可行性；法国</span><span class="mord mathnormal" style="margin-right:0.0278em;">GO</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mord cjk_fallback">以</span><span class="mord">2.2</span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mord cjk_fallback">的极致轻量化展示了步兵班组级反无人机的可能；拉脱维亚</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mord mathnormal">L</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord cjk_fallback">率先获得</span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mord cjk_fallback">编码，推动了标准化进程；</span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord mathnormal" style="margin-right:0.0278em;">or</span><span class="mord mathnormal">t</span><span class="mord mathnormal">e</span><span class="mord mathnormal">m</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.0813em;">eH</span><span class="mord mathnormal">u</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.0278em;">er</span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord">700</span><span class="mord cjk_fallback">的网枪捕获方案为敏感区域防御提供了独特选择；而</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord mathnormal">es</span><span class="mord mathnormal">t</span><span class="mord mathnormal">in</span><span class="mord mathnormal">u</span><span class="mord mathnormal" style="margin-right:0.0813em;">sH</span><span class="mord mathnormal" style="margin-right:0.0278em;">or</span><span class="mord mathnormal">n</span><span class="mord mathnormal">e</span><span class="mord mathnormal">t</span><span class="mord cjk_fallback">的</span><span class="mord">70</span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mord mathnormal">m</span><span class="mord cjk_fallback">射程则将截击无人机的概念推向了传统防空导弹的领域。</span></span></span></span><br>这场博弈的本质是<strong>成本不对称之战</strong>——谁能以更低的成本实现更高的拦截概率，谁就赢得了现代防空的主动权。</p>
+<h2 id="十七、总结"><a href="#十七、总结" class="headerlink" title="十七、总结"></a>十七、总结</h2><p>截击无人机正在从一个新兴概念快速成长为现代防空体系的<strong>核心组成部分</strong>。本文梳理的十四款系统（涉及八个国家）展现了这一领域的多元化发展路径：</p>
+<ul>
+<li><strong>乌克兰 STING</strong> 以 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo separator="true">,</mo><mn>100</mn><mtext>的单价和</mtext><mn>3</mn><mo separator="true">,</mo><mn>900</mn><mo>+</mo><mtext>的战绩证明了低成本大规模截击的可行性</mtext></mrow><annotation encoding="application/x-tex">2,100 的单价和 3,900+ 的战绩证明了低成本大规模截击的可行性</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mord cjk_fallback">的单价和</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">900</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord cjk_fallback">的战绩证明了低成本大规模截击的可行性</span></span></span></span>- <strong>法国 GOBI</strong> 以 2.2 kg 的极致轻量化展示了步兵班组级反无人机的可能</li>
+<li><strong>拉脱维亚 BLAZE</strong> 率先获得 NATO 编码，推动了标准化进程</li>
+<li><strong>美国 DroneHunter F700</strong> 的网枪捕获方案为敏感区域防御提供了独特选择</li>
+<li><strong>英国 Skyhammer</strong> 以 700 km&#x2F;h 和 30 km 射程逼近了传统导弹的性能</li>
+<li><strong>美国 Coyote Block 3NK</strong> 的非动能反蜂群方案打开了”一对多”的新范式</li>
+<li><strong>以色列 Rafael Hunter Eagle&#x2F;Ghost Hunter</strong> 将 Iron Dome 级别的防空思维带入了无人机对无人机领域</li>
+<li><strong>德国 Diehl Cicada</strong> 与 Destinus Hornet 的组合展示了短程+中远程分层集成的方向</li>
+<li><strong>以色列 SpearUAV Viper I</strong> 让每辆装甲车都拥有了自己的防空能力</li>
+</ul>
+<p>这场博弈的本质是<strong>成本不对称之战</strong>——谁能以更低的成本实现更高的拦截概率，谁就赢得了现代防空的主动权。而 2026 年的趋势表明，截击无人机已不仅仅是乌克兰战场的特殊产物，它正在成为从波罗的海到波斯湾、从北极到中东的<strong>全球性标准防御手段</strong>。</p>
 <hr>
 <h2 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h2><ol>
 <li>Wild Hornets 官网. <em>STING – Shahed Interceptor</em>. <a target="_blank" rel="noopener" href="https://wildhornets.com/en/sting-interceptor">https://wildhornets.com/en/sting-interceptor</a></li>
 <li>Wikipedia. <em>Sting (drone)</em>. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Sting_(drone)">https://en.wikipedia.org/wiki/Sting_(drone)</a></li>
 <li>Harmattan AI 官网. <em>GOBI High-Speed Drone Interceptor</em>. <a target="_blank" rel="noopener" href="https://www.harmattan.ai/systems/gobi/">https://www.harmattan.ai/systems/gobi/</a></li>
-<li>Army Recognition. <em>France’s Harmattan AI Launches GOBI Drone</em>. 2025-07-18. <a target="_blank" rel="noopener" href="https://armyrecognition.com/news/aerospace-news/2025/frances-harmattan-ai-launches-gobi-drone-to-revolutionize-counter-drone-warfare-with-ultra-fast-interception">https://armyrecognition.com/news/aerospace-news/2025/frances-harmattan-ai-launches-gobi-drone-to-revolutionize-counter-drone-warfare-with-ultra-fast-interception</a></li>
+<li>Army Recognition. <em>France’s Harmattan AI Launches GOBI Drone</em>. 2025-07-18. <a target="_blank" rel="noopener" href="https://armyrecognition.com/news/aerospace-news/2025/frances-harmattan-ai-launches-gobi-drone-to-revolutionize-counter-drone-warfare-with-ultra-fast-interception">链接</a></li>
 <li>Origin Robotics 官网. <em>BLAZE</em>. <a target="_blank" rel="noopener" href="https://origin-robotics.com/blaze">https://origin-robotics.com/blaze</a></li>
-<li>Soldier Systems Daily. <em>Origin Robotics Unveils BLAZE</em>. 2025-09-10. <a target="_blank" rel="noopener" href="https://soldiersystems.net/2025/09/10/origin-robotics-unveils-blaze-a-cost-effective-drone-interceptor-with-ai-powered-computer-vision/">https://soldiersystems.net/2025/09/10/origin-robotics-unveils-blaze-a-cost-effective-drone-interceptor-with-ai-powered-computer-vision/</a></li>
-<li>EDR Magazine. <em>DSEI 2025 - Origin Robotics counter-UAS interceptor Blaze</em>. <a target="_blank" rel="noopener" href="https://www.edrmagazine.eu/dsei-2025-origin-robotics-counter-uas-interceptor-blaze">https://www.edrmagazine.eu/dsei-2025-origin-robotics-counter-uas-interceptor-blaze</a></li>
+<li>Soldier Systems Daily. <em>Origin Robotics Unveils BLAZE</em>. 2025-09-10. <a target="_blank" rel="noopener" href="https://soldiersystems.net/2025/09/10/origin-robotics-unveils-blaze-a-cost-effective-drone-interceptor-with-ai-powered-computer-vision/">链接</a></li>
+<li>EDR Magazine. <em>DSEI 2025 - Origin Robotics counter-UAS interceptor Blaze</em>. <a target="_blank" rel="noopener" href="https://www.edrmagazine.eu/dsei-2025-origin-robotics-counter-uas-interceptor-blaze">链接</a></li>
 <li>Fortem Technologies 官网. <em>DroneHunter F700</em>. <a target="_blank" rel="noopener" href="https://www.fortemtech.com/products/dronehunter-f700/">https://www.fortemtech.com/products/dronehunter-f700/</a></li>
-<li>Fortem Technologies Blog. <em>The technology to safely stop drones already exists</em>. 2026-02-14. <a target="_blank" rel="noopener" href="https://www.fortemtech.com/blog/discussions/2026-02-14-the-technology-to-safely-stop-drones-already-exists-the-u-s-government-is-buying-it-from-us/">https://www.fortemtech.com/blog/discussions/2026-02-14-the-technology-to-safely-stop-drones-already-exists-the-u-s-government-is-buying-it-from-us/</a></li>
+<li>Fortem Technologies Blog. <em>The technology to safely stop drones already exists</em>. 2026-02-14. <a target="_blank" rel="noopener" href="https://www.fortemtech.com/blog/discussions/2026-02-14-the-technology-to-safely-stop-drones-already-exists-the-u-s-government-is-buying-it-from-us/">链接</a></li>
 <li>Anduril 官网. <em>Counter UAS &#x2F; Anvil</em>. <a target="_blank" rel="noopener" href="https://www.anduril.com/counter-uas">https://www.anduril.com/counter-uas</a></li>
-<li>Defence Blog. <em>U.S. steps closer to fielding autonomous drone interceptor</em>. 2025-11-07. <a target="_blank" rel="noopener" href="https://defence-blog.com/u-s-steps-closer-to-fielding-autonomous-drone-interceptor/">https://defence-blog.com/u-s-steps-closer-to-fielding-autonomous-drone-interceptor/</a></li>
+<li>Defence Blog. <em>U.S. steps closer to fielding autonomous drone interceptor</em>. 2025-11-07. <a target="_blank" rel="noopener" href="https://defence-blog.com/u-s-steps-closer-to-fielding-autonomous-drone-interceptor/">链接</a></li>
 <li>Alta Ares 官网. <a target="_blank" rel="noopener" href="https://www.altaares.com/">https://www.altaares.com/</a></li>
-<li>UNITED24 Media. <em>Shahed Killers: Ukraine and France Launch Next-Gen Jet-Powered Interceptor Drones</em>. 2025-11-17. <a target="_blank" rel="noopener" href="https://united24media.com/latest-news/shahed-killers-ukraine-and-france-launch-next-gen-jet-powered-interceptor-drones-13528">https://united24media.com/latest-news/shahed-killers-ukraine-and-france-launch-next-gen-jet-powered-interceptor-drones-13528</a></li>
-<li>Militarnyi. <em>France to Counter Iranian Shaheds With Three Types of Interceptor Drones</em>. <a target="_blank" rel="noopener" href="https://militarnyi.com/en/news/france-counter-shaheds-interceptor-drones/">https://militarnyi.com/en/news/france-counter-shaheds-interceptor-drones/</a></li>
-<li>Army Recognition. <em>Destinus Unveils Hornet Block2 Interceptor</em>. BEDEX 2026. <a target="_blank" rel="noopener" href="https://www.armyrecognition.com/archives/archives-defense-exhibitions/2026-archives-news-defense-exhibitions/bedex-2026/destinus-unveils-hornet-block2-interceptor-as-a-european-quick-response-counter-drone-system">https://www.armyrecognition.com/archives/archives-defense-exhibitions/2026-archives-news-defense-exhibitions/bedex-2026/destinus-unveils-hornet-block2-interceptor-as-a-european-quick-response-counter-drone-system</a></li>
+<li>UNITED24 Media. <em>Shahed Killers: Ukraine and France Launch Next-Gen Jet-Powered Interceptor Drones</em>. 2025-11-17. <a target="_blank" rel="noopener" href="https://united24media.com/latest-news/shahed-killers-ukraine-and-france-launch-next-gen-jet-powered-interceptor-drones-13528">链接</a></li>
+<li>Militarnyi. <em>France to Counter Iranian Shaheds With Three Types of Interceptor Drones</em>. <a target="_blank" rel="noopener" href="https://militarnyi.com/en/news/france-counter-shaheds-interceptor-drones/">链接</a></li>
+<li>Army Recognition. <em>Destinus Unveils Hornet Block2 Interceptor</em>. BEDEX 2026. <a target="_blank" rel="noopener" href="https://www.armyrecognition.com/archives/archives-defense-exhibitions/2026-archives-news-defense-exhibitions/bedex-2026/destinus-unveils-hornet-block2-interceptor-as-a-european-quick-response-counter-drone-system">链接</a></li>
 <li>Destinus 官网. <em>Hornet</em>. <a target="_blank" rel="noopener" href="https://www.destinus.com/page/hornet">https://www.destinus.com/page/hornet</a></li>
-<li>Unmanned Airspace. <em>Faster, further, more lethal: comparing worldwide kinetic intercept drone capabilities</em>. 2026. <a target="_blank" rel="noopener" href="https://www.unmannedairspace.info/counter-uas-systems-and-policies/faster-further-more-lethal-comparing-kinetic-intercept-drone-capabilities-from-around-the-world/">https://www.unmannedairspace.info/counter-uas-systems-and-policies/faster-further-more-lethal-comparing-kinetic-intercept-drone-capabilities-from-around-the-world/</a></li>
+<li>UK GOV. <em>UK start-up to supply interceptor missiles to UK military and Gulf partners</em>. 2026-04-10. <a target="_blank" rel="noopener" href="https://www.gov.uk/government/news/uk-start-up-to-supply-interceptor-missiles-to-uk-military-and-gulf-partners">链接</a></li>
+<li>Defence Blog. <em>UK orders Skyhammer drone interceptors from Cambridge Aerospace</em>. 2026-04-10. <a target="_blank" rel="noopener" href="https://defence-blog.com/uk-orders-skyhammer-drone-interceptors-from-cambridge-aerospace/">链接</a></li>
+<li>RTX&#x2F;Raytheon 官网. <em>Coyote C-UAS</em>. <a target="_blank" rel="noopener" href="https://www.rtx.com/raytheon/what-we-do/integrated-air-and-missile-defense/coyote">https://www.rtx.com/raytheon/what-we-do/integrated-air-and-missile-defense/coyote</a></li>
+<li>Raytheon MediaRoom. <em>RTX’s Raytheon’s non-kinetic Coyote variant defeats multiple drone swarms</em>. 2026-02-11. <a target="_blank" rel="noopener" href="https://raytheon.mediaroom.com/2026-02-11-RTXs-Raytheons-non-kinetic-Coyote-variant-defeats-multiple-drone-swarms">链接</a></li>
+<li>Breaking Defense. <em>Iron Drone Raider is at the cutting edge of autonomous drone defense</em>. 2025-03. <a target="_blank" rel="noopener" href="https://breakingdefense.com/2025/03/iron-drone-raider-is-at-the-cutting-edge-of-autonomous-drone-defense/">链接</a></li>
+<li>Autonomy Global. <em>RAFAEL’s New Counter-UAS Systems: The Hunter Eagle and Ghost Hunter</em>. <a target="_blank" rel="noopener" href="https://www.autonomyglobal.co/rafaels-new-counter-uas-systems-the-hunter-eagle-and-ghost-hunter-interceptor-drones/">链接</a></li>
+<li>Janes. <em>EnforceTac 2025: Diehl Defence presents Cicada UAV interceptor</em>. 2025-03-03. <a target="_blank" rel="noopener" href="https://www.janes.com/osint-insights/defence-news/air/enforcetac-2025-diehl-defence-presents-cicada-uav-interceptor">链接</a></li>
+<li>EDR Magazine. <em>Enforce Tac 2026 – Diehl Defence relaunches its Garmr counter-drone system</em>. <a target="_blank" rel="noopener" href="https://www.edrmagazine.eu/enforce-tac-2026-diehl-defence-relaunches-its-garmr-counter-drone-system">链接</a></li>
+<li>SpearUAV 官网. <em>VIPER I</em>. <a target="_blank" rel="noopener" href="https://spearuav.com/viper-family/viper-I/">https://spearuav.com/viper-family/viper-I/</a></li>
+<li>Next Gen Defense. <em>SpearUAV Launches Viper Top-Attack Drone Interceptor</em>. 2024-10-21. <a target="_blank" rel="noopener" href="https://nextgendefense.com/spearuav-top-attack-drone-interceptor/">链接</a></li>
+<li>Wikipedia. <em>Raytheon Coyote</em>. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Raytheon_Coyote">https://en.wikipedia.org/wiki/Raytheon_Coyote</a></li>
+<li>Unmanned Airspace. <em>Faster, further, more lethal: comparing worldwide kinetic intercept drone capabilities</em>. 2026. <a target="_blank" rel="noopener" href="https://www.unmannedairspace.info/counter-uas-systems-and-policies/faster-further-more-lethal-comparing-kinetic-intercept-drone-capabilities-from-around-the-world/">链接</a></li>
 <li>H I Sutton &#x2F; Covert Shores. <em>Guide To Ukrainian Interceptor Drones</em>. <a target="_blank" rel="noopener" href="https://www.hisutton.com/Ukrainian-Interceptor-Drones.html">https://www.hisutton.com/Ukrainian-Interceptor-Drones.html</a></li>
 </ol>
 <hr>
 <p><strong>核心观点</strong>：截击无人机不是传统防空的替代品，而是在”低成本&#x2F;大规模无人机威胁”这个特定场景中的最优解。它与传统防空导弹、高射炮、电子战系统共同构成分层防御体系——让便宜的目标用便宜的手段对付，把昂贵的导弹留给真正有价值的目标。</p>
-</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/">https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA/">反无人机</a><a class="post-meta__tags" href="/tags/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA/">截击无人机</a><a class="post-meta__tags" href="/tags/C-UAS/">C-UAS</a><a class="post-meta__tags" href="/tags/STING/">STING</a><a class="post-meta__tags" href="/tags/GOBI/">GOBI</a><a class="post-meta__tags" href="/tags/BLAZE/">BLAZE</a><a class="post-meta__tags" href="/tags/DroneHunter/">DroneHunter</a><a class="post-meta__tags" href="/tags/Anvil/">Anvil</a><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%98%E4%BA%89/">无人机战争</a><a class="post-meta__tags" href="/tags/%E4%B9%8C%E5%85%8B%E5%85%B0/">乌克兰</a><a class="post-meta__tags" href="/tags/%E5%8C%97%E7%BA%A6/">北约</a><a class="post-meta__tags" href="/tags/%E9%98%B2%E7%A9%BA/">防空</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模</div></div><div class="info-2"><div class="info-item-1"> AirSim&#x2F;Colosseum 的四旋翼仿真不是黑盒。本文基于 Colosseum 仓库 [1] 的 C++ 源码逐文件解析，明确哪些参数硬编码在 C++ 中、哪些可以通过 settings.json 配置、哪些需要修改源码才能改变，手把手讲解如何为自己的无人机建立仿真模型。  前置阅读：本文建立在以下两篇文章的基础上，建议先阅读：  无人机建模中的线性代数：从坐标变换到姿态控制的数学基础——旋转矩阵、四元数、特征值等数学工具 无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导——牛顿-欧拉方程、螺旋桨空气动力学、六自由度 ODE   一、AirSim 与 Colosseum：项目背景AirSim 由微软研究院开发，2017 年开源 [8]。2022 年微软停止维护后，社区 fork 出 Colosseum [1] 继续开发，当前主分支支持 Unreal Engine 5.6。两者核心物理引擎代码一致，本文基于 Colosseum main 分支源码分析，同时适用于原版 AirSim。 核心设计哲学：AirSim 将物理仿真（AirLib）与渲染引擎（Unre...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">112</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA"><span class="toc-number">1.</span> <span class="toc-text">一、为什么需要截击无人机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%88%90%E6%9C%AC%E4%B8%8D%E5%AF%B9%E7%A7%B0%E5%9B%B0%E5%A2%83"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 成本不对称困境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 截击无人机的分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B9%8C%E5%85%8B%E5%85%B0-STING%EF%BC%88%E6%AF%92%E5%88%BA%EF%BC%89%E2%80%94%E2%80%94%E6%88%98%E5%9C%BA%E9%AA%8C%E8%AF%81%E4%B9%8B%E7%8E%8B"><span class="toc-number">2.</span> <span class="toc-text">二、乌克兰 STING（毒刺）——战场验证之王</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%AE%9E%E6%88%98%E8%A1%A8%E7%8E%B0"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 实战表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B3%95%E5%9B%BD-GOBI%E2%80%94%E2%80%94%E6%9E%81%E9%80%9F%E8%BD%BB%E9%87%8F%E5%8C%96%E6%8B%A6%E6%88%AA%E8%80%85"><span class="toc-number">3.</span> <span class="toc-text">三、法国 GOBI——极速轻量化拦截者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 技术亮点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B7%B2%E7%9F%A5%E9%83%A8%E7%BD%B2"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 已知部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8B%89%E8%84%B1%E7%BB%B4%E4%BA%9A-BLAZE%E2%80%94%E2%80%94%E5%8C%97%E7%BA%A6%E6%A0%87%E5%87%86%E5%8C%96%E5%85%88%E9%94%8B"><span class="toc-number">4.</span> <span class="toc-text">四、拉脱维亚 BLAZE——北约标准化先锋</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BE%8E%E5%9B%BD-Fortem-DroneHunter-F700%E2%80%94%E2%80%94%E9%9D%9E%E8%87%B4%E5%91%BD%E6%8D%95%E8%8E%B7%E4%B8%93%E5%AE%B6"><span class="toc-number">5.</span> <span class="toc-text">五、美国 Fortem DroneHunter F700——非致命捕获专家</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%AE%9E%E6%88%98%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 实战与部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BE%8E%E5%9B%BD-Anduril-Anvil%E2%80%94%E2%80%94%E7%A1%85%E8%B0%B7%E5%BC%8F%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%96%B9%E6%A1%88"><span class="toc-number">6.</span> <span class="toc-text">六、美国 Anduril Anvil——硅谷式反无人机方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%B3%95%E5%9B%BD-Alta-Ares-X-Wing-Black-Bird%E2%80%94%E2%80%94%E6%B3%95%E4%B9%8C%E8%81%94%E5%90%88%E7%A0%94%E5%8F%91"><span class="toc-number">7.</span> <span class="toc-text">七、法国 Alta Ares X-Wing &amp; Black Bird——法乌联合研发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-X-Wing%EF%BC%88%E7%94%B5%E5%8A%A8%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 X-Wing（电动截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Black-Bird%EF%BC%88%E6%B6%A1%E5%96%B7%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 Black Bird（涡喷截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Safe-Protection-Dome-%E7%B3%BB%E7%BB%9F"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 Safe Protection Dome 系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%91%9E%E5%A3%AB-Destinus-Hornet%E2%80%94%E2%80%94%E4%BB%8E-VSHORAD-%E5%88%B0-SHORAD-%E7%9A%84%E8%A1%A5%E7%BC%BA%E8%80%85"><span class="toc-number">8.</span> <span class="toc-text">八、瑞士 Destinus Hornet——从 VSHORAD 到 SHORAD 的补缺者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%9E%8B%E5%8F%B7%E8%B0%B1%E7%B3%BB"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 型号谱系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8A%80%E6%9C%AF%E7%89%B9%E7%82%B9"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 技术特点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%BB%BC%E5%90%88%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%85%A8%E7%90%83%E5%85%AB%E6%AC%BE%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8F%82%E6%95%B0%E4%B8%80%E8%A7%88"><span class="toc-number">9.</span> <span class="toc-text">九、综合对比：全球八款截击无人机参数一览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%8A%80%E6%9C%AF%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B"><span class="toc-number">10.</span> <span class="toc-text">十、技术趋势与未来展望</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E4%BA%94%E5%A4%A7%E5%8F%91%E5%B1%95%E8%B6%8B%E5%8A%BF"><span class="toc-number">10.1.</span> <span class="toc-text">10.1 五大发展趋势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E4%B9%8C%E5%85%8B%E5%85%B0%E6%88%98%E5%9C%BA%E7%9A%84%E5%90%AF%E7%A4%BA"><span class="toc-number">10.2.</span> <span class="toc-text">10.2 乌克兰战场的启示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">十一、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90"><span class="toc-number">12.</span> <span class="toc-text">参考来源</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/" title="全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，八款主流系统技术对比</a><time datetime="2026-04-21T12:00:00.000Z" title="发表于 2026-04-21 20:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模">AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模</a><time datetime="2026-04-21T10:00:00.000Z" title="发表于 2026-04-21 18:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%A3%9E%E8%A1%8C%E7%89%A9%E7%90%86%E5%AD%A6-%E4%BB%8E%E7%89%9B%E9%A1%BF%E5%8A%9B%E5%AD%A6%E5%88%B0%E5%85%AD%E8%87%AA%E7%94%B1%E5%BA%A6%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC/" title="无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导">无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导</a><time datetime="2026-04-21T07:00:00.000Z" title="发表于 2026-04-21 15:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</a><time datetime="2026-04-21T02:00:00.000Z" title="发表于 2026-04-21 10:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/2026%E5%B9%B4%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8E%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF%EF%BC%9A%E5%8D%81%E5%A4%A7%E7%AA%81%E7%A0%B4%E6%80%A7%E8%BF%9B%E5%B1%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="2026年无人机与仿真技术前沿：十大突破性进展深度解析">2026年无人机与仿真技术前沿：十大突破性进展深度解析</a><time datetime="2026-04-20T14:30:00.000Z" title="发表于 2026-04-20 22:30:00">2026-04-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/">https://goodisok.github.io/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA/">反无人机</a><a class="post-meta__tags" href="/tags/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA/">截击无人机</a><a class="post-meta__tags" href="/tags/C-UAS/">C-UAS</a><a class="post-meta__tags" href="/tags/STING/">STING</a><a class="post-meta__tags" href="/tags/GOBI/">GOBI</a><a class="post-meta__tags" href="/tags/BLAZE/">BLAZE</a><a class="post-meta__tags" href="/tags/DroneHunter/">DroneHunter</a><a class="post-meta__tags" href="/tags/Anvil/">Anvil</a><a class="post-meta__tags" href="/tags/Skyhammer/">Skyhammer</a><a class="post-meta__tags" href="/tags/Coyote/">Coyote</a><a class="post-meta__tags" href="/tags/Iron-Drone/">Iron Drone</a><a class="post-meta__tags" href="/tags/Hunter-Eagle/">Hunter Eagle</a><a class="post-meta__tags" href="/tags/Cicada/">Cicada</a><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%98%E4%BA%89/">无人机战争</a><a class="post-meta__tags" href="/tags/%E4%B9%8C%E5%85%8B%E5%85%B0/">乌克兰</a><a class="post-meta__tags" href="/tags/%E5%8C%97%E7%BA%A6/">北约</a><a class="post-meta__tags" href="/tags/%E9%98%B2%E7%A9%BA/">防空</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模</div></div><div class="info-2"><div class="info-item-1"> AirSim&#x2F;Colosseum 的四旋翼仿真不是黑盒。本文基于 Colosseum 仓库 [1] 的 C++ 源码逐文件解析，明确哪些参数硬编码在 C++ 中、哪些可以通过 settings.json 配置、哪些需要修改源码才能改变，手把手讲解如何为自己的无人机建立仿真模型。  前置阅读：本文建立在以下两篇文章的基础上，建议先阅读：  无人机建模中的线性代数：从坐标变换到姿态控制的数学基础——旋转矩阵、四元数、特征值等数学工具 无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导——牛顿-欧拉方程、螺旋桨空气动力学、六自由度 ODE   一、AirSim 与 Colosseum：项目背景AirSim 由微软研究院开发，2017 年开源 [8]。2022 年微软停止维护后，社区 fork 出 Colosseum [1] 继续开发，当前主分支支持 Unreal Engine 5.6。两者核心物理引擎代码一致，本文基于 Colosseum main 分支源码分析，同时适用于原版 AirSim。 核心设计哲学：AirSim 将物理仿真（AirLib）与渲染引擎（Unre...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">117</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">30</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA"><span class="toc-number">1.</span> <span class="toc-text">一、为什么需要截击无人机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%88%90%E6%9C%AC%E4%B8%8D%E5%AF%B9%E7%A7%B0%E5%9B%B0%E5%A2%83"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 成本不对称困境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 截击无人机的分类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B9%8C%E5%85%8B%E5%85%B0-STING%EF%BC%88%E6%AF%92%E5%88%BA%EF%BC%89%E2%80%94%E2%80%94%E6%88%98%E5%9C%BA%E9%AA%8C%E8%AF%81%E4%B9%8B%E7%8E%8B"><span class="toc-number">2.</span> <span class="toc-text">二、乌克兰 STING（毒刺）——战场验证之王</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%AE%9E%E6%88%98%E8%A1%A8%E7%8E%B0"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 实战表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B3%95%E5%9B%BD-GOBI%E2%80%94%E2%80%94%E6%9E%81%E9%80%9F%E8%BD%BB%E9%87%8F%E5%8C%96%E6%8B%A6%E6%88%AA%E8%80%85"><span class="toc-number">3.</span> <span class="toc-text">三、法国 GOBI——极速轻量化拦截者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 技术亮点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B7%B2%E7%9F%A5%E9%83%A8%E7%BD%B2"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 已知部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8B%89%E8%84%B1%E7%BB%B4%E4%BA%9A-BLAZE%E2%80%94%E2%80%94%E5%8C%97%E7%BA%A6%E6%A0%87%E5%87%86%E5%8C%96%E5%85%88%E9%94%8B"><span class="toc-number">4.</span> <span class="toc-text">四、拉脱维亚 BLAZE——北约标准化先锋</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BE%8E%E5%9B%BD-Fortem-DroneHunter-F700%E2%80%94%E2%80%94%E9%9D%9E%E8%87%B4%E5%91%BD%E6%8D%95%E8%8E%B7%E4%B8%93%E5%AE%B6"><span class="toc-number">5.</span> <span class="toc-text">五、美国 Fortem DroneHunter F700——非致命捕获专家</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%AE%9E%E6%88%98%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 实战与部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BE%8E%E5%9B%BD-Anduril-Anvil%E2%80%94%E2%80%94%E7%A1%85%E8%B0%B7%E5%BC%8F%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%96%B9%E6%A1%88"><span class="toc-number">6.</span> <span class="toc-text">六、美国 Anduril Anvil——硅谷式反无人机方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%B3%95%E5%9B%BD-Alta-Ares-X-Wing-Black-Bird%E2%80%94%E2%80%94%E6%B3%95%E4%B9%8C%E8%81%94%E5%90%88%E7%A0%94%E5%8F%91"><span class="toc-number">7.</span> <span class="toc-text">七、法国 Alta Ares X-Wing &amp; Black Bird——法乌联合研发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-X-Wing%EF%BC%88%E7%94%B5%E5%8A%A8%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 X-Wing（电动截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Black-Bird%EF%BC%88%E6%B6%A1%E5%96%B7%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 Black Bird（涡喷截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Safe-Protection-Dome-%E7%B3%BB%E7%BB%9F"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 Safe Protection Dome 系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%91%9E%E5%A3%AB-Destinus-Hornet%E2%80%94%E2%80%94%E4%BB%8E-VSHORAD-%E5%88%B0-SHORAD-%E7%9A%84%E8%A1%A5%E7%BC%BA%E8%80%85"><span class="toc-number">8.</span> <span class="toc-text">八、瑞士 Destinus Hornet——从 VSHORAD 到 SHORAD 的补缺者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%9E%8B%E5%8F%B7%E8%B0%B1%E7%B3%BB"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 型号谱系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8A%80%E6%9C%AF%E7%89%B9%E7%82%B9"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 技术特点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E8%8B%B1%E5%9B%BD-Cambridge-Aerospace-Skyhammer%E2%80%94%E2%80%94%E9%97%AA%E7%94%B5%E9%87%87%E8%B4%AD%E7%9A%84%E6%B6%A1%E5%96%B7%E6%8B%A6%E6%88%AA%E5%BC%B9"><span class="toc-number">9.</span> <span class="toc-text">九、英国 Cambridge Aerospace Skyhammer——闪电采购的涡喷拦截弹</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">9.3.</span> <span class="toc-text">9.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E7%BE%8E%E5%9B%BD-RTX-Raytheon-Coyote-%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E7%BE%8E%E5%86%9B-C-UAS-%E4%B8%BB%E5%8A%9B"><span class="toc-number">10.</span> <span class="toc-text">十、美国 RTX&#x2F;Raytheon Coyote 系列——美军 C-UAS 主力</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%9E%8B%E5%8F%B7%E8%B0%B1%E7%B3%BB"><span class="toc-number">10.1.</span> <span class="toc-text">10.1 型号谱系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0%EF%BC%88Block-2-%EF%BC%89"><span class="toc-number">10.2.</span> <span class="toc-text">10.2 技术参数（Block 2+）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">10.3.</span> <span class="toc-text">10.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E4%BB%A5%E8%89%B2%E5%88%97-Iron-Drone-Raider%E2%80%94%E2%80%94%E5%8A%A0%E6%B2%99%E6%88%98%E5%9C%BA%E9%AA%8C%E8%AF%81%E7%9A%84%E8%87%AA%E4%B8%BB%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="toc-number">11.</span> <span class="toc-text">十一、以色列 Iron Drone Raider——加沙战场验证的自主拦截器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">11.1.</span> <span class="toc-text">11.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">11.2.</span> <span class="toc-text">11.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">11.3.</span> <span class="toc-text">11.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E4%BB%A5%E8%89%B2%E5%88%97-Rafael-Hunter-Eagle-Ghost-Hunter%E2%80%94%E2%80%94%E4%BB%8E-Iron-Dome-%E5%88%B0%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%AF%B9%E6%97%A0%E4%BA%BA%E6%9C%BA"><span class="toc-number">12.</span> <span class="toc-text">十二、以色列 Rafael Hunter Eagle &amp; Ghost Hunter——从 Iron Dome 到无人机对无人机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-Hunter-Eagle%EF%BC%88VTOL-%E5%8A%A8%E8%83%BD%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">12.1.</span> <span class="toc-text">12.1 Hunter Eagle（VTOL 动能截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-Ghost-Hunter%EF%BC%88%E6%B6%A1%E5%96%B7%E8%BF%9C%E7%A8%8B%E6%88%AA%E5%87%BB%E5%9E%8B%EF%BC%89"><span class="toc-number">12.2.</span> <span class="toc-text">12.2 Ghost Hunter（涡喷远程截击型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">12.3.</span> <span class="toc-text">12.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E5%BE%B7%E5%9B%BD-Diehl-Cicada%E2%80%94%E2%80%94IRIS-T-%E5%AE%B6%E6%97%8F%E7%9A%84%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%B6%E4%BC%B8"><span class="toc-number">13.</span> <span class="toc-text">十三、德国 Diehl Cicada——IRIS-T 家族的反无人机延伸</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">13.1.</span> <span class="toc-text">13.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">13.2.</span> <span class="toc-text">13.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">13.3.</span> <span class="toc-text">13.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81%E4%BB%A5%E8%89%B2%E5%88%97-SpearUAV-Viper-I%E2%80%94%E2%80%94%E8%A3%85%E7%94%B2%E8%BD%A6%E8%BE%86%E7%9A%84%E2%80%9D%E9%9A%8F%E8%BA%AB%E9%98%B2%E7%A9%BA%E7%9B%BE%E2%80%9D"><span class="toc-number">14.</span> <span class="toc-text">十四、以色列 SpearUAV Viper I——装甲车辆的”随身防空盾”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">14.1.</span> <span class="toc-text">14.1 基本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E6%8A%80%E6%9C%AF%E5%8F%82%E6%95%B0"><span class="toc-number">14.2.</span> <span class="toc-text">14.2 技术参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E6%8A%80%E6%9C%AF%E4%BA%AE%E7%82%B9"><span class="toc-number">14.3.</span> <span class="toc-text">14.3 技术亮点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E7%BB%BC%E5%90%88%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%85%A8%E7%90%83%E5%8D%81%E5%9B%9B%E6%AC%BE%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8F%82%E6%95%B0%E4%B8%80%E8%A7%88"><span class="toc-number">15.</span> <span class="toc-text">十五、综合对比：全球十四款截击无人机参数一览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%85%AD%E3%80%81%E6%8A%80%E6%9C%AF%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%9C%AA%E6%9D%A5%E5%B1%95%E6%9C%9B"><span class="toc-number">16.</span> <span class="toc-text">十六、技术趋势与未来展望</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#16-1-%E5%85%AD%E5%A4%A7%E5%8F%91%E5%B1%95%E8%B6%8B%E5%8A%BF"><span class="toc-number">16.1.</span> <span class="toc-text">16.1 六大发展趋势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-2-%E4%B9%8C%E5%85%8B%E5%85%B0%E6%88%98%E5%9C%BA%E7%9A%84%E5%90%AF%E7%A4%BA"><span class="toc-number">16.2.</span> <span class="toc-text">16.2 乌克兰战场的启示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">17.</span> <span class="toc-text">十七、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%9D%A5%E6%BA%90"><span class="toc-number">18.</span> <span class="toc-text">参考来源</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/" title="全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览">全球反无人机截击机深度解析：从乌克兰 STING 到北约新锐，十四款主流系统技术全览</a><time datetime="2026-04-21T12:00:00.000Z" title="发表于 2026-04-21 20:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模">AirSim/Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模</a><time datetime="2026-04-21T10:00:00.000Z" title="发表于 2026-04-21 18:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%A3%9E%E8%A1%8C%E7%89%A9%E7%90%86%E5%AD%A6-%E4%BB%8E%E7%89%9B%E9%A1%BF%E5%8A%9B%E5%AD%A6%E5%88%B0%E5%85%AD%E8%87%AA%E7%94%B1%E5%BA%A6%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC/" title="无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导">无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导</a><time datetime="2026-04-21T07:00:00.000Z" title="发表于 2026-04-21 15:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</a><time datetime="2026-04-21T02:00:00.000Z" title="发表于 2026-04-21 10:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/2026%E5%B9%B4%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8E%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF%EF%BC%9A%E5%8D%81%E5%A4%A7%E7%AA%81%E7%A0%B4%E6%80%A7%E8%BF%9B%E5%B1%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="2026年无人机与仿真技术前沿：十大突破性进展深度解析">2026年无人机与仿真技术前沿：十大突破性进展深度解析</a><time datetime="2026-04-20T14:30:00.000Z" title="发表于 2026-04-20 22:30:00">2026-04-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
