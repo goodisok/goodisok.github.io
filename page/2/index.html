@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="goodisok 的博客">
+<meta property="og:url" content="https://goodisok.github.io/page/2/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="goodisok">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'goodisok 的博客',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">99</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">29</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">goodisok 的博客</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/04/19/hermes-agent-complete-guide/" title="Hermes Agent 完全指南：你的全能AI助手">Hermes Agent 完全指南：你的全能AI助手</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-04-19T14:59:00.000Z" title="发表于 2026-04-19 22:59:00">2026-04-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%8A%80%E6%9C%AF%E5%B7%A5%E5%85%B7/">技术工具</a></span></div><div class="content">引言在人工智能快速发展的今天，我们见证了各种AI助手的诞生。但大多数AI工具要么功能单一，要么需要复杂的配置。Hermes Agent 的出现改变了这一现状——它是一个开源的、功能全面的AI助手，能够在终端中直接运行，帮助你完成从代码开发到日常任务的各种工作。 什么是 Hermes Agent？Hermes Agent 是一个基于命令行的AI助手，它通过自然语言理解你的需求，并调用各种工具来完成任务。与传统的聊天式AI不同，Hermes Agent 可以直接操作你的系统：运行命令、编辑文件、浏览网页、管理进程等。 核心特点 终端原生 - 直接在终端中运行，无需切换应用 工具丰富 - 内置文件操作、终端命令、浏览器、Git等工具 记忆持久 - 跨会话记忆用户偏好和环境信息 技能系统 - 可学习和复用复杂的工作流程 开源免费 - 基于MIT许可证，完全开源  安装与配置快速安装12345# 使用pip安装pip install hermes-agent# 或者使用curl一键安装curl -fsSL https://raw.githubusercontent.com/instant-...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/20/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="四旋翼飞行力学基础：推力、反扭矩与三轴控制">四旋翼飞行力学基础：推力、反扭矩与三轴控制</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-20T02:00:00.000Z" title="发表于 2026-03-20 10:00:00">2026-03-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E6%95%99%E7%A8%8B/">教程</a></span></div><div class="content">要做四旋翼设计、调参或写仿真，飞行原理是最先要建立正确直觉的一块：四个电机各自产生什么力与力矩、它们怎样组合成「上升、前倾、转弯」。本文从单桨推力与反扭出发，讲到欠驱动、俯仰滚转偏航与油门，便于对照实机与公式阅读。  一、从单桨说起：推力与反扭1.1 桨产生升力螺旋桨旋转时，桨叶像机翼一样产生升力（在机体上常沿桨轴方向，对常见多旋翼可理解为沿电机轴、指向机体上方或下方，具体与桨的安装方向、正反转约定有关）。飞控里常把「四个桨沿 z 轴的合力」称为总推力，记为 TTT（或四个 TiT_iTi​ 之和）。 简化理解：转速越高，单桨推力越大（常近似与转速平方成正比，具体系数与桨型、空气密度有关）。 1.2 反扭矩（反扭）螺旋桨除了产生沿轴的推力，还会给机身一个绕电机轴的反扭矩。下面把文中用到的物理名词和「为什么会这样」说清楚。 名词与公式（尽量简短） 力矩（扭矩）使物体绕某根轴产生转动趋势的物理量，类似直线运动里的「力」。绕固定轴时，大小可写成   M=r⊥ F   M = r_\perp \, F   M=r⊥​F   即：力 FFF 作用在离转轴垂直距离 r⊥r_\perpr⊥​ ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/19/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="无人机仿真开发需要的基础知识">无人机仿真开发需要的基础知识</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-19T14:00:00.000Z" title="发表于 2026-03-19 22:00:00">2026-03-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E4%BB%BF%E7%9C%9F/">仿真</a></span></div><div class="content">做无人机仿真（如 AirSim&#x2F;Colosseum&#x2F;PX4）时，会反复用到下面这些概念。  一、坐标系与姿态1.1 常用坐标系   坐标系 含义 仿真里的用法    NED（North-East-Down） 北-东-地，x 北、y 东、z 向下 AirSim、PX4、很多飞控用 NED 做「世界系」   ENU（East-North-Up） 东-北-天，z 向上 部分视觉、ROS 用 ENU   机体系（Body） 原点在质心，x 前、y 右、z 下（NED 约定） 传感器输出、推力&#x2F;力矩、角速度 pqr 都在机体系   仿真里要先约定世界系是 NED 还是 ENU，所有公式、接口统一，避免符号和轴搞反。 1.2 姿态的几种表示   表示 含义 优点 缺点    欧拉角（roll, pitch, yaw） 绕 3 个轴依次转动的角度（° 或 rad） 直观，便于调试、可视化 万向锁、插值不线性   四元数（q0,q1,q2,q3） 4 个数表示旋转，单位四元数 无万向锁、积分简单、插值好 不直观   旋转矩阵（3×3） 机体相对世界系的旋转 变换向量...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/19/Hexo%E5%8D%9A%E5%AE%A2%E4%B8%AD%E6%AD%A3%E7%A1%AE%E6%98%BE%E7%A4%BA%E6%95%B0%E5%AD%A6%E5%85%AC%E5%BC%8F/" title="Hexo 博客中正确显示数学公式">Hexo 博客中正确显示数学公式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-19T04:00:00.000Z" title="发表于 2026-03-19 12:00:00">2026-03-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%8D%9A%E5%AE%A2/">博客</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%8D%9A%E5%AE%A2/%E6%95%99%E7%A8%8B/">教程</a></span></div><div class="content">在 Hexo 里写带公式的文章时，经常会遇到公式显示成乱码、下标变成斜体、或整段 LaTeX 原样输出等问题。本文记录问题原因和用 hexo-filter-katex 在构建阶段渲染公式的完整做法。  一、为什么公式会显示不对1.1 Markdown 本身不支持公式标准 Markdown 没有「数学公式」语法。对 Hexo 来说：  $...$ 和 $$...$$ 只是普通字符，默认不会被任何引擎当成公式； 若不做额外处理，它们会原样出现在最终 HTML 里，浏览器不会渲染成数学符号。  1.2 默认渲染器会破坏公式里的符号Hexo 常用 hexo-renderer-marked（基于 marked.js）把 Markdown 转成 HTML。marked 会解析一些符号：  下划线 _ 会被当成强调（italic），例如 x_n 可能被变成 x&lt;em&gt;n&lt;/em&gt;； 公式里大量出现的 _{下标} 一旦被这样处理，整段 LaTeX 就坏了，再交给任何数学渲染器也无法恢复。  因此：不能只依赖「先 Markdown 再在浏览器里用 JS 渲染公式」，必须保证...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/18/Windows%E4%B8%8AUE5.7%E4%B8%8EColosseum%E9%85%8D%E7%BD%AE/" title="Windows 上 UE 5.7 + Colosseum 配置方法">Windows 上 UE 5.7 + Colosseum 配置方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-18T04:00:00.000Z" title="发表于 2026-03-18 12:00:00">2026-03-18</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BB%BF%E7%9C%9F/">仿真</a></span></div><div class="content">UE 5.7 + goodisok&#x2F;Colosseum 分支 feature/jpeg-geomag-px4。路径自定；下文 D:\workspace、D:\Program Files\UE_5.7 仅为示例。参考 Build on Windows。 前置   项 说明    Git &#x2F; CMake &#x2F; 7-Zip 均安装；CMake 勾选加入 PATH   UE 5.7 Epic Launcher 安装   VS 2022 使用 C++ 的桌面开发   终端 Developer Command Prompt for VS 2022（开始菜单 → Visual Studio 2022）   克隆（须带子模块）在 Developer Command Prompt for VS 2022 中： 123cd /d D:\workspacegit clone --recurse-submodules -b feature/jpeg-geomag-px4 https://github.com/goodisok/Colosseum.gitcd Colosseum...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/17/%E5%9C%A8%E6%96%B0%E7%94%B5%E8%84%91%E4%B8%8A%E5%86%99Hexo%E5%8D%9A%E5%AE%A2/" title="在新电脑上写 Hexo 博客">在新电脑上写 Hexo 博客</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-17T06:00:00.000Z" title="发表于 2026-03-17 14:00:00">2026-03-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%99%E7%A8%8B/">教程</a></span></div><div class="content">换电脑后想继续写博客，只要把「博客源码」从 GitHub 拉下来、装好环境，就能像在本机一样写文章和部署。本文说明如何把源码保存到 GitHub，以及在新电脑上的完整操作步骤。 为什么要单独一个「源码仓库」？部署到 GitHub Pages 时，hexo deploy 只会把生成好的静态文件（public/ 里的内容）推送到 goodisok.github.io 仓库。那个仓库里没有：  文章源文件（source/_posts/*.md） 主题和插件配置 _config.yml 等站点配置  所以要在多台电脑之间写博客，需要另建一个仓库专门存放「博客源码」，新电脑克隆这个仓库即可继续写作和部署。 一、第一次：在现有电脑上把源码保存到 GitHub（只需做一次）1. 在 GitHub 新建仓库 打开 GitHub 新建仓库 仓库名可随意，例如 hexo-blog 或 blog-source（与 goodisok.github.io 区分开） 选择 Public，不要勾选「Add a README file」（避免与本地已有文件冲突） 创建仓库  2. 在本地项目目录执行 Git 命...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/17/%E5%B0%86Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages/" title="将 Hexo 博客部署到 GitHub Pages">将 Hexo 博客部署到 GitHub Pages</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-17T04:00:00.000Z" title="发表于 2026-03-17 12:00:00">2026-03-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%99%E7%A8%8B/">教程</a></span></div><div class="content">本文记录从零到把 Hexo 博客成功部署到 GitHub Pages 的完整过程，方便日后查阅或分享给他人。 一、前提条件 已安装 Node.js（建议 12.0 及以上） 已安装 Git 已注册 GitHub 账号（本文示例用户名为 goodisok）  二、初始化 Hexo 项目在本地选一个目录（如 e:\hexo-blog），执行： 1npx hexo-cli init .  执行完成后，当前目录下会生成 Hexo 的站点结构，并自动安装依赖（若使用 pnpm 则可能是 pnpm install）。 三、配置站点与 GitHub 部署1. 修改站点信息编辑项目根目录的 _config.yml，按需修改以下部分： 123456789# Sitetitle: goodisok 的博客    # 博客标题author: goodisok          # 作者名language: zh-CN           # 语言timezone: &#x27;Asia/Shanghai&#x27; # 时区# URL（GitHub 用户名.github.io）url: https:/...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/14/%E8%A7%A3%E5%86%B3%E8%87%AA%E5%AE%9A%E4%B9%89OriginGeopoint%E5%90%8EPX4%E6%97%A0%E6%B3%95%E8%A7%A3%E9%94%81-%E5%9C%B0%E7%A3%81%E4%BF%AE%E6%AD%A3/" title="解决自定义 OriginGeopoint 后 PX4 无法解锁：地磁与 getMagField 修正">解决自定义 OriginGeopoint 后 PX4 无法解锁：地磁与 getMagField 修正</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-14T13:00:00.000Z" title="发表于 2026-03-14 21:00:00">2026-03-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%BC%80%E5%8F%91/">开发</a></span></div><div class="content">在使用 AirSim&#x2F;Colosseum 时，若在 settings.json 里配置了自定义的 OriginGeopoint（例如配合 Cesium 指定真实地理起点），有时会出现 PX4 无法解锁 的情况，并伴随 Preflight Fail: heading estimate not stable、Yaw estimate error、GPS fix too low 等告警。社区 AirSim #5001 中有人遇到相同现象，并指出根本原因是 磁力计读数与自定义起点位置不一致。本文整理该问题的原因与解决方案：通过基于 WMM（世界地磁模型） 的库重写 EarthUtils.hpp 中的 getMagField（以及 getMagDeclination），使仿真中的磁力计输出与当前 OriginGeopoint 对应的真实地磁一致，从而消除航向估计错误、使 PX4 可正常解锁。  一、问题现象1.1 复现条件 在 settings.json 中配置了 OriginGeopoint，例如：  12345&quot;OriginGeopoint&quot;: &#123...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/14/%E8%A7%A3%E5%86%B3AirSim%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E4%BC%A0%E8%BE%93%E6%85%A2%E5%B8%A7%E7%8E%87%E4%BD%8E-JPEG%E5%8E%8B%E7%BC%A9/" title="解决 AirSim 相机图像传输慢、帧率低：可调质量 JPEG 压缩">解决 AirSim 相机图像传输慢、帧率低：可调质量 JPEG 压缩</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-14T12:00:00.000Z" title="发表于 2026-03-14 20:00:00">2026-03-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%BC%80%E5%8F%91/">开发</a></span></div><div class="content">在使用 Colosseum（AirSim 的继任仿真平台）做仿真时，相机图像通常通过 RPC（如 simGetImages）从 Unreal 端传到 Python 客户端。默认要么返回原始 RGB 像素，要么用 PNG 压缩。原始数据体积大（例如 1920×1080×3 ≈ 6MB&#x2F;帧），PNG 虽能压缩但仍有明显体积和编码开销，在 WSL 或 远程连接 场景下容易成为瓶颈，帧率上不去。本文在 Colosseum + Unreal Engine 5.7.2 环境下增加了 可调质量的 JPEG 压缩 支持，在保证画质可接受的前提下减小传输体积、提高帧率。下面记录需求背景、设计思路和具体实现，方便日后维护。  一、为什么需要 JPEG 压缩？1.1 问题场景 RPC 传输体积大：每帧图像若以原始 RGB 或 PNG 形式通过 msgpack-RPC 传输，在 1080p 下数据量可达数 MB，网络或进程间拷贝成本高。 帧率受限：传输时间占主导时，相机帧率上不去，影响实时控制、算法测试或数据采集。 WSL &#x2F; 远程：   WSL：AirSim 跑在 Windows，...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">99</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">29</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim 四旋翼动力学建模深度解析：源码剖析、自定义建模与 Sim-to-Real 对齐实战">AirSim 四旋翼动力学建模深度解析：源码剖析、自定义建模与 Sim-to-Real 对齐实战</a><time datetime="2026-04-21T10:00:00.000Z" title="发表于 2026-04-21 18:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%A3%9E%E8%A1%8C%E7%89%A9%E7%90%86%E5%AD%A6-%E4%BB%8E%E7%89%9B%E9%A1%BF%E5%8A%9B%E5%AD%A6%E5%88%B0%E5%85%AD%E8%87%AA%E7%94%B1%E5%BA%A6%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC/" title="无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导">无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导</a><time datetime="2026-04-21T07:00:00.000Z" title="发表于 2026-04-21 15:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</a><time datetime="2026-04-21T02:00:00.000Z" title="发表于 2026-04-21 10:00:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/2026%E5%B9%B4%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8E%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF%EF%BC%9A%E5%8D%81%E5%A4%A7%E7%AA%81%E7%A0%B4%E6%80%A7%E8%BF%9B%E5%B1%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="2026年无人机与仿真技术前沿：十大突破性进展深度解析">2026年无人机与仿真技术前沿：十大突破性进展深度解析</a><time datetime="2026-04-20T14:30:00.000Z" title="发表于 2026-04-20 22:30:00">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/20/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</a><time datetime="2026-04-20T12:49:33.000Z" title="发表于 2026-04-20 20:49:33">2026-04-20</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BB%BF%E7%9C%9F/"><span class="card-category-list-name">仿真</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%8D%9A%E5%AE%A2/"><span class="card-category-list-name">博客</span><span class="card-category-list-count">1</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%8D%9A%E5%AE%A2/%E6%95%99%E7%A8%8B/"><span class="card-category-list-name">教程</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BC%80%E5%8F%91/"><span class="card-category-list-name">开发</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/"><span class="card-category-list-name">技术</span><span class="card-category-list-count">1</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/%E6%97%A0%E4%BA%BA%E6%9C%BA/"><span class="card-category-list-name">无人机</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/"><span class="card-category-list-name">技术前沿</span><span class="card-category-list-count">1</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%B3%BB%E7%BB%9F/"><span class="card-category-list-name">无人机系统</span><span class="card-category-list-count">1</span></a></li></ul></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/RPC/" style="font-size: 1.1em; color: #999">RPC</a> <a href="/tags/%E4%BB%BF%E7%9C%9F/" style="font-size: 1.5em; color: #99a9bf">仿真</a> <a href="/tags/%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E/" style="font-size: 1.1em; color: #999">物理引擎</a> <a href="/tags/%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81/" style="font-size: 1.1em; color: #999">仿真验证</a> <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" style="font-size: 1.37em; color: #99a4b2">强化学习</a> <a href="/tags/%E5%9F%9F%E8%87%AA%E9%80%82%E5%BA%94/" style="font-size: 1.1em; color: #999">域自适应</a> <a href="/tags/%E8%87%AA%E4%B8%BB%E9%A3%9E%E8%A1%8C/" style="font-size: 1.1em; color: #999">自主飞行</a> <a href="/tags/%E8%A7%86%E8%A7%89%E5%AF%BC%E8%88%AA/" style="font-size: 1.1em; color: #999">视觉导航</a> <a href="/tags/%E8%81%94%E5%90%88%E4%BB%BF%E7%9C%9F/" style="font-size: 1.1em; color: #999">联合仿真</a> <a href="/tags/%E7%A3%81%E5%8A%9B%E8%AE%A1/" style="font-size: 1.1em; color: #999">磁力计</a> <a href="/tags/%E9%9B%86%E7%BE%A4%E6%99%BA%E8%83%BD/" style="font-size: 1.1em; color: #999">集群智能</a> <a href="/tags/%E9%A3%9E%E6%8E%A7/" style="font-size: 1.1em; color: #999">飞控</a> <a href="/tags/%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2/" style="font-size: 1.1em; color: #999">坐标变换</a> <a href="/tags/%E4%BB%BF%E7%9C%9F%E4%BC%98%E5%8C%96/" style="font-size: 1.1em; color: #999">仿真优化</a> <a href="/tags/%E5%88%9A%E4%BD%93%E5%8A%A8%E5%8A%9B%E5%AD%A6/" style="font-size: 1.1em; color: #999">刚体动力学</a> <a href="/tags/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/" style="font-size: 1.1em; color: #999">线性代数</a> <a href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA%E6%8E%A7%E5%88%B6/" style="font-size: 1.1em; color: #999">机器人控制</a> <a href="/tags/%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6%E4%BB%BF%E7%9C%9F/" style="font-size: 1.1em; color: #999">自动驾驶仿真</a> <a href="/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC/" style="font-size: 1.23em; color: #999ea6">四旋翼</a> <a href="/tags/%E5%8A%9B%E5%AD%A6/" style="font-size: 1.1em; color: #999">力学</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/04/">
+            <span class="card-archive-list-date">
+              四月 2026
+            </span>
+            <span class="card-archive-list-count">11</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              三月 2026
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">19</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-04-21T06:58:54.937Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
