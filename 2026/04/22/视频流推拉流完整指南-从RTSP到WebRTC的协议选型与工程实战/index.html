@@ -1,0 +1,745 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="视频流的”推”和”拉”是流媒体工程的两个基本动作。推流（Publish&#x2F;Ingest）是把视频从源端送到服务器，拉流（Play&#x2F;Egress）是从服务器取出视频播放。听起来简单，但协议选错延迟差十倍，编码选错 CPU 占满帧率减半。本文以 2026 年的技术现状为基准，系统梳理从协议选型到硬件编码到落地部署的完整链路。   一、推流与拉流：数据流动的两个方向1.1 推流（Pu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战">
+<meta property="og:url" content="https://goodisok.github.io/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="视频流的”推”和”拉”是流媒体工程的两个基本动作。推流（Publish&#x2F;Ingest）是把视频从源端送到服务器，拉流（Play&#x2F;Egress）是从服务器取出视频播放。听起来简单，但协议选错延迟差十倍，编码选错 CPU 占满帧率减半。本文以 2026 年的技术现状为基准，系统梳理从协议选型到硬件编码到落地部署的完整链路。   一、推流与拉流：数据流动的两个方向1.1 推流（Pu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-04-22T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-22T03:15:35.387Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="GStreamer">
+<meta property="article:tag" content="H.264">
+<meta property="article:tag" content="H.265">
+<meta property="article:tag" content="HLS">
+<meta property="article:tag" content="Jetson">
+<meta property="article:tag" content="MediaMTX">
+<meta property="article:tag" content="NVENC">
+<meta property="article:tag" content="RTMP">
+<meta property="article:tag" content="RTSP">
+<meta property="article:tag" content="SRT">
+<meta property="article:tag" content="WHEP">
+<meta property="article:tag" content="WHIP">
+<meta property="article:tag" content="WebRTC">
+<meta property="article:tag" content="低延迟">
+<meta property="article:tag" content="拉流">
+<meta property="article:tag" content="推流">
+<meta property="article:tag" content="无人机">
+<meta property="article:tag" content="硬件编码">
+<meta property="article:tag" content="视频流">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战",
+  "url": "https://goodisok.github.io/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-04-22T06:00:00.000Z",
+  "dateModified": "2026-04-22T03:15:35.387Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">233</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">36</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-22T06:00:00.000Z" title="发表于 2026-04-22 14:00:00">2026-04-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-22T03:15:35.387Z" title="更新于 2026-04-22 11:15:35">2026-04-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/">音视频</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/%E6%B5%81%E5%AA%92%E4%BD%93/">流媒体</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>视频流的”推”和”拉”是流媒体工程的两个基本动作。推流（Publish&#x2F;Ingest）是把视频从源端送到服务器，拉流（Play&#x2F;Egress）是从服务器取出视频播放。听起来简单，但协议选错延迟差十倍，编码选错 CPU 占满帧率减半。本文以 2026 年的技术现状为基准，系统梳理从协议选型到硬件编码到落地部署的完整链路。</p>
+</blockquote>
+<hr>
+<h2 id="一、推流与拉流：数据流动的两个方向"><a href="#一、推流与拉流：数据流动的两个方向" class="headerlink" title="一、推流与拉流：数据流动的两个方向"></a>一、推流与拉流：数据流动的两个方向</h2><h3 id="1-1-推流（Publish-Ingest）"><a href="#1-1-推流（Publish-Ingest）" class="headerlink" title="1.1 推流（Publish &#x2F; Ingest）"></a>1.1 推流（Publish &#x2F; Ingest）</h3><p>推流是视频源（相机、编码器、OBS 等）主动将音视频数据发送到媒体服务器的过程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">相机/编码器 ──推流──► 媒体服务器</span><br><span class="line">   (源端)              (中转/分发)</span><br></pre></td></tr></table></figure>
+
+<p>典型场景：</p>
+<ul>
+<li>OBS 推流到直播平台</li>
+<li>IP 摄像头推送到 NVR</li>
+<li>无人机图传推流到地面站</li>
+<li>编码器推流到 CDN 源站</li>
+</ul>
+<h3 id="1-2-拉流（Play-Subscribe-Egress）"><a href="#1-2-拉流（Play-Subscribe-Egress）" class="headerlink" title="1.2 拉流（Play &#x2F; Subscribe &#x2F; Egress）"></a>1.2 拉流（Play &#x2F; Subscribe &#x2F; Egress）</h3><p>拉流是客户端主动从媒体服务器请求并接收音视频数据的过程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">播放器/客户端 ──拉流──► 媒体服务器</span><br><span class="line">   (观看端)               (中转/分发)</span><br></pre></td></tr></table></figure>
+
+<p>典型场景：</p>
+<ul>
+<li>VLC 播放 RTSP 流</li>
+<li>浏览器播放 HLS 直播</li>
+<li>地面站拉取无人机视频</li>
+<li>监控大屏拉流解码显示</li>
+</ul>
+<h3 id="1-3-完整链路"><a href="#1-3-完整链路" class="headerlink" title="1.3 完整链路"></a>1.3 完整链路</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">采集 → 编码 → 推流 → 媒体服务器 → 拉流 → 解码 → 渲染</span><br><span class="line"></span><br><span class="line">├─ 相机/传感器     ├─ 协议选择        ├─ 转封装/转码      ├─ 软/硬解码</span><br><span class="line">├─ 采集 API        ├─ 硬件/软件编码    ├─ 多协议分发       ├─ 缓冲策略</span><br><span class="line">└─ 色彩空间转换    └─ 码率控制         ├─ 录制存储         └─ 同步/渲染</span><br><span class="line">                                       └─ 鉴权/加密</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、七大流媒体协议深度对比"><a href="#二、七大流媒体协议深度对比" class="headerlink" title="二、七大流媒体协议深度对比"></a>二、七大流媒体协议深度对比</h2><h3 id="2-1-总览"><a href="#2-1-总览" class="headerlink" title="2.1 总览"></a>2.1 总览</h3><table>
+<thead>
+<tr>
+<th>协议</th>
+<th>传输层</th>
+<th>延迟</th>
+<th>推流&#x2F;拉流</th>
+<th>加密</th>
+<th>浏览器</th>
+<th>2026 定位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RTSP&#x2F;RTP</strong></td>
+<td>UDP&#x2F;TCP</td>
+<td>~1-2s</td>
+<td>双向</td>
+<td>无（默认）</td>
+<td>不支持</td>
+<td>IP 摄像头标准</td>
+</tr>
+<tr>
+<td><strong>RTMP</strong></td>
+<td>TCP</td>
+<td>1-5s</td>
+<td>推流为主</td>
+<td>RTMPS(TLS)</td>
+<td>已死(Flash)</td>
+<td>推流事实标准（式微中）</td>
+</tr>
+<tr>
+<td><strong>SRT</strong></td>
+<td>UDP</td>
+<td>120ms-4s</td>
+<td>双向</td>
+<td>AES-256</td>
+<td>不支持</td>
+<td>专业广播贡献链路</td>
+</tr>
+<tr>
+<td><strong>WebRTC</strong></td>
+<td>UDP(SRTP)</td>
+<td>200-500ms</td>
+<td>双向</td>
+<td>DTLS-SRTP</td>
+<td>原生支持</td>
+<td>超低延迟交互</td>
+</tr>
+<tr>
+<td><strong>HLS</strong></td>
+<td>HTTP&#x2F;TCP</td>
+<td>6-30s</td>
+<td>拉流</td>
+<td>AES&#x2F;DRM</td>
+<td>全平台</td>
+<td>大规模分发</td>
+</tr>
+<tr>
+<td><strong>LL-HLS&#x2F;CMAF</strong></td>
+<td>HTTP&#x2F;TCP</td>
+<td>2-5s</td>
+<td>拉流</td>
+<td>DRM</td>
+<td>现代浏览器</td>
+<td>低延迟大规模分发</td>
+</tr>
+<tr>
+<td><strong>MPEG-DASH</strong></td>
+<td>HTTP&#x2F;TCP</td>
+<td>6-30s</td>
+<td>拉流</td>
+<td>DRM</td>
+<td>主流浏览器</td>
+<td>跨平台 VOD&#x2F;直播</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-RTSP-RTP-—-IP-摄像头的通用语"><a href="#2-2-RTSP-RTP-—-IP-摄像头的通用语" class="headerlink" title="2.2 RTSP&#x2F;RTP — IP 摄像头的通用语"></a>2.2 RTSP&#x2F;RTP — IP 摄像头的通用语</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RTSP (Real Time Streaming Protocol)</span><br><span class="line">├── 控制层：RTSP (TCP:554) — DESCRIBE/SETUP/PLAY/TEARDOWN</span><br><span class="line">└── 数据层：RTP (UDP) — 实际音视频包</span><br><span class="line">                 └── RTCP — 质量反馈</span><br></pre></td></tr></table></figure>
+
+<p>RTSP 是一个<strong>控制协议</strong>，本身不传输媒体数据。它通过 RTP 传输音视频，通过 RTCP 反馈丢包率和延迟。几乎所有 ONVIF 兼容的 IP 摄像头都输出 RTSP 流。</p>
+<p><strong>拉流示例（FFmpeg）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 拉取 RTSP 流并保存</span></span><br><span class="line">ffmpeg -rtsp_transport tcp -i rtsp://admin:pass@192.168.1.100:554/stream1 \</span><br><span class="line">    -c copy -f mp4 output.mp4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拉取并实时显示</span></span><br><span class="line">ffplay -rtsp_transport tcp -i rtsp://192.168.1.100:554/stream1</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：低延迟、工业标准、几乎所有摄像头支持</p>
+<p><strong>缺点</strong>：无加密、UDP 穿越防火墙困难、不支持浏览器</p>
+<h3 id="2-3-RTMP-—-推流的事实标准（但正在被取代）"><a href="#2-3-RTMP-—-推流的事实标准（但正在被取代）" class="headerlink" title="2.3 RTMP — 推流的事实标准（但正在被取代）"></a>2.3 RTMP — 推流的事实标准（但正在被取代）</h3><p>RTMP 基于 TCP，最初由 Macromedia 开发用于 Flash。虽然 Flash 已死，但 RTMP 作为推流协议的兼容性无人能及——OBS、vMix、Wirecast 和所有主流编码器都支持 RTMP 推流。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OBS ──RTMP──► 媒体服务器 ──HLS/WebRTC──► 观众</span><br><span class="line">     (推流)    (转协议)                   (拉流)</span><br></pre></td></tr></table></figure>
+
+<p><strong>推流示例（FFmpeg）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 推流到 RTMP 服务器</span></span><br><span class="line">ffmpeg -re -i input.mp4 \</span><br><span class="line">    -c:v libx264 -preset fast -b:v 4000k \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f flv rtmp://server:1935/live/stream_key</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：编码器支持最广、CDN 支持完善、简单可靠</p>
+<p><strong>缺点</strong>：TCP 导致延迟 1-5s、不支持 H.265（FLV 容器限制，Enhanced RTMP 已解决）、无内置加密</p>
+<h3 id="2-4-SRT-—-专业广播的新标准"><a href="#2-4-SRT-—-专业广播的新标准" class="headerlink" title="2.4 SRT — 专业广播的新标准"></a>2.4 SRT — 专业广播的新标准</h3><p>SRT（Secure Reliable Transport）由 Haivision 开源，2017 年发布。基于 UDP，内建 ARQ 丢包重传和 AES-256 加密，专为不稳定网络设计。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">SRT 的核心机制：</span><br><span class="line">┌─────────────────────────────────────────┐</span><br><span class="line">│  应用层数据                              │</span><br><span class="line">│  ↓                                      │</span><br><span class="line">│  AES-256 加密                           │</span><br><span class="line">│  ↓                                      │</span><br><span class="line">│  ARQ 选择性重传（不像 TCP 的全流重传）    │</span><br><span class="line">│  ↓                                      │</span><br><span class="line">│  可配置延迟缓冲（120ms ~ 4s）            │</span><br><span class="line">│  ↓                                      │</span><br><span class="line">│  UDP 传输                               │</span><br><span class="line">└─────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>SRT 的延迟缓冲是可配置的：根据网络的 RTT 和丢包率，设置合适的缓冲窗口。缓冲越大越抗丢包，但延迟越高。</p>
+<p><strong>推流示例（FFmpeg）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># SRT 推流（Caller 模式 → 远端 Listener）</span></span><br><span class="line">ffmpeg -re -i input.mp4 \</span><br><span class="line">    -c:v libx264 -b:v 5000k -g 60 \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f mpegts <span class="string">&quot;srt://server:9000?mode=caller&amp;latency=500000&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SRT 接收（Listener 模式，等待推流端连接）</span></span><br><span class="line">ffmpeg -i <span class="string">&quot;srt://:9000?mode=listener&amp;latency=500000&quot;</span> \</span><br><span class="line">    -c copy output.ts</span><br></pre></td></tr></table></figure>
+
+<p><strong>两种连接模式</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>说明</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Listener</td>
+<td>监听端口，等待连接</td>
+<td>服务端</td>
+</tr>
+<tr>
+<td>Caller</td>
+<td>主动连接远端</td>
+<td>客户端</td>
+</tr>
+</tbody></table>
+<p><strong>优点</strong>：UDP 低延迟、AES 加密、抗丢包、开源</p>
+<p><strong>缺点</strong>：浏览器不原生支持、需要中间服务器转协议才能给终端用户观看</p>
+<h3 id="2-5-WebRTC-WHIP-WHEP-—-超低延迟的未来"><a href="#2-5-WebRTC-WHIP-WHEP-—-超低延迟的未来" class="headerlink" title="2.5 WebRTC &#x2F; WHIP &#x2F; WHEP — 超低延迟的未来"></a>2.5 WebRTC &#x2F; WHIP &#x2F; WHEP — 超低延迟的未来</h3><p>WebRTC 是唯一能在浏览器中实现亚秒延迟的协议。2025 年，IETF 发布了 <strong>WHIP</strong>（RFC 9725）和 <strong>WHEP</strong> 标准，解决了 WebRTC 推拉流的信令碎片化问题：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">WHIP (WebRTC-HTTP Ingestion Protocol) — 推流标准</span><br><span class="line">  OBS/编码器 ──HTTP POST (SDP Offer)──► 媒体服务器</span><br><span class="line">             ◄──HTTP 201 (SDP Answer)──</span><br><span class="line">             ──DTLS/SRTP (媒体数据)───►</span><br><span class="line"></span><br><span class="line">WHEP (WebRTC-HTTP Egress Protocol) — 拉流标准</span><br><span class="line">  浏览器/播放器 ──HTTP POST (SDP Offer)──► 媒体服务器</span><br><span class="line">                ◄──HTTP 201 (SDP Answer)──</span><br><span class="line">                ◄──DTLS/SRTP (媒体数据)──</span><br></pre></td></tr></table></figure>
+
+<p><strong>推流示例（OBS Studio 30+）</strong>：</p>
+<ol>
+<li>设置 → 流 → 服务：选择 <strong>WHIP</strong></li>
+<li>服务器：<code>http://server:1985/rtc/v1/whip/?app=live&amp;stream=mystream</code></li>
+<li>编码设置：x264, Keyframe 1s, Profile baseline, Tune zerolatency</li>
+<li>点击开始推流</li>
+</ol>
+<p><strong>拉流（浏览器 WHEP）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://server:8080/players/whep.html</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：亚秒延迟（200-500ms）、浏览器原生支持、强加密、支持 AV1&#x2F;H.265</p>
+<p><strong>缺点</strong>：大规模分发需要 SFU、带宽效率不如 SRT</p>
+<h3 id="2-6-HLS-—-大规模分发之王"><a href="#2-6-HLS-—-大规模分发之王" class="headerlink" title="2.6 HLS — 大规模分发之王"></a>2.6 HLS — 大规模分发之王</h3><p>HLS 将视频切成小片段（通常 6-10 秒），通过标准 HTTP&#x2F;CDN 分发。天然支持自适应码率（ABR）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">编码器 → 切片器 → .m3u8 播放列表 + .ts 片段 → CDN → 播放器</span><br></pre></td></tr></table></figure>
+
+<p>延迟高（6-30 秒），但兼容性最好——所有浏览器、所有设备都支持。</p>
+<p><strong>LL-HLS</strong>（Low-Latency HLS）通过部分片段（Partial Segments）和预加载提示（Preload Hints）将延迟降到 2-5 秒。</p>
+<h3 id="2-7-协议选型决策树"><a href="#2-7-协议选型决策树" class="headerlink" title="2.7 协议选型决策树"></a>2.7 协议选型决策树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">你的场景是什么？</span><br><span class="line">│</span><br><span class="line">├── 需要亚秒级交互？（FPV、遥操作、拍卖）</span><br><span class="line">│   └── WebRTC (WHIP/WHEP)</span><br><span class="line">│</span><br><span class="line">├── 需要在不稳定网络上可靠传输？（4G/5G、卫星）</span><br><span class="line">│   └── SRT</span><br><span class="line">│</span><br><span class="line">├── 需要从编码器推流到服务器？</span><br><span class="line">│   ├── 编码器支持 SRT → SRT（首选）</span><br><span class="line">│   └── 不支持 → RTMP（兜底）</span><br><span class="line">│</span><br><span class="line">├── 需要大规模分发给终端用户？</span><br><span class="line">│   ├── 延迟要求 &lt; 5s → LL-HLS / CMAF</span><br><span class="line">│   └── 延迟无所谓 → HLS</span><br><span class="line">│</span><br><span class="line">├── 接入 IP 摄像头？</span><br><span class="line">│   └── RTSP/RTP</span><br><span class="line">│</span><br><span class="line">└── 多协议混合方案（推荐）</span><br><span class="line">    └── SRT/RTMP 推流 → 媒体服务器 → WebRTC + HLS 拉流</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、视频编码基础"><a href="#三、视频编码基础" class="headerlink" title="三、视频编码基础"></a>三、视频编码基础</h2><h3 id="3-1-编码格式对比"><a href="#3-1-编码格式对比" class="headerlink" title="3.1 编码格式对比"></a>3.1 编码格式对比</h3><table>
+<thead>
+<tr>
+<th>编码</th>
+<th>标准</th>
+<th>压缩效率</th>
+<th>硬件支持</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>H.264&#x2F;AVC</strong></td>
+<td>2003</td>
+<td>基准 (1×)</td>
+<td>极广</td>
+<td>兼容性优先、实时通信</td>
+</tr>
+<tr>
+<td><strong>H.265&#x2F;HEVC</strong></td>
+<td>2013</td>
+<td>1.5-2×</td>
+<td>广泛</td>
+<td>4K&#x2F;高清存储、广播</td>
+</tr>
+<tr>
+<td><strong>AV1</strong></td>
+<td>2018</td>
+<td>1.5-2×</td>
+<td>逐步增加</td>
+<td>Web 视频、未来趋势</td>
+</tr>
+<tr>
+<td><strong>VP9</strong></td>
+<td>2013</td>
+<td>~1.4×</td>
+<td>有限</td>
+<td>YouTube、Chrome</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-关键编码参数"><a href="#3-2-关键编码参数" class="headerlink" title="3.2 关键编码参数"></a>3.2 关键编码参数</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># H.264 编码核心参数说明</span></span><br><span class="line">ffmpeg -i input -c:v libx264 \</span><br><span class="line">    -preset fast \          <span class="comment"># 编码速度 vs 质量权衡</span></span><br><span class="line">                            <span class="comment"># ultrafast &gt; superfast &gt; veryfast &gt; faster &gt; fast</span></span><br><span class="line">                            <span class="comment"># &gt; medium &gt; slow &gt; slower &gt; veryslow</span></span><br><span class="line">    -tune zerolatency \     <span class="comment"># 低延迟调优（禁用 B 帧、减少缓冲）</span></span><br><span class="line">    -profile:v high \       <span class="comment"># baseline(兼容)/main/high(质量)</span></span><br><span class="line">    -b:v 4000k \            <span class="comment"># 目标码率</span></span><br><span class="line">    -maxrate 4500k \        <span class="comment"># 最大码率（CBR/VBR 上限）</span></span><br><span class="line">    -bufsize 8000k \        <span class="comment"># VBV 缓冲大小</span></span><br><span class="line">    -g 60 \                 <span class="comment"># GOP 大小（关键帧间隔 = 帧率×秒数）</span></span><br><span class="line">    -keyint_min 60 \        <span class="comment"># 最小关键帧间隔</span></span><br><span class="line">    -bf 0 \                 <span class="comment"># B 帧数量（0=低延迟）</span></span><br><span class="line">    output.mp4</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-码率参考"><a href="#3-3-码率参考" class="headerlink" title="3.3 码率参考"></a>3.3 码率参考</h3><table>
+<thead>
+<tr>
+<th>分辨率</th>
+<th>帧率</th>
+<th>H.264 推荐码率</th>
+<th>H.265 推荐码率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>720p</td>
+<td>30fps</td>
+<td>2.5-4 Mbps</td>
+<td>1.5-2.5 Mbps</td>
+</tr>
+<tr>
+<td>1080p</td>
+<td>30fps</td>
+<td>4-6 Mbps</td>
+<td>2.5-4 Mbps</td>
+</tr>
+<tr>
+<td>1080p</td>
+<td>60fps</td>
+<td>6-9 Mbps</td>
+<td>4-6 Mbps</td>
+</tr>
+<tr>
+<td>4K</td>
+<td>30fps</td>
+<td>13-20 Mbps</td>
+<td>8-13 Mbps</td>
+</tr>
+<tr>
+<td>4K</td>
+<td>60fps</td>
+<td>20-30 Mbps</td>
+<td>13-20 Mbps</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、硬件编码加速"><a href="#四、硬件编码加速" class="headerlink" title="四、硬件编码加速"></a>四、硬件编码加速</h2><h3 id="4-1-为什么需要硬件编码"><a href="#4-1-为什么需要硬件编码" class="headerlink" title="4.1 为什么需要硬件编码"></a>4.1 为什么需要硬件编码</h3><p>软件编码（x264）质量好但 CPU 占用极高。1080p@30fps 的 x264 medium 可以吃满 4 核 CPU。在嵌入式设备（Jetson、树莓派）上，软编根本不可行。</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>平台</th>
+<th>速度(vs x264)</th>
+<th>CPU 占用</th>
+<th>质量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>x264 (medium)</td>
+<td>通用 CPU</td>
+<td>1×</td>
+<td>~400%</td>
+<td>优秀</td>
+</tr>
+<tr>
+<td><strong>NVENC</strong></td>
+<td>NVIDIA GPU</td>
+<td>4-6×</td>
+<td>~50%</td>
+<td>很好</td>
+</tr>
+<tr>
+<td><strong>VAAPI</strong></td>
+<td>Intel&#x2F;AMD GPU</td>
+<td>3-4×</td>
+<td>~45%</td>
+<td>好</td>
+</tr>
+<tr>
+<td><strong>QSV</strong></td>
+<td>Intel CPU&#x2F;GPU</td>
+<td>3-5×</td>
+<td>~40%</td>
+<td>好</td>
+</tr>
+<tr>
+<td><strong>VideoToolbox</strong></td>
+<td>macOS&#x2F;Apple Silicon</td>
+<td>3-5×</td>
+<td>~30%</td>
+<td>好</td>
+</tr>
+<tr>
+<td><strong>nvv4l2h264enc</strong></td>
+<td>Jetson</td>
+<td>3-4×</td>
+<td>~5%</td>
+<td>好</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-NVIDIA-NVENC"><a href="#4-2-NVIDIA-NVENC" class="headerlink" title="4.2 NVIDIA NVENC"></a>4.2 NVIDIA NVENC</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 NVENC 支持</span></span><br><span class="line">ffmpeg -encoders | grep nvenc</span><br><span class="line"><span class="comment"># → h264_nvenc, hevc_nvenc, av1_nvenc</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># NVENC 低延迟推流</span></span><br><span class="line">ffmpeg -hwaccel cuda -hwaccel_output_format cuda \</span><br><span class="line">    -i input.mp4 \</span><br><span class="line">    -c:v h264_nvenc \</span><br><span class="line">    -preset p4 \              <span class="comment"># p1(最快) ~ p7(最慢最好)</span></span><br><span class="line">    -tune ll \                <span class="comment"># ll=低延迟, hq=高质量</span></span><br><span class="line">    -b:v 4000k \</span><br><span class="line">    -maxrate 4500k \</span><br><span class="line">    -bufsize 4000k \</span><br><span class="line">    -g 60 \</span><br><span class="line">    -bf 0 \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f flv rtmp://server:1935/live/stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># NVENC H.265 SRT 推流</span></span><br><span class="line">ffmpeg -hwaccel cuda -i input.mp4 \</span><br><span class="line">    -c:v hevc_nvenc -preset p4 -b:v 3000k -g 60 \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f mpegts <span class="string">&quot;srt://server:9000?mode=caller&amp;latency=500000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-Intel-VAAPI-QSV"><a href="#4-3-Intel-VAAPI-QSV" class="headerlink" title="4.3 Intel VAAPI &#x2F; QSV"></a>4.3 Intel VAAPI &#x2F; QSV</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 VAAPI 设备</span></span><br><span class="line"><span class="built_in">ls</span> /dev/dri/renderD*</span><br><span class="line"></span><br><span class="line"><span class="comment"># VAAPI 编码推流</span></span><br><span class="line">ffmpeg -vaapi_device /dev/dri/renderD128 -i input.mp4 \</span><br><span class="line">    -vf <span class="string">&#x27;format=nv12,hwupload&#x27;</span> \</span><br><span class="line">    -c:v h264_vaapi -b:v 4000k \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f flv rtmp://server:1935/live/stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># QSV 编码推流</span></span><br><span class="line">ffmpeg -hwaccel qsv -i input.mp4 \</span><br><span class="line">    -c:v h264_qsv -preset faster -b:v 4000k \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f flv rtmp://server:1935/live/stream</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-NVIDIA-Jetson（nvv4l2h264enc）"><a href="#4-4-NVIDIA-Jetson（nvv4l2h264enc）" class="headerlink" title="4.4 NVIDIA Jetson（nvv4l2h264enc）"></a>4.4 NVIDIA Jetson（nvv4l2h264enc）</h3><p>Jetson 平台使用专用的 V4L2 编码器，CPU 占用仅 5%：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># GStreamer CSI 摄像头 → H.264 → RTP/UDP 推流</span></span><br><span class="line">gst-launch-1.0 -e \</span><br><span class="line">    nvarguscamerasrc ! \</span><br><span class="line">    <span class="string">&#x27;video/x-raw(memory:NVMM), width=1920, height=1080, framerate=30/1&#x27;</span> ! \</span><br><span class="line">    nvv4l2h264enc \</span><br><span class="line">        bitrate=4000000 \</span><br><span class="line">        control-rate=1 \</span><br><span class="line">        insert-sps-pps=<span class="literal">true</span> \</span><br><span class="line">        maxperf-enable=1 \</span><br><span class="line">        iframeinterval=30 ! \</span><br><span class="line">    h264parse ! \</span><br><span class="line">    rtph264pay config-interval=1 ! \</span><br><span class="line">    udpsink host=192.168.1.10 port=5000 <span class="built_in">sync</span>=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 接收端</span></span><br><span class="line">gst-launch-1.0 \</span><br><span class="line">    udpsrc port=5000 \</span><br><span class="line">        caps=<span class="string">&quot;application/x-rtp, encoding-name=H264, payload=96&quot;</span> ! \</span><br><span class="line">    rtph264depay ! h264parse ! avdec_h264 ! autovideosink</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、FFmpeg-推拉流实战"><a href="#五、FFmpeg-推拉流实战" class="headerlink" title="五、FFmpeg 推拉流实战"></a>五、FFmpeg 推拉流实战</h2><h3 id="5-1-拉流：RTSP-→-本地文件"><a href="#5-1-拉流：RTSP-→-本地文件" class="headerlink" title="5.1 拉流：RTSP → 本地文件"></a>5.1 拉流：RTSP → 本地文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从 IP 摄像头拉流并录制</span></span><br><span class="line">ffmpeg -rtsp_transport tcp \</span><br><span class="line">    -i rtsp://admin:pass@192.168.1.100/stream1 \</span><br><span class="line">    -c copy \</span><br><span class="line">    -f segment -segment_time 300 -strftime 1 \</span><br><span class="line">    <span class="string">&quot;recording_%Y%m%d_%H%M%S.mp4&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-推流：本地文件-→-RTMP"><a href="#5-2-推流：本地文件-→-RTMP" class="headerlink" title="5.2 推流：本地文件 → RTMP"></a>5.2 推流：本地文件 → RTMP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 循环推流视频文件到 RTMP</span></span><br><span class="line">ffmpeg -re -stream_loop -1 -i input.mp4 \</span><br><span class="line">    -c:v libx264 -preset fast -tune zerolatency \</span><br><span class="line">    -b:v 4000k -g 60 -bf 0 \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f flv rtmp://localhost:1935/live/test</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-转推：RTSP-→-RTMP"><a href="#5-3-转推：RTSP-→-RTMP" class="headerlink" title="5.3 转推：RTSP → RTMP"></a>5.3 转推：RTSP → RTMP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># IP 摄像头 RTSP 转推到直播平台</span></span><br><span class="line">ffmpeg -rtsp_transport tcp \</span><br><span class="line">    -i rtsp://admin:pass@192.168.1.100/stream1 \</span><br><span class="line">    -c:v copy -c:a aac \</span><br><span class="line">    -f flv rtmp://live-push.example.com/live/stream_key</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-转推：RTMP-→-SRT"><a href="#5-4-转推：RTMP-→-SRT" class="headerlink" title="5.4 转推：RTMP → SRT"></a>5.4 转推：RTMP → SRT</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 协议转换：RTMP 推流转发到 SRT</span></span><br><span class="line">ffmpeg -i rtmp://localhost:1935/live/stream \</span><br><span class="line">    -c copy -f mpegts \</span><br><span class="line">    <span class="string">&quot;srt://remote:9000?mode=caller&amp;latency=500000&amp;passphrase=MySecret&amp;pbkeylen=32&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-SRT-→-HLS-切片"><a href="#5-5-SRT-→-HLS-切片" class="headerlink" title="5.5 SRT → HLS 切片"></a>5.5 SRT → HLS 切片</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># SRT 接收并切成 HLS</span></span><br><span class="line">ffmpeg -i <span class="string">&quot;srt://:9000?mode=listener&amp;latency=500000&quot;</span> \</span><br><span class="line">    -c copy \</span><br><span class="line">    -f hls \</span><br><span class="line">    -hls_time 4 \</span><br><span class="line">    -hls_list_size 5 \</span><br><span class="line">    -hls_flags delete_segments \</span><br><span class="line">    /var/www/html/live/stream.m3u8</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-摄像头采集推流"><a href="#5-6-摄像头采集推流" class="headerlink" title="5.6 摄像头采集推流"></a>5.6 摄像头采集推流</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Linux V4L2 摄像头 → NVENC → RTMP</span></span><br><span class="line">ffmpeg -f v4l2 -input_format mjpeg \</span><br><span class="line">    -video_size 1920x1080 -framerate 30 \</span><br><span class="line">    -i /dev/video0 \</span><br><span class="line">    -c:v h264_nvenc -preset p4 -tune ll \</span><br><span class="line">    -b:v 4000k -g 60 -bf 0 \</span><br><span class="line">    -f flv rtmp://localhost:1935/live/camera</span><br><span class="line"></span><br><span class="line"><span class="comment"># macOS 摄像头 → VideoToolbox → RTMP</span></span><br><span class="line">ffmpeg -f avfoundation -framerate 30 \</span><br><span class="line">    -video_size 1920x1080 -i <span class="string">&quot;0&quot;</span> \</span><br><span class="line">    -c:v h264_videotoolbox -b:v 4000k \</span><br><span class="line">    -f flv rtmp://localhost:1935/live/camera</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-7-多路输出（tee-muxer）"><a href="#5-7-多路输出（tee-muxer）" class="headerlink" title="5.7 多路输出（tee muxer）"></a>5.7 多路输出（tee muxer）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 同时推流到 RTMP + 保存本地 + SRT</span></span><br><span class="line">ffmpeg -re -i input.mp4 \</span><br><span class="line">    -c:v h264_nvenc -preset p4 -b:v 4000k -g 60 \</span><br><span class="line">    -c:a aac -b:a 128k \</span><br><span class="line">    -f <span class="built_in">tee</span> \</span><br><span class="line">    <span class="string">&quot;[f=flv]rtmp://server:1935/live/stream|\</span></span><br><span class="line"><span class="string">     [f=mp4]local_backup.mp4|\</span></span><br><span class="line"><span class="string">     [f=mpegts]srt://remote:9000?mode=caller&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、GStreamer-推拉流实战"><a href="#六、GStreamer-推拉流实战" class="headerlink" title="六、GStreamer 推拉流实战"></a>六、GStreamer 推拉流实战</h2><h3 id="6-1-基本管线结构"><a href="#6-1-基本管线结构" class="headerlink" title="6.1 基本管线结构"></a>6.1 基本管线结构</h3><p>GStreamer 用管道（pipeline）将一系列元素（element）串联：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source → demux → decode → process → encode → mux → sink</span><br></pre></td></tr></table></figure>
+
+<p>每个元素通过 pad 连接，数据以 buffer 形式在管线中流动。</p>
+<h3 id="6-2-摄像头-→-RTSP-推流"><a href="#6-2-摄像头-→-RTSP-推流" class="headerlink" title="6.2 摄像头 → RTSP 推流"></a>6.2 摄像头 → RTSP 推流</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># USB 摄像头 → x264 → RTSP（使用 test-launch）</span></span><br><span class="line"><span class="comment"># 需要安装 gst-rtsp-server</span></span><br><span class="line">gst-launch-1.0 v4l2src device=/dev/video0 ! \</span><br><span class="line">    video/x-raw, width=1920, height=1080, framerate=30/1 ! \</span><br><span class="line">    videoconvert ! x264enc tune=zerolatency bitrate=4000 ! \</span><br><span class="line">    rtph264pay config-interval=1 name=pay0 pt=96 ! \</span><br><span class="line">    udpsink host=192.168.1.10 port=5000</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-Jetson-低延迟管线"><a href="#6-3-Jetson-低延迟管线" class="headerlink" title="6.3 Jetson 低延迟管线"></a>6.3 Jetson 低延迟管线</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CSI 摄像头 → NVENC H.265 → UDP（Jetson 专用）</span></span><br><span class="line">gst-launch-1.0 -e \</span><br><span class="line">    nvarguscamerasrc ! \</span><br><span class="line">    <span class="string">&#x27;video/x-raw(memory:NVMM), width=1920, height=1080, framerate=30/1&#x27;</span> ! \</span><br><span class="line">    nvvidconv ! <span class="string">&#x27;video/x-raw(memory:NVMM), format=NV12&#x27;</span> ! \</span><br><span class="line">    nvv4l2h265enc \</span><br><span class="line">        bitrate=8000000 \</span><br><span class="line">        insert-sps-pps=<span class="literal">true</span> \</span><br><span class="line">        maxperf-enable=1 ! \</span><br><span class="line">    h265parse ! \</span><br><span class="line">    rtph265pay config-interval=1 ! \</span><br><span class="line">    udpsink host=192.168.1.10 port=5000 <span class="built_in">sync</span>=<span class="literal">false</span> async=<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-接收端管线"><a href="#6-4-接收端管线" class="headerlink" title="6.4 接收端管线"></a>6.4 接收端管线</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># PC 端接收 H.264 RTP 流并显示</span></span><br><span class="line">gst-launch-1.0 \</span><br><span class="line">    udpsrc port=5000 \</span><br><span class="line">        caps=<span class="string">&quot;application/x-rtp, media=video, encoding-name=H264, payload=96&quot;</span> ! \</span><br><span class="line">    rtph264depay ! h264parse ! avdec_h264 ! \</span><br><span class="line">    videoconvert ! autovideosink <span class="built_in">sync</span>=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># PC 端接收 H.265 RTP 流并显示</span></span><br><span class="line">gst-launch-1.0 \</span><br><span class="line">    udpsrc port=5000 \</span><br><span class="line">        caps=<span class="string">&quot;application/x-rtp, media=video, encoding-name=H265, payload=96&quot;</span> ! \</span><br><span class="line">    rtph265depay ! h265parse ! avdec_h265 ! \</span><br><span class="line">    videoconvert ! autovideosink <span class="built_in">sync</span>=<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-5-GStreamer-RTSP-Server（Python）"><a href="#6-5-GStreamer-RTSP-Server（Python）" class="headerlink" title="6.5 GStreamer RTSP Server（Python）"></a>6.5 GStreamer RTSP Server（Python）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> gi</span><br><span class="line">gi.require_version(<span class="string">&#x27;Gst&#x27;</span>, <span class="string">&#x27;1.0&#x27;</span>)</span><br><span class="line">gi.require_version(<span class="string">&#x27;GstRtspServer&#x27;</span>, <span class="string">&#x27;1.0&#x27;</span>)</span><br><span class="line"><span class="keyword">from</span> gi.repository <span class="keyword">import</span> Gst, GstRtspServer, GLib</span><br><span class="line"></span><br><span class="line">Gst.init(<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RTSPServer</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>.server = GstRtspServer.RTSPServer()</span><br><span class="line">        <span class="variable language_">self</span>.server.set_service(<span class="string">&quot;8554&quot;</span>)</span><br><span class="line"></span><br><span class="line">        factory = GstRtspServer.RTSPMediaFactory()</span><br><span class="line">        factory.set_launch(</span><br><span class="line">            <span class="string">&#x27;( v4l2src device=/dev/video0 ! &#x27;</span></span><br><span class="line">            <span class="string">&#x27;video/x-raw, width=1920, height=1080, framerate=30/1 ! &#x27;</span></span><br><span class="line">            <span class="string">&#x27;videoconvert ! x264enc tune=zerolatency bitrate=4000 speed-preset=fast ! &#x27;</span></span><br><span class="line">            <span class="string">&#x27;rtph264pay name=pay0 pt=96 )&#x27;</span></span><br><span class="line">        )</span><br><span class="line">        factory.set_shared(<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.server.get_mount_points().add_factory(<span class="string">&quot;/stream&quot;</span>, factory)</span><br><span class="line">        <span class="variable language_">self</span>.server.attach(<span class="literal">None</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;RTSP server ready at rtsp://localhost:8554/stream&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    server = RTSPServer()</span><br><span class="line">    GLib.MainLoop().run()</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-6-GStreamer-OpenCV-联合使用"><a href="#6-6-GStreamer-OpenCV-联合使用" class="headerlink" title="6.6 GStreamer + OpenCV 联合使用"></a>6.6 GStreamer + OpenCV 联合使用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer 管线作为 VideoCapture 的 backend</span></span><br><span class="line">cap = cv2.VideoCapture(</span><br><span class="line">    <span class="string">&#x27;udpsrc port=5000 caps=&quot;application/x-rtp, encoding-name=H264, payload=96&quot; ! &#x27;</span></span><br><span class="line">    <span class="string">&#x27;rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! &#x27;</span></span><br><span class="line">    <span class="string">&#x27;video/x-raw, format=BGR ! appsink drop=true sync=false&#x27;</span>,</span><br><span class="line">    cv2.CAP_GSTREAMER</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer 管线作为 VideoWriter 的 backend（硬件编码推流）</span></span><br><span class="line">writer = cv2.VideoWriter(</span><br><span class="line">    <span class="string">&#x27;appsrc ! videoconvert ! &#x27;</span></span><br><span class="line">    <span class="string">&#x27;x264enc tune=zerolatency bitrate=4000 speed-preset=fast ! &#x27;</span></span><br><span class="line">    <span class="string">&#x27;rtph264pay config-interval=1 ! &#x27;</span></span><br><span class="line">    <span class="string">&#x27;udpsink host=192.168.1.10 port=5000&#x27;</span>,</span><br><span class="line">    cv2.CAP_GSTREAMER, <span class="number">0</span>, <span class="number">30.0</span>, (<span class="number">1920</span>, <span class="number">1080</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> cap.isOpened():</span><br><span class="line">    ret, frame = cap.read()</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> ret:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    <span class="comment"># OpenCV 处理</span></span><br><span class="line">    processed = cv2.Canny(frame, <span class="number">50</span>, <span class="number">150</span>)</span><br><span class="line">    processed_bgr = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)</span><br><span class="line">    writer.write(processed_bgr)</span><br><span class="line">    cv2.imshow(<span class="string">&#x27;Processed&#x27;</span>, processed)</span><br><span class="line">    <span class="keyword">if</span> cv2.waitKey(<span class="number">1</span>) &amp; <span class="number">0xFF</span> == <span class="built_in">ord</span>(<span class="string">&#x27;q&#x27;</span>):</span><br><span class="line">        <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、MediaMTX：一站式媒体服务器"><a href="#七、MediaMTX：一站式媒体服务器" class="headerlink" title="七、MediaMTX：一站式媒体服务器"></a>七、MediaMTX：一站式媒体服务器</h2><h3 id="7-1-简介"><a href="#7-1-简介" class="headerlink" title="7.1 简介"></a>7.1 简介</h3><p><a target="_blank" rel="noopener" href="https://github.com/bluenviron/mediamtx">MediaMTX</a>（前身 rtsp-simple-server）是一个零依赖、单文件的媒体服务器，支持所有主流协议之间的自动转换。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">任意推流协议 → MediaMTX → 任意拉流协议</span><br><span class="line"></span><br><span class="line">支持：SRT / WebRTC(WHIP) / RTSP / RTMP / HLS / RTP / MPEG-TS</span><br><span class="line">→ 自动转换为 →</span><br><span class="line">SRT / WebRTC(WHEP) / RTSP / RTMP / HLS</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-部署"><a href="#7-2-部署" class="headerlink" title="7.2 部署"></a>7.2 部署</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Docker（推荐）</span></span><br><span class="line">docker run --<span class="built_in">rm</span> -it --network=host bluenviron/mediamtx:1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或手动下载</span></span><br><span class="line">wget https://github.com/bluenviron/mediamtx/releases/download/v1.17.1/mediamtx_v1.17.1_linux_amd64.tar.gz</span><br><span class="line">tar xzf mediamtx_v1.17.1_linux_amd64.tar.gz</span><br><span class="line">./mediamtx</span><br></pre></td></tr></table></figure>
+
+<p>默认端口：</p>
+<ul>
+<li>RTSP: 8554</li>
+<li>RTMP: 1935</li>
+<li>HLS: 8888</li>
+<li>WebRTC(WHEP): 8889</li>
+<li>SRT: 8890</li>
+<li>API: 9997</li>
+</ul>
+<h3 id="7-3-推流"><a href="#7-3-推流" class="headerlink" title="7.3 推流"></a>7.3 推流</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># FFmpeg RTSP 推流</span></span><br><span class="line">ffmpeg -re -stream_loop -1 -i input.mp4 \</span><br><span class="line">    -c copy -f rtsp rtsp://localhost:8554/mystream</span><br><span class="line"></span><br><span class="line"><span class="comment"># FFmpeg RTMP 推流</span></span><br><span class="line">ffmpeg -re -stream_loop -1 -i input.mp4 \</span><br><span class="line">    -c copy -f flv rtmp://localhost:1935/mystream</span><br><span class="line"></span><br><span class="line"><span class="comment"># FFmpeg SRT 推流</span></span><br><span class="line">ffmpeg -re -stream_loop -1 -i input.mp4 \</span><br><span class="line">    -c copy -f mpegts <span class="string">&quot;srt://localhost:8890?streamid=publish:mystream&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer RTSP 推流</span></span><br><span class="line">gst-launch-1.0 rtspclientsink name=s location=rtsp://localhost:8554/mystream \</span><br><span class="line">    filesrc location=file.mp4 ! qtdemux name=d \</span><br><span class="line">    d.video_0 ! queue ! s.sink_0 \</span><br><span class="line">    d.audio_0 ! queue ! s.sink_1</span><br><span class="line"></span><br><span class="line"><span class="comment"># OBS Studio WHIP 推流</span></span><br><span class="line"><span class="comment"># 服务器：http://localhost:8889/mystream/whip</span></span><br><span class="line"><span class="comment"># 即可通过所有协议拉流</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-拉流"><a href="#7-4-拉流" class="headerlink" title="7.4 拉流"></a>7.4 拉流</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># VLC RTSP 拉流</span></span><br><span class="line">vlc --network-caching=50 rtsp://localhost:8554/mystream</span><br><span class="line"></span><br><span class="line"><span class="comment"># FFmpeg RTSP 拉流录制</span></span><br><span class="line">ffmpeg -i rtsp://localhost:8554/mystream -c copy output.mp4</span><br><span class="line"></span><br><span class="line"><span class="comment"># FFmpeg SRT 拉流</span></span><br><span class="line">ffmpeg -i <span class="string">&quot;srt://localhost:8890?streamid=read:mystream&quot;</span> -c copy output.ts</span><br><span class="line"></span><br><span class="line"><span class="comment"># 浏览器 HLS 拉流</span></span><br><span class="line"><span class="comment"># 打开 http://localhost:8888/mystream/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 浏览器 WebRTC 拉流</span></span><br><span class="line"><span class="comment"># 打开 http://localhost:8889/mystream/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-核心配置"><a href="#7-5-核心配置" class="headerlink" title="7.5 核心配置"></a>7.5 核心配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mediamtx.yml</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># API（用于监控和管理）</span></span><br><span class="line"><span class="attr">api:</span> <span class="literal">yes</span></span><br><span class="line"><span class="attr">apiAddress:</span> <span class="string">:9997</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># RTSP 配置</span></span><br><span class="line"><span class="attr">rtspAddress:</span> <span class="string">:8554</span></span><br><span class="line"><span class="attr">protocols:</span> [<span class="string">tcp</span>, <span class="string">udp</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># RTMP 配置</span></span><br><span class="line"><span class="attr">rtmpAddress:</span> <span class="string">:1935</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># HLS 配置</span></span><br><span class="line"><span class="attr">hlsAddress:</span> <span class="string">:8888</span></span><br><span class="line"><span class="attr">hlsAlwaysRemux:</span> <span class="literal">yes</span></span><br><span class="line"><span class="attr">hlsSegmentCount:</span> <span class="number">3</span></span><br><span class="line"><span class="attr">hlsSegmentDuration:</span> <span class="string">1s</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># WebRTC 配置</span></span><br><span class="line"><span class="attr">webrtcAddress:</span> <span class="string">:8889</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SRT 配置</span></span><br><span class="line"><span class="attr">srtAddress:</span> <span class="string">:8890</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 路径配置</span></span><br><span class="line"><span class="attr">paths:</span></span><br><span class="line">  <span class="comment"># 代理 IP 摄像头</span></span><br><span class="line">  <span class="attr">cam1:</span></span><br><span class="line">    <span class="attr">source:</span> <span class="string">rtsp://admin:pass@192.168.1.100/stream1</span></span><br><span class="line">    <span class="attr">sourceOnDemand:</span> <span class="literal">yes</span>  <span class="comment"># 有人观看时才连接</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 允许推流的路径</span></span><br><span class="line">  <span class="attr">live:</span></span><br><span class="line">    <span class="comment"># 无额外配置 = 允许任何协议推流</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 需要认证的路径</span></span><br><span class="line">  <span class="attr">secure:</span></span><br><span class="line">    <span class="attr">publishUser:</span> <span class="string">admin</span></span><br><span class="line">    <span class="attr">publishPass:</span> <span class="string">secret123</span></span><br><span class="line">    <span class="attr">readUser:</span> <span class="string">viewer</span></span><br><span class="line">    <span class="attr">readPass:</span> <span class="string">view123</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 录制到磁盘</span></span><br><span class="line">  <span class="attr">recorded:</span></span><br><span class="line">    <span class="attr">record:</span> <span class="literal">yes</span></span><br><span class="line">    <span class="attr">recordPath:</span> <span class="string">./recordings/%path/%Y-%m-%d_%H-%M-%S-%f</span></span><br><span class="line">    <span class="attr">recordFormat:</span> <span class="string">fmp4</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-6-协议自动转换矩阵"><a href="#7-6-协议自动转换矩阵" class="headerlink" title="7.6 协议自动转换矩阵"></a>7.6 协议自动转换矩阵</h3><table>
+<thead>
+<tr>
+<th>推流方式</th>
+<th>RTSP 拉</th>
+<th>RTMP 拉</th>
+<th>HLS 拉</th>
+<th>WebRTC 拉</th>
+<th>SRT 拉</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RTSP 推</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>RTMP 推</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>SRT 推</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>WHIP 推</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>RTP 推</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p>推一路流，MediaMTX 自动为所有协议生成对应的拉流端点。</p>
+<hr>
+<h2 id="八、无人机-机器人低延迟视频方案"><a href="#八、无人机-机器人低延迟视频方案" class="headerlink" title="八、无人机 &#x2F; 机器人低延迟视频方案"></a>八、无人机 &#x2F; 机器人低延迟视频方案</h2><h3 id="8-1-延迟预算分析"><a href="#8-1-延迟预算分析" class="headerlink" title="8.1 延迟预算分析"></a>8.1 延迟预算分析</h3><p>对于无人机 FPV 或机器人遥操作，端到端延迟（Glass-to-Glass）通常要求 &lt; 200ms：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>典型延迟</th>
+<th>优化后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>相机采集 + ISP</td>
+<td>10-33ms</td>
+<td>10ms（降低曝光）</td>
+</tr>
+<tr>
+<td>编码</td>
+<td>5-30ms</td>
+<td>3-5ms（NVENC&#x2F;nvv4l2）</td>
+</tr>
+<tr>
+<td>网络传输</td>
+<td>1-50ms</td>
+<td>1-10ms（局域网&#x2F;5G）</td>
+</tr>
+<tr>
+<td>协议开销（缓冲）</td>
+<td>0-2000ms</td>
+<td>0ms（裸 RTP&#x2F;WebRTC）</td>
+</tr>
+<tr>
+<td>解码</td>
+<td>5-30ms</td>
+<td>3-5ms（硬解）</td>
+</tr>
+<tr>
+<td>渲染</td>
+<td>1-16ms</td>
+<td>1ms</td>
+</tr>
+<tr>
+<td><strong>总计</strong></td>
+<td><strong>22-2159ms</strong></td>
+<td><strong>18-31ms</strong></td>
+</tr>
+</tbody></table>
+<h3 id="8-2-推荐方案"><a href="#8-2-推荐方案" class="headerlink" title="8.2 推荐方案"></a>8.2 推荐方案</h3><p><strong>方案 A：裸 RTP&#x2F;UDP（最低延迟，局域网）</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Jetson:</span><br><span class="line">gst-launch-1.0 nvarguscamerasrc ! \</span><br><span class="line">    &#x27;video/x-raw(memory:NVMM), width=1280, height=720, framerate=60/1&#x27; ! \</span><br><span class="line">    nvv4l2h264enc bitrate=4000000 control-rate=1 \</span><br><span class="line">        insert-sps-pps=true iframeinterval=15 maxperf-enable=1 ! \</span><br><span class="line">    h264parse ! rtph264pay config-interval=-1 ! \</span><br><span class="line">    udpsink host=192.168.1.10 port=5000 sync=false async=false</span><br><span class="line"></span><br><span class="line">PC 接收:</span><br><span class="line">gst-launch-1.0 udpsrc port=5000 \</span><br><span class="line">    caps=&quot;application/x-rtp, encoding-name=H264, payload=96&quot; ! \</span><br><span class="line">    rtph264depay ! h264parse ! nvh264dec ! nv3dsink sync=false</span><br></pre></td></tr></table></figure>
+
+<p>端到端延迟：<strong>~20ms</strong>（局域网）</p>
+<p><strong>方案 B：SRT（抗丢包，公网&#x2F;4G&#x2F;5G）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 发送端（Listener）</span></span><br><span class="line">ffmpeg -f v4l2 -input_format mjpeg -video_size 1280x720 -framerate 30 \</span><br><span class="line">    -i /dev/video0 \</span><br><span class="line">    -c:v h264_nvenc -preset p2 -tune ll -b:v 3000k -g 30 -bf 0 \</span><br><span class="line">    -f mpegts <span class="string">&quot;srt://:9000?mode=listener&amp;latency=200000&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 接收端（Caller）</span></span><br><span class="line">ffplay -fflags nobuffer -flags low_delay -framedrop \</span><br><span class="line">    <span class="string">&quot;srt://drone-ip:9000?mode=caller&amp;latency=200000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>端到端延迟：<strong>~200-400ms</strong>（4G 网络）</p>
+<p><strong>方案 C：WebRTC WHIP&#x2F;WHEP（浏览器观看）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># MediaMTX 作为中转</span></span><br><span class="line">docker run --<span class="built_in">rm</span> -it --network=host bluenviron/mediamtx:1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 无人机端推流（RTSP 或 SRT 推到 MediaMTX）</span></span><br><span class="line">ffmpeg -f v4l2 -video_size 1280x720 -framerate 30 -i /dev/video0 \</span><br><span class="line">    -c:v libx264 -preset ultrafast -tune zerolatency -b:v 2000k -g 30 \</span><br><span class="line">    -f rtsp rtsp://server:8554/drone1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 浏览器打开 WebRTC 播放页面</span></span><br><span class="line"><span class="comment"># http://server:8889/drone1/</span></span><br></pre></td></tr></table></figure>
+
+<p>端到端延迟：<strong>~300-800ms</strong>（含浏览器渲染）</p>
+<h3 id="8-3-方案对比"><a href="#8-3-方案对比" class="headerlink" title="8.3 方案对比"></a>8.3 方案对比</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>裸 RTP&#x2F;UDP</th>
+<th>SRT</th>
+<th>WebRTC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟</td>
+<td>~20ms</td>
+<td>~200-400ms</td>
+<td>~300-800ms</td>
+</tr>
+<tr>
+<td>抗丢包</td>
+<td>无</td>
+<td>ARQ 重传</td>
+<td>NACK 重传</td>
+</tr>
+<tr>
+<td>加密</td>
+<td>无</td>
+<td>AES-256</td>
+<td>DTLS-SRTP</td>
+</tr>
+<tr>
+<td>浏览器</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>适用网络</td>
+<td>可靠局域网</td>
+<td>公网&#x2F;4G&#x2F;5G</td>
+<td>任意</td>
+</tr>
+<tr>
+<td>复杂度</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="九、性能优化最佳实践"><a href="#九、性能优化最佳实践" class="headerlink" title="九、性能优化最佳实践"></a>九、性能优化最佳实践</h2><h3 id="9-1-降低编码延迟"><a href="#9-1-降低编码延迟" class="headerlink" title="9.1 降低编码延迟"></a>9.1 降低编码延迟</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># x264 低延迟配置</span></span><br><span class="line">-preset ultrafast -tune zerolatency -profile baseline -bf 0 -g 30</span><br><span class="line"></span><br><span class="line"><span class="comment"># NVENC 低延迟配置</span></span><br><span class="line">-preset p1 -tune ll -bf 0 -g 30 -rc cbr -delay 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer nvv4l2h264enc 低延迟</span></span><br><span class="line">nvv4l2h264enc maxperf-enable=1 control-rate=1 \</span><br><span class="line">    insert-sps-pps=<span class="literal">true</span> iframeinterval=15 EnableTwopassCBR=<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-降低拉流延迟"><a href="#9-2-降低拉流延迟" class="headerlink" title="9.2 降低拉流延迟"></a>9.2 降低拉流延迟</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># FFplay 低延迟播放</span></span><br><span class="line">ffplay -fflags nobuffer -flags low_delay -framedrop \</span><br><span class="line">    -analyzeduration 0 -probesize 32 \</span><br><span class="line">    -<span class="built_in">sync</span> ext \</span><br><span class="line">    rtsp://server:8554/stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># VLC 低延迟配置</span></span><br><span class="line">vlc --network-caching=50 --clock-jitter=0 \</span><br><span class="line">    --sout-mux-caching=0 \</span><br><span class="line">    rtsp://server:8554/stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer 低延迟接收</span></span><br><span class="line">gst-launch-1.0 udpsrc port=5000 \</span><br><span class="line">    caps=<span class="string">&quot;application/x-rtp, encoding-name=H264&quot;</span> ! \</span><br><span class="line">    rtph264depay ! h264parse ! avdec_h264 ! \</span><br><span class="line">    autovideosink <span class="built_in">sync</span>=<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-网络优化"><a href="#9-3-网络优化" class="headerlink" title="9.3 网络优化"></a>9.3 网络优化</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 增大 UDP 缓冲区（Linux）</span></span><br><span class="line"><span class="built_in">sudo</span> sysctl -w net.core.rmem_max=26214400</span><br><span class="line"><span class="built_in">sudo</span> sysctl -w net.core.wmem_max=26214400</span><br><span class="line"><span class="built_in">sudo</span> sysctl -w net.core.rmem_default=26214400</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在 FFmpeg 中设置 UDP 缓冲区</span></span><br><span class="line">ffmpeg -i input -f mpegts <span class="string">&quot;udp://192.168.1.10:5000?buffer_size=2621440&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SRT 延迟缓冲调优</span></span><br><span class="line"><span class="comment"># latency = max(RTT × 4, 120ms)</span></span><br><span class="line"><span class="comment"># 局域网 RTT ~1ms → latency=120000 (120ms)</span></span><br><span class="line"><span class="comment"># 4G RTT ~50ms → latency=200000 (200ms)</span></span><br><span class="line"><span class="comment"># 公网 RTT ~100ms → latency=400000 (400ms)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-4-诊断工具"><a href="#9-4-诊断工具" class="headerlink" title="9.4 诊断工具"></a>9.4 诊断工具</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查可用硬件编码器</span></span><br><span class="line">ffmpeg -encoders 2&gt;/dev/null | grep -E <span class="string">&quot;nvenc|vaapi|qsv|videotoolbox&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测量流媒体带宽</span></span><br><span class="line">ffprobe -v quiet -print_format json -show_streams rtsp://server/stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># GStreamer 管线延迟测量</span></span><br><span class="line">GST_DEBUG=3 gst-launch-1.0 ... 2&gt;&amp;1 | grep latency</span><br><span class="line"></span><br><span class="line"><span class="comment"># SRT 连接统计</span></span><br><span class="line"><span class="comment"># srt-live-transmit 内置统计输出</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 测量端到端延迟（在画面中嵌入时间戳）</span></span><br><span class="line">ffmpeg -f v4l2 -i /dev/video0 \</span><br><span class="line">    -vf <span class="string">&quot;drawtext=text=&#x27;%&#123;localtime&#125;&#x27;:fontsize=48:fontcolor=white:x=10:y=10&quot;</span> \</span><br><span class="line">    -c:v libx264 -f flv rtmp://server/live/test</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十、参考资源"><a href="#十、参考资源" class="headerlink" title="十、参考资源"></a>十、参考资源</h2><ol>
+<li><strong>FFmpeg 官方文档</strong>: <a target="_blank" rel="noopener" href="https://ffmpeg.org/documentation.html">ffmpeg.org</a></li>
+<li><strong>FFmpeg NVIDIA GPU 加速</strong>: <a target="_blank" rel="noopener" href="https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/pdf/Using_FFmpeg_with_NVIDIA_GPU_Hardware_Acceleration.pdf">docs.nvidia.com&#x2F;video-codec-sdk</a></li>
+<li><strong>GStreamer 文档</strong>: <a target="_blank" rel="noopener" href="https://gstreamer.freedesktop.org/documentation/">gstreamer.freedesktop.org</a></li>
+<li><strong>GStreamer Jetson 管线</strong>: <a target="_blank" rel="noopener" href="https://developer.ridgerun.com/wiki/index.php/NVIDIA_Jetson_Orin_NX/GStreamer_Pipelines/H265">developer.ridgerun.com</a></li>
+<li><strong>MediaMTX GitHub</strong>: <a target="_blank" rel="noopener" href="https://github.com/bluenviron/mediamtx">github.com&#x2F;bluenviron&#x2F;mediamtx</a></li>
+<li><strong>SRT 协议规范</strong>: <a target="_blank" rel="noopener" href="https://github.com/Haivision/srt">github.com&#x2F;Haivision&#x2F;srt</a></li>
+<li><strong>WHIP RFC 9725</strong>: <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc9725/">datatracker.ietf.org&#x2F;doc&#x2F;rfc9725</a></li>
+<li><strong>OBS WHIP 指南</strong>: <a target="_blank" rel="noopener" href="https://obsproject.com/kb/whip-streaming-guide">obsproject.com&#x2F;kb&#x2F;whip-streaming-guide</a></li>
+<li><strong>FFmpeg SRT 完整命令参考</strong>: <a target="_blank" rel="noopener" href="https://vajracast.com/blog/srt-streaming-ffmpeg-guide/">vajracast.com&#x2F;blog&#x2F;srt-streaming-ffmpeg-guide</a></li>
+<li><strong>2026 流媒体协议对比</strong>: <a target="_blank" rel="noopener" href="https://antmedia.io/streaming-protocols/">antmedia.io&#x2F;streaming-protocols</a></li>
+<li><strong>Jetson GStreamer 实时视频</strong>: <a target="_blank" rel="noopener" href="https://roboticsknowledgebase.com/wiki/networking/gstreamer-jetson-realtime-video/">roboticsknowledgebase.com&#x2F;gstreamer-jetson</a></li>
+<li><strong>Jetson RTSP→HLS 实战</strong>: <a target="_blank" rel="noopener" href="https://prometeo.blog/practical-case-rtsp-to-hls-via-gstreamer-on-jetson-orin/">prometeo.blog&#x2F;rtsp-to-hls-gstreamer-jetson-orin</a></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/">https://goodisok.github.io/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><a class="post-meta__tags" href="/tags/NVENC/">NVENC</a><a class="post-meta__tags" href="/tags/H-264/">H.264</a><a class="post-meta__tags" href="/tags/%E6%8E%A8%E6%B5%81/">推流</a><a class="post-meta__tags" href="/tags/%E6%8B%89%E6%B5%81/">拉流</a><a class="post-meta__tags" href="/tags/RTSP/">RTSP</a><a class="post-meta__tags" href="/tags/RTMP/">RTMP</a><a class="post-meta__tags" href="/tags/SRT/">SRT</a><a class="post-meta__tags" href="/tags/WebRTC/">WebRTC</a><a class="post-meta__tags" href="/tags/WHIP/">WHIP</a><a class="post-meta__tags" href="/tags/WHEP/">WHEP</a><a class="post-meta__tags" href="/tags/HLS/">HLS</a><a class="post-meta__tags" href="/tags/FFmpeg/">FFmpeg</a><a class="post-meta__tags" href="/tags/GStreamer/">GStreamer</a><a class="post-meta__tags" href="/tags/MediaMTX/">MediaMTX</a><a class="post-meta__tags" href="/tags/%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81/">硬件编码</a><a class="post-meta__tags" href="/tags/H-265/">H.265</a><a class="post-meta__tags" href="/tags/%E4%BD%8E%E5%BB%B6%E8%BF%9F/">低延迟</a><a class="post-meta__tags" href="/tags/Jetson/">Jetson</a><a class="post-meta__tags" href="/tags/%E8%A7%86%E9%A2%91%E6%B5%81/">视频流</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/22/ROS2%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F%E5%88%B0%E9%9B%B6%E6%8B%B7%E8%B4%9D%E4%BC%A0%E8%BE%93%E7%9A%84%E5%85%A8%E9%93%BE%E8%B7%AF%E8%A7%A3%E6%9E%90/" title="ROS2 相机图像完整指南：从消息格式到零拷贝传输的全链路解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ROS2 相机图像完整指南：从消息格式到零拷贝传输的全链路解析</div></div><div class="info-2"><div class="info-item-1"> 在 ROS2 中处理相机图像涉及一整条数据链路：从传感器采集的原始像素，经过编码、传输、解压、畸变校正、色彩转换，最终送到感知算法。每一步都有性能陷阱和工程细节。本文以 ROS2 Humble 为基准，完整剖析这条链路上的每个关键环节。   一、sensor_msgs&#x2F;Image：图像数据的标准容器1.1 消息结构ROS2 中所有图像数据都通过 sensor_msgs/msg/Image 消息传输： 123456789std_msgs/Header header    # 时间戳 + 坐标系  builtin_interfaces/Time stamp  string frame_id          # 相机光学坐标系（z 朝前、x 朝右、y 朝下）uint32 height              # 图像高度（行数）uint32 width               # 图像宽度（列数）string encoding            # 像素编码格式uint8 is_bigendian         # 字节序（通常为 0）uint32 step ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/21/%E7%AA%81%E7%A0%B4AirSim%E7%9B%B8%E6%9C%BA%E5%B8%A7%E7%8E%87%E7%93%B6%E9%A2%88-%E4%BB%8EJPEG%E5%88%B0NVENC%E5%A4%9A%E9%80%9A%E9%81%93%E7%BC%96%E7%A0%81%E7%9A%844%E5%80%8D%E5%8A%A0%E9%80%9F%E5%AE%9E%E6%88%98/" title="突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战</div></div><div class="info-2"><div class="info-item-1"> 本文是上一篇 《解决 AirSim 相机图像传输慢、帧率低：可调质量 JPEG 压缩》 的续作。JPEG 让 1080p 单相机从 ~10 FPS 提到了 ~22 FPS，但双相机并发 + 像素级语义分割真值仍跑不到 30 FPS。本文把整个传输管线推进到 GPU 直接编码（NVENC），最终在 RTX 4090 上做到双相机 1080p 同时 41 FPS、语义分割 IoU &#x3D; 1.000。 文章会把整个工程过程完整复盘，重点讲三个容易踩、文档里没写的坑：  NVENC 多 session 在共享 ID3D11Device 上的 race condition——驱动不会报错，但所有 session 在 ~10 帧内永久性损坏。 snap_to_palette 在 256 色调色板上的 OOM 6GB 陷阱——一次 numpy 广播就把整机内存吃光。 运行期 palette discovery 的反模式——AirSim 早就给了规范调色板，根本不需要”自己探”。    一、背景：JPEG 之后，瓶颈到底在哪？上一篇用 JPEG 把 RPC 传输体积从 ~6 MB&#x...</div></div></div></a><a class="pagination-related" href="/2026/04/20/px4-v1-16-0-simulation-guide/" title="PX4 v1.16.0仿真环境搭建实战：解决编译卡死与网络超时问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-20</div><div class="info-item-2">PX4 v1.16.0仿真环境搭建实战：解决编译卡死与网络超时问题</div></div><div class="info-2"><div class="info-item-1">PX4 v1.16.0仿真环境搭建实战：解决编译卡死与网络超时问题 本文详细记录了在WSL2 Ubuntu 22.04环境中搭建PX4 v1.16.0无人机仿真环境的完整过程，重点解决了编译过程中遇到的网络超时、子模块下载失败、模块编译卡死等实际问题，最终成功实现Gazebo Classic仿真环境并让无人机在仿真中起飞。  1. 环境准备与依赖安装1.1 系统环境 操作系统: WSL2 Ubuntu 22.04.5 LTS 内存: 16GB (WSL2配置8GB) 存储: 50GB以上可用空间 网络: 国内网络环境（存在GitHub访问限制）  1.2 基础依赖安装1234567891011121314151617# 更新系统包sudo apt-get update# 安装基本开发工具sudo apt-get install python3-pip python3-dev python3-wheel python3-setuptools -ysudo apt-get install git zip qtcreator cmake build-essential genromfs...</div></div></div></a><a class="pagination-related" href="/2026/03/19/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="无人机仿真开发需要的基础知识"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-19</div><div class="info-item-2">无人机仿真开发需要的基础知识</div></div><div class="info-2"><div class="info-item-1">做无人机仿真（如 AirSim&#x2F;Colosseum&#x2F;PX4）时，会反复用到下面这些概念。  一、坐标系与姿态1.1 常用坐标系   坐标系 含义 仿真里的用法    NED（North-East-Down） 北-东-地，x 北、y 东、z 向下 AirSim、PX4、很多飞控用 NED 做「世界系」   ENU（East-North-Up） 东-北-天，z 向上 部分视觉、ROS 用 ENU   机体系（Body） 原点在质心，x 前、y 右、z 下（NED 约定） 传感器输出、推力&#x2F;力矩、角速度 pqr 都在机体系   仿真里要先约定世界系是 NED 还是 ENU，所有公式、接口统一，避免符号和轴搞反。 1.2 姿态的几种表示   表示 含义 优点 缺点    欧拉角（roll, pitch, yaw） 绕 3 个轴依次转动的角度（° 或 rad） 直观，便于调试、可视化 万向锁、插值不线性   四元数（q0,q1,q2,q3） 4 个数表示旋转，单位四元数 无万向锁、积分简单、插值好 不直观   旋转矩阵（3×3） 机体相对世界系的旋转 变换向量...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">233</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">36</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8E%A8%E6%B5%81%E4%B8%8E%E6%8B%89%E6%B5%81%EF%BC%9A%E6%95%B0%E6%8D%AE%E6%B5%81%E5%8A%A8%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%96%B9%E5%90%91"><span class="toc-number">1.</span> <span class="toc-text">一、推流与拉流：数据流动的两个方向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%8E%A8%E6%B5%81%EF%BC%88Publish-Ingest%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 推流（Publish &#x2F; Ingest）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8B%89%E6%B5%81%EF%BC%88Play-Subscribe-Egress%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 拉流（Play &#x2F; Subscribe &#x2F; Egress）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 完整链路</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%83%E5%A4%A7%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">二、七大流媒体协议深度对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%80%BB%E8%A7%88"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-RTSP-RTP-%E2%80%94-IP-%E6%91%84%E5%83%8F%E5%A4%B4%E7%9A%84%E9%80%9A%E7%94%A8%E8%AF%AD"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 RTSP&#x2F;RTP — IP 摄像头的通用语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RTMP-%E2%80%94-%E6%8E%A8%E6%B5%81%E7%9A%84%E4%BA%8B%E5%AE%9E%E6%A0%87%E5%87%86%EF%BC%88%E4%BD%86%E6%AD%A3%E5%9C%A8%E8%A2%AB%E5%8F%96%E4%BB%A3%EF%BC%89"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 RTMP — 推流的事实标准（但正在被取代）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-SRT-%E2%80%94-%E4%B8%93%E4%B8%9A%E5%B9%BF%E6%92%AD%E7%9A%84%E6%96%B0%E6%A0%87%E5%87%86"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 SRT — 专业广播的新标准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-WebRTC-WHIP-WHEP-%E2%80%94-%E8%B6%85%E4%BD%8E%E5%BB%B6%E8%BF%9F%E7%9A%84%E6%9C%AA%E6%9D%A5"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 WebRTC &#x2F; WHIP &#x2F; WHEP — 超低延迟的未来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-HLS-%E2%80%94-%E5%A4%A7%E8%A7%84%E6%A8%A1%E5%88%86%E5%8F%91%E4%B9%8B%E7%8E%8B"><span class="toc-number">2.6.</span> <span class="toc-text">2.6 HLS — 大规模分发之王</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">2.7.</span> <span class="toc-text">2.7 协议选型决策树</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81%E5%9F%BA%E7%A1%80"><span class="toc-number">3.</span> <span class="toc-text">三、视频编码基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 编码格式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%B3%E9%94%AE%E7%BC%96%E7%A0%81%E5%8F%82%E6%95%B0"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 关键编码参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%A0%81%E7%8E%87%E5%8F%82%E8%80%83"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 码率参考</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81%E5%8A%A0%E9%80%9F"><span class="toc-number">4.</span> <span class="toc-text">四、硬件编码加速</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 为什么需要硬件编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-NVIDIA-NVENC"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 NVIDIA NVENC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Intel-VAAPI-QSV"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 Intel VAAPI &#x2F; QSV</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-NVIDIA-Jetson%EF%BC%88nvv4l2h264enc%EF%BC%89"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 NVIDIA Jetson（nvv4l2h264enc）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81FFmpeg-%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%9E%E6%88%98"><span class="toc-number">5.</span> <span class="toc-text">五、FFmpeg 推拉流实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%8B%89%E6%B5%81%EF%BC%9ARTSP-%E2%86%92-%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 拉流：RTSP → 本地文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8E%A8%E6%B5%81%EF%BC%9A%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6-%E2%86%92-RTMP"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 推流：本地文件 → RTMP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BD%AC%E6%8E%A8%EF%BC%9ARTSP-%E2%86%92-RTMP"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 转推：RTSP → RTMP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%BD%AC%E6%8E%A8%EF%BC%9ARTMP-%E2%86%92-SRT"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 转推：RTMP → SRT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-SRT-%E2%86%92-HLS-%E5%88%87%E7%89%87"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 SRT → HLS 切片</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-%E6%91%84%E5%83%8F%E5%A4%B4%E9%87%87%E9%9B%86%E6%8E%A8%E6%B5%81"><span class="toc-number">5.6.</span> <span class="toc-text">5.6 摄像头采集推流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-%E5%A4%9A%E8%B7%AF%E8%BE%93%E5%87%BA%EF%BC%88tee-muxer%EF%BC%89"><span class="toc-number">5.7.</span> <span class="toc-text">5.7 多路输出（tee muxer）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81GStreamer-%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%9E%E6%88%98"><span class="toc-number">6.</span> <span class="toc-text">六、GStreamer 推拉流实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E7%AE%A1%E7%BA%BF%E7%BB%93%E6%9E%84"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 基本管线结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%91%84%E5%83%8F%E5%A4%B4-%E2%86%92-RTSP-%E6%8E%A8%E6%B5%81"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 摄像头 → RTSP 推流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Jetson-%E4%BD%8E%E5%BB%B6%E8%BF%9F%E7%AE%A1%E7%BA%BF"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 Jetson 低延迟管线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%8E%A5%E6%94%B6%E7%AB%AF%E7%AE%A1%E7%BA%BF"><span class="toc-number">6.4.</span> <span class="toc-text">6.4 接收端管线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-GStreamer-RTSP-Server%EF%BC%88Python%EF%BC%89"><span class="toc-number">6.5.</span> <span class="toc-text">6.5 GStreamer RTSP Server（Python）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-GStreamer-OpenCV-%E8%81%94%E5%90%88%E4%BD%BF%E7%94%A8"><span class="toc-number">6.6.</span> <span class="toc-text">6.6 GStreamer + OpenCV 联合使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81MediaMTX%EF%BC%9A%E4%B8%80%E7%AB%99%E5%BC%8F%E5%AA%92%E4%BD%93%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">7.</span> <span class="toc-text">七、MediaMTX：一站式媒体服务器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%AE%80%E4%BB%8B"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%83%A8%E7%BD%B2"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%8E%A8%E6%B5%81"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 推流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%8B%89%E6%B5%81"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 拉流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E6%A0%B8%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="toc-number">7.5.</span> <span class="toc-text">7.5 核心配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-%E5%8D%8F%E8%AE%AE%E8%87%AA%E5%8A%A8%E8%BD%AC%E6%8D%A2%E7%9F%A9%E9%98%B5"><span class="toc-number">7.6.</span> <span class="toc-text">7.6 协议自动转换矩阵</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%97%A0%E4%BA%BA%E6%9C%BA-%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%BD%8E%E5%BB%B6%E8%BF%9F%E8%A7%86%E9%A2%91%E6%96%B9%E6%A1%88"><span class="toc-number">8.</span> <span class="toc-text">八、无人机 &#x2F; 机器人低延迟视频方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%BB%B6%E8%BF%9F%E9%A2%84%E7%AE%97%E5%88%86%E6%9E%90"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 延迟预算分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 推荐方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">9.</span> <span class="toc-text">九、性能优化最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%99%8D%E4%BD%8E%E7%BC%96%E7%A0%81%E5%BB%B6%E8%BF%9F"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 降低编码延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E9%99%8D%E4%BD%8E%E6%8B%89%E6%B5%81%E5%BB%B6%E8%BF%9F"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 降低拉流延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96"><span class="toc-number">9.3.</span> <span class="toc-text">9.3 网络优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E8%AF%8A%E6%96%AD%E5%B7%A5%E5%85%B7"><span class="toc-number">9.4.</span> <span class="toc-text">9.4 诊断工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="toc-number">10.</span> <span class="toc-text">十、参考资源</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/" title="视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战">视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战</a><time datetime="2026-04-22T06:00:00.000Z" title="发表于 2026-04-22 14:00:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/ROS2%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F%E5%88%B0%E9%9B%B6%E6%8B%B7%E8%B4%9D%E4%BC%A0%E8%BE%93%E7%9A%84%E5%85%A8%E9%93%BE%E8%B7%AF%E8%A7%A3%E6%9E%90/" title="ROS2 相机图像完整指南：从消息格式到零拷贝传输的全链路解析">ROS2 相机图像完整指南：从消息格式到零拷贝传输的全链路解析</a><time datetime="2026-04-22T03:00:00.000Z" title="发表于 2026-04-22 11:00:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/ROS2-Humble%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8EDDS%E9%80%9A%E4%BF%A1%E5%88%B0Executor%E8%B0%83%E5%BA%A6%E7%9A%84%E5%AE%8C%E6%95%B4%E5%89%96%E6%9E%90/" title="ROS2 Humble 架构深度解析：从 DDS 通信到 Executor 调度的完整剖析">ROS2 Humble 架构深度解析：从 DDS 通信到 Executor 调度的完整剖析</a><time datetime="2026-04-22T02:00:00.000Z" title="发表于 2026-04-22 10:00:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/Gazebo-Sim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8EECS%E6%9E%B6%E6%9E%84%E5%88%B0%E4%BB%BF%E7%9C%9F%E4%B8%BB%E5%BE%AA%E7%8E%AF%E7%9A%84%E5%AE%8C%E6%95%B4%E5%89%96%E6%9E%90/" title="Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战">Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战</a><time datetime="2026-04-21T15:30:00.000Z" title="发表于 2026-04-21 23:30:00">2026-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/21/AI%E7%94%9F%E6%88%90%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8C%87%E6%8E%A7%E7%B3%BB%E7%BB%9F-%E4%BB%8E%E9%9B%B6%E8%A1%8C%E4%BA%BA%E5%B7%A5%E4%BB%A3%E7%A0%81%E5%88%B0%E5%A4%A9%E7%A9%BA%E4%B8%AD%E7%9A%84%E9%A3%9E%E8%A1%8C%E7%BD%91%E7%AB%99/" title="AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站">AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站</a><time datetime="2026-04-21T15:00:00.000Z" title="发表于 2026-04-21 23:00:00">2026-04-21</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
