@@ -275,7 +275,7 @@ btf.addGlobalFn('pjaxComplete', () => {
 </tr>
 </tbody></table>
 <h3 id="2-3-反无人机专用检测器"><a href="#2-3-反无人机专用检测器" class="headerlink" title="2.3 反无人机专用检测器"></a>2.3 反无人机专用检测器</h3><p>通用 YOLO 模型在反无人机场景中的痛点是<strong>小目标检测能力不足</strong>。2025–2026 年出现了多个针对性改进：</p>
-<p><strong>SDD-YOLO</strong>（2026 年 3 月，arXiv:2603.25218）：专为地对空（G2A）反无人机监视设计。核心改进是增加了 <strong>P2 高分辨率检测头</strong>（4 倍下采样），保留更精细的空间细节。在自建的 DroneSOD-30K 数据集（约 30000 张标注图像，覆盖多种气象条件）上，SDD-YOLO-n 的 <a href="mailto:&#109;&#65;&#80;&#x40;&#48;&#x2e;&#x35;">mAP@0.5</a> 达到 86.0%，比 YOLOv5n 基线高 7.8 个百分点。推理速度在 RTX 5090 上达 226 FPS，Intel Xeon CPU 上 35 FPS。</p>
+<p><strong>SDD-YOLO</strong>（2026 年 3 月，arXiv:2603.25218）：专为地对空（G2A）反无人机监视设计。核心改进是增加了 <strong>P2 高分辨率检测头</strong>（4 倍下采样），保留更精细的空间细节。在自建的 DroneSOD-30K 数据集（约 30000 张标注图像，覆盖多种气象条件）上，SDD-YOLO-n 的 <a href="mailto:&#x6d;&#x41;&#x50;&#x40;&#48;&#x2e;&#53;">mAP@0.5</a> 达到 86.0%，比 YOLOv5n 基线高 7.8 个百分点。推理速度在 RTX 5090 上达 226 FPS，Intel Xeon CPU 上 35 FPS。</p>
 <p><strong>MBS-YOLO</strong>（2025 年，CMC 期刊）：基于 YOLOv8 架构，设计了 C2f-Pu 模块和多分支特征金字塔网络（MB-FPN），使用跨层特征融合策略增强小目标表示。在 Det-Fly 数据集上精度提升 3%、召回率提升 5.6%、mAP50 提升 4.5%，参数量减少 21.2%。</p>
 <p><strong>HMF-DEIM</strong>（2026 年 4 月，Sensors 期刊）：端到端 Transformer 架构，专为无人机小目标检测设计。在 VisDrone2019 测试集上 mAP50 达到 +2.1%（相对 DEIM），小目标 APs 相对提升 21.3%。TensorRT FP16 推理速度 465 FPS。</p>
 <h3 id="2-4-多传感器融合检测"><a href="#2-4-多传感器融合检测" class="headerlink" title="2.4 多传感器融合检测"></a>2.4 多传感器融合检测</h3><p>单一传感器无法覆盖所有场景。现代 C-UAS 系统采用**”Slew-to-Cue”**（引导转向）模式融合多源数据：</p>
