@@ -1,0 +1,1164 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026） | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。   一、算法全景：截击无人机的软件架构一次完整的无人机拦截任务可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026）">
+<meta property="og:url" content="https://goodisok.github.io/2026/04/21/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。   一、算法全景：截击无人机的软件架构一次完整的无人机拦截任务可">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-04-21T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-21T09:53:01.721Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="C-UAS">
+<meta property="article:tag" content="TensorRT">
+<meta property="article:tag" content="YOLO">
+<meta property="article:tag" content="卡尔曼滤波">
+<meta property="article:tag" content="多传感器融合">
+<meta property="article:tag" content="截击无人机">
+<meta property="article:tag" content="无人机算法">
+<meta property="article:tag" content="比例导引">
+<meta property="article:tag" content="深度强化学习">
+<meta property="article:tag" content="目标检测">
+<meta property="article:tag" content="目标跟踪">
+<meta property="article:tag" content="蜂群协同">
+<meta property="article:tag" content="视觉惯性里程计">
+<meta property="article:tag" content="边缘AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026）",
+  "url": "https://goodisok.github.io/2026/04/21/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-04-21T14:00:00.000Z",
+  "dateModified": "2026-04-21T09:53:01.721Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/04/21/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">256</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">38</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">截击无人机核心算法深度解析：从目标检测到自主制导的完整技术栈（2026）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-21T14:00:00.000Z" title="发表于 2026-04-21 22:00:00">2026-04-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-21T09:53:01.721Z" title="更新于 2026-04-21 17:53:01">2026-04-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/">技术前沿</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。</p>
+</blockquote>
+<hr>
+<h2 id="一、算法全景：截击无人机的软件架构"><a href="#一、算法全景：截击无人机的软件架构" class="headerlink" title="一、算法全景：截击无人机的软件架构"></a>一、算法全景：截击无人机的软件架构</h2><p>一次完整的无人机拦截任务可以分解为五个算法层次，从感知到执行依次递进：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│  第五层：蜂群协同        任务分配 / 多机编队 / 目标优先级  │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第四层：自主导航        VIO / SLAM / 无GPS定位           │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第三层：制导与控制      比例导引 / 最优制导 / DRL制导     │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第二层：跟踪与估计      卡尔曼滤波 / MOT / 状态预测      │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  第一层：检测与分类      YOLO / 多传感器融合 / 分类器      │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>在实际产品中，这五层并非孤立运行。例如 GOBI 的机载 AI 将检测、跟踪、制导融合在一个端到端模型中；Anduril Anvil 的 Lattice OS 将多传感器融合和蜂群协同统一在一个分布式平台上。但为了清晰理解每层的核心算法，本文仍按层次展开。</p>
+<hr>
+<h2 id="二、第一层：目标检测与分类"><a href="#二、第一层：目标检测与分类" class="headerlink" title="二、第一层：目标检测与分类"></a>二、第一层：目标检测与分类</h2><h3 id="2-1-核心挑战"><a href="#2-1-核心挑战" class="headerlink" title="2.1 核心挑战"></a>2.1 核心挑战</h3><p>在空对空拦截场景中，目标检测面临的核心挑战与地面场景截然不同：</p>
+<table>
+<thead>
+<tr>
+<th>挑战</th>
+<th>具体表现</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>极小目标</td>
+<td>5 km 外的 Shahed 无人机在 640×480 图像中仅占 3–8 个像素</td>
+<td>常规检测器漏检率高</td>
+</tr>
+<tr>
+<td>纯天空背景</td>
+<td>背景无纹理、无参照物，传统特征提取失效</td>
+<td>误检率高</td>
+</tr>
+<tr>
+<td>高相对速度</td>
+<td>截击机与目标的相对接近速度可达 200+ m&#x2F;s</td>
+<td>运动模糊严重</td>
+</tr>
+<tr>
+<td>光照剧变</td>
+<td>夜间作战依赖热成像，昼间强光下光电传感器过曝</td>
+<td>需多模态融合</td>
+</tr>
+<tr>
+<td>电子战环境</td>
+<td>目标可能无射频信号（自主飞行），RF 探测失效</td>
+<td>不能依赖单一传感器</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-YOLO-系列：从-YOLOv8-到-YOLO26"><a href="#2-2-YOLO-系列：从-YOLOv8-到-YOLO26" class="headerlink" title="2.2 YOLO 系列：从 YOLOv8 到 YOLO26"></a>2.2 YOLO 系列：从 YOLOv8 到 YOLO26</h3><p>YOLO（You Only Look Once）是截击无人机视觉检测中应用最广泛的模型家族。截至 2026 年 4 月，最新版本为 <strong>YOLO26</strong>（Ultralytics，2026 年初发布），其架构围绕三个核心原则设计：</p>
+<p><strong>无 NMS 端到端推理</strong>：YOLO26 是原生端到端模型，不需要非极大值抑制（NMS）后处理。这对截击无人机至关重要——NMS 引入的额外延迟在 300+ km&#x2F;h 的交战中可能导致数米级的瞄准偏差。YOLO26 采用双头架构：One-to-One 头直接输出最多 300 个检测结果，One-to-Many 头兼容传统 NMS 流程。</p>
+<p><strong>DFL 移除</strong>：Distribution Focal Loss 模块被移除，简化了模型导出和边缘部署。这使得 YOLO26 可以更容易地部署到 Jetson Orin Nano 等嵌入式平台，且兼容更多低功耗硬件。</p>
+<p><strong>MuSGD 混合训练策略</strong>：融合 SGD 和 Muon 优化器的混合训练方法，配合 ProgLoss（渐进式损失函数）和 STAL（空间-时间自适应标签分配），在小目标检测上显著优于前代模型。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输入尺寸</th>
+<th>mAP@50-95</th>
+<th>CPU ONNX 推理</th>
+<th>T4 TensorRT 推理</th>
+<th>参数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>YOLO26n</td>
+<td>640</td>
+<td>40.9</td>
+<td>38.9 ms</td>
+<td>1.7 ms</td>
+<td>2.4M</td>
+</tr>
+<tr>
+<td>YOLO26s</td>
+<td>640</td>
+<td>47.0</td>
+<td>66.0 ms</td>
+<td>2.6 ms</td>
+<td>8.8M</td>
+</tr>
+<tr>
+<td>YOLO26m</td>
+<td>640</td>
+<td>51.5</td>
+<td>183.2 ms</td>
+<td>5.6 ms</td>
+<td>20.0M</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-反无人机专用检测器"><a href="#2-3-反无人机专用检测器" class="headerlink" title="2.3 反无人机专用检测器"></a>2.3 反无人机专用检测器</h3><p>通用 YOLO 模型在反无人机场景中的痛点是<strong>小目标检测能力不足</strong>。2025–2026 年出现了多个针对性改进：</p>
+<p><strong>SDD-YOLO</strong>（2026 年 3 月，arXiv:2603.25218）：专为地对空（G2A）反无人机监视设计。核心改进是增加了 <strong>P2 高分辨率检测头</strong>（4 倍下采样），保留更精细的空间细节。在自建的 DroneSOD-30K 数据集（约 30000 张标注图像，覆盖多种气象条件）上，SDD-YOLO-n 的 <a href="mailto:&#x6d;&#65;&#80;&#64;&#x30;&#46;&#x35;">mAP@0.5</a> 达到 86.0%，比 YOLOv5n 基线高 7.8 个百分点。推理速度在 RTX 5090 上达 226 FPS，Intel Xeon CPU 上 35 FPS。</p>
+<p><strong>MBS-YOLO</strong>（2025 年，CMC 期刊）：基于 YOLOv8 架构，设计了 C2f-Pu 模块和多分支特征金字塔网络（MB-FPN），使用跨层特征融合策略增强小目标表示。在 Det-Fly 数据集上精度提升 3%、召回率提升 5.6%、mAP50 提升 4.5%，参数量减少 21.2%。</p>
+<p><strong>HMF-DEIM</strong>（2026 年 4 月，Sensors 期刊）：端到端 Transformer 架构，专为无人机小目标检测设计。在 VisDrone2019 测试集上 mAP50 达到 +2.1%（相对 DEIM），小目标 APs 相对提升 21.3%。TensorRT FP16 推理速度 465 FPS。</p>
+<h3 id="2-4-多传感器融合检测"><a href="#2-4-多传感器融合检测" class="headerlink" title="2.4 多传感器融合检测"></a>2.4 多传感器融合检测</h3><p>单一传感器无法覆盖所有场景。现代 C-UAS 系统采用**”Slew-to-Cue”**（引导转向）模式融合多源数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">雷达（360°体搜）──→ 发现航迹（5+ km）──→ 传递方位/俯仰/距离坐标</span><br><span class="line">                                              │</span><br><span class="line">EO/IR（窄视场）  ←── 自动转向目标坐标 ←────────┘</span><br><span class="line">     │</span><br><span class="line">     └──→ 视觉识别/分类（1.5 km）──→ 威胁确认 ──→ 引导拦截</span><br><span class="line">                                              │</span><br><span class="line">RF 侦测         ──→ 频谱分析/操控者定位 ────────┘（仅对有射频的目标有效）</span><br></pre></td></tr></table></figure>
+
+<p><strong>NATO SAPIENT 标准</strong>（STANREC 4869）：定义了异构传感器之间的标准化数据交换接口，使不同厂商的雷达、光电、RF 传感器可以即插即用。2025 年 6 月海牙北约峰会上已成功部署 SAPIENT 集成系统。</p>
+<p><strong>深度学习多模态融合</strong>（arXiv:2510.22947，2025 年）：将热成像、可见光和雷达的高层特征图堆叠后输入 CNN 分类器，融合 F1-score 达 0.95，显著优于任何单传感器。但实验室性能与实战性能之间存在明显差距——NATO 实测数据显示实战分类准确率通常低于实验室 15–25 个百分点。</p>
+<hr>
+<h2 id="三、第二层：多目标跟踪与状态估计"><a href="#三、第二层：多目标跟踪与状态估计" class="headerlink" title="三、第二层：多目标跟踪与状态估计"></a>三、第二层：多目标跟踪与状态估计</h2><h3 id="3-1-卡尔曼滤波：状态估计的基石"><a href="#3-1-卡尔曼滤波：状态估计的基石" class="headerlink" title="3.1 卡尔曼滤波：状态估计的基石"></a>3.1 卡尔曼滤波：状态估计的基石</h3><p>检测器输出的是离散帧中的目标位置，但制导律需要的是目标的<strong>连续状态</strong>（位置、速度、加速度）。将离散观测转化为连续状态估计的核心工具是<strong>卡尔曼滤波</strong>（Kalman Filter，KF）。</p>
+<p><strong>基本卡尔曼滤波</strong>假设线性系统和高斯噪声：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>预测：</mtext><mspace width="1em"/><msub><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>=</mo><mi mathvariant="bold">F</mi><msub><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mi mathvariant="bold">B</mi><msub><mi mathvariant="bold">u</mi><mi>k</mi></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi mathvariant="bold">P</mi><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>=</mo><mi mathvariant="bold">F</mi><msub><mi mathvariant="bold">P</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><msup><mi mathvariant="bold">F</mi><mi>T</mi></msup><mo>+</mo><mi mathvariant="bold">Q</mi></mrow><annotation encoding="application/x-tex">
+\text{预测：} \quad \hat{\mathbf{x}}_{k|k-1} = \mathbf{F}\hat{\mathbf{x}}_{k-1} + \mathbf{B}\mathbf{u}_k, \quad \mathbf{P}_{k|k-1} = \mathbf{F}\mathbf{P}_{k-1}\mathbf{F}^T + \mathbf{Q}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0631em;vertical-align:-0.3552em;"></span><span class="mord text"><span class="mord cjk_fallback">预测：</span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9162em;vertical-align:-0.2083em;"></span><span class="mord mathbf">F</span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0413em;vertical-align:-0.3552em;"></span><span class="mord mathbf">B</span><span class="mord"><span class="mord mathbf">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbf">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0997em;vertical-align:-0.2083em;"></span><span class="mord mathbf">F</span><span class="mord"><span class="mord mathbf">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathbf">F</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8805em;vertical-align:-0.1944em;"></span><span class="mord mathbf">Q</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>更新：</mtext><mspace width="1em"/><msub><mi mathvariant="bold">K</mi><mi>k</mi></msub><mo>=</mo><msub><mi mathvariant="bold">P</mi><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><msup><mi mathvariant="bold">H</mi><mi>T</mi></msup><mo stretchy="false">(</mo><mi mathvariant="bold">H</mi><msub><mi mathvariant="bold">P</mi><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><msup><mi mathvariant="bold">H</mi><mi>T</mi></msup><mo>+</mo><mi mathvariant="bold">R</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">
+\text{更新：} \quad \mathbf{K}_k = \mathbf{P}_{k|k-1}\mathbf{H}^T(\mathbf{H}\mathbf{P}_{k|k-1}\mathbf{H}^T + \mathbf{R})^{-1}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8361em;vertical-align:-0.15em;"></span><span class="mord text"><span class="mord cjk_fallback">更新：</span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord"><span class="mord mathbf">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2465em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord mathbf">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathbf">H</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">H</span><span class="mord"><span class="mord mathbf">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathbf">H</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathbf">R</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover><mi>k</mi></msub><mo>=</mo><msub><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msub><mi mathvariant="bold">K</mi><mi>k</mi></msub><mo stretchy="false">(</mo><msub><mi mathvariant="bold">z</mi><mi>k</mi></msub><mo>−</mo><mi mathvariant="bold">H</mi><msub><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover><mrow><mi>k</mi><mi mathvariant="normal">∣</mi><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\hat{\mathbf{x}}_k = \hat{\mathbf{x}}_{k|k-1} + \mathbf{K}_k(\mathbf{z}_k - \mathbf{H}\hat{\mathbf{x}}_{k|k-1})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8579em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0631em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1052em;vertical-align:-0.3552em;"></span><span class="mord mathbf">H</span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi mathvariant="bold">x</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{\mathbf{x}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7079em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span></span></span></span> 是状态估计（位置&#x2F;速度），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">F</mi></mrow><annotation encoding="application/x-tex">\mathbf{F}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord mathbf">F</span></span></span></span> 是状态转移矩阵，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">z</mi></mrow><annotation encoding="application/x-tex">\mathbf{z}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">z</span></span></span></span> 是观测，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">K</mi></mrow><annotation encoding="application/x-tex">\mathbf{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord mathbf">K</span></span></span></span> 是卡尔曼增益，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">Q</mi></mrow><annotation encoding="application/x-tex">\mathbf{Q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8805em;vertical-align:-0.1944em;"></span><span class="mord mathbf">Q</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">R</mi></mrow><annotation encoding="application/x-tex">\mathbf{R}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord mathbf">R</span></span></span></span> 分别是过程噪声和观测噪声协方差。</p>
+<p><strong>扩展卡尔曼滤波（EKF）</strong>：当系统非线性时（如目标做大机动），对非线性函数在当前估计点进行一阶 Taylor 展开近似。大多数飞控系统（PX4 的 EKF2）使用这种方法。</p>
+<p><strong>无迹卡尔曼滤波（UKF）</strong>：通过 Sigma 点采样传播概率分布，不需要计算 Jacobian 矩阵。对强非线性系统精度优于 EKF，但计算量更大。</p>
+<p><strong>交互多模型滤波器（IMM）</strong>：针对目标机动模式未知的情况，同时运行多个运动模型（匀速、匀加速、协调转弯等），根据各模型的似然动态调整权重。2024 年 Pliska 等人在 IEEE RA-L 上发表的 EPN 制导方法就采用了 IMM 滤波器，在处理一般轨迹目标时估计精度显著优于单模型 KF。</p>
+<h3 id="3-2-多目标跟踪（MOT）算法"><a href="#3-2-多目标跟踪（MOT）算法" class="headerlink" title="3.2 多目标跟踪（MOT）算法"></a>3.2 多目标跟踪（MOT）算法</h3><p>当面对多架来袭无人机时，系统需要同时跟踪多个目标并维持各自的身份标识（ID）。主流 MOT 算法按 2026 年的评估结果对比：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>核心思想</th>
+<th>IDF1</th>
+<th>MOTA</th>
+<th>ID 切换</th>
+<th>推理速度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DeepSORT</strong></td>
+<td>卡尔曼预测 + 匈牙利匹配 + Re-ID 外观特征</td>
+<td>59.8</td>
+<td>88.9</td>
+<td>40</td>
+<td>31.8 ms</td>
+<td>外观变化大、遮挡多</td>
+</tr>
+<tr>
+<td><strong>ByteTrack</strong></td>
+<td>双阈值关联：高&#x2F;低置信度检测框分两轮匹配</td>
+<td>81.4</td>
+<td>90.2</td>
+<td>20</td>
+<td>11.1 ms</td>
+<td>高密度场景、实时性优先</td>
+</tr>
+<tr>
+<td><strong>StrongSORT</strong></td>
+<td>改进的 DeepSORT：更强的外观模型 + EMA 更新</td>
+<td>80.3</td>
+<td>90.2</td>
+<td>8</td>
+<td>41.7 ms</td>
+<td>需要最低 ID 切换率</td>
+</tr>
+<tr>
+<td><strong>OC-SORT</strong></td>
+<td>观测中心化 KF + 虚拟轨迹</td>
+<td>—</td>
+<td>高</td>
+<td>低</td>
+<td>快</td>
+<td>相机抖动、运动模糊</td>
+</tr>
+</tbody></table>
+<p><strong>SCT-MOT</strong>（arXiv:2604.06883，2026 年 4 月）：专为空对空无人机蜂群跟踪设计的最新方法。核心创新是<strong>蜂群耦合运动建模（SMTP）</strong>——不再将每个目标独立建模，而是从蜂群层面联合建模历史轨迹和姿态感知外观特征，预测非线性耦合群体运动轨迹。在 AIRMOT、MOT-FLY 和 UAVSwarm 三个空对空数据集上，IDF1 比前沿方法 EqMotion 提升 1.21%。</p>
+<h3 id="3-3-从感知到追击的端到端框架：P2P"><a href="#3-3-从感知到追击的端到端框架：P2P" class="headerlink" title="3.3 从感知到追击的端到端框架：P2P"></a>3.3 从感知到追击的端到端框架：P2P</h3><p>传统系统中，检测→跟踪→制导是分离的模块。2026 年 1 月 Ren 等人提出的 <strong>P2P（Perception-to-Pursuit）</strong> 框架（arXiv:2601.19318）尝试弥合这一差距：</p>
+<ul>
+<li><strong>运动 Token 化</strong>：将跟踪框序列编码为 8 维运动 Token（中心坐标、尺寸、速度、加速度）</li>
+<li><strong>因果 Transformer</strong>：4 层 Transformer（d&#x3D;128，4 头注意力），窗口 W&#x3D;12 帧，预测未来 H&#x3D;20 帧轨迹</li>
+<li><strong>拦截成功率（ISR）指标</strong>：不仅评估轨迹预测精度，还直接计算”在物理约束下追击者是否能到达预测位置”</li>
+<li><strong>结果</strong>：在 Anti-UAV-RGBT 数据集上，轨迹预测精度提升 77%，ISR 提升 597 倍（相对纯跟踪基线）</li>
+</ul>
+<hr>
+<h2 id="四、第三层：制导律——从经典到深度强化学习"><a href="#四、第三层：制导律——从经典到深度强化学习" class="headerlink" title="四、第三层：制导律——从经典到深度强化学习"></a>四、第三层：制导律——从经典到深度强化学习</h2><p>制导律（Guidance Law）是截击无人机的<strong>核心算法</strong>，决定了截击机的飞行路径以命中目标。这也是算法栈中数学最密集的部分。</p>
+<h3 id="4-1-经典制导律"><a href="#4-1-经典制导律" class="headerlink" title="4.1 经典制导律"></a>4.1 经典制导律</h3><h4 id="4-1-1-纯追踪（Pure-Pursuit）"><a href="#4-1-1-纯追踪（Pure-Pursuit）" class="headerlink" title="4.1.1 纯追踪（Pure Pursuit）"></a>4.1.1 纯追踪（Pure Pursuit）</h4><p>最简单的制导策略——截击机始终朝目标当前位置飞行：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>ψ</mi><mo>˙</mo></mover><mi>M</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>V</mi><mi>M</mi></msub><mi>sin</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>λ</mi><mo>−</mo><msub><mi>ψ</mi><mi>M</mi></msub><mo stretchy="false">)</mo></mrow><mi>r</mi></mfrac></mrow><annotation encoding="application/x-tex">
+\dot{\psi}_M = \frac{V_M \sin(\lambda - \psi_M)}{r}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1257em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0278em;"><span class="mord">˙</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">sin</span><span class="mopen">(</span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ψ</mi><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">\psi_M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是截击机航向，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span> 是视线角（LOS angle），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">V_M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是截击机速度，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span></span></span></span> 是距离。</p>
+<p><strong>优点</strong>：实现极其简单，仅需视线方向。<br><strong>缺点</strong>：产生<strong>尾追曲线</strong>（tail chase），路径长、能量消耗大，且对高速机动目标容易脱靶。</p>
+<h4 id="4-1-2-比例导引（Proportional-Navigation，PN）"><a href="#4-1-2-比例导引（Proportional-Navigation，PN）" class="headerlink" title="4.1.2 比例导引（Proportional Navigation，PN）"></a>4.1.2 比例导引（Proportional Navigation，PN）</h4><p>截击无人机和导弹领域最经典、应用最广泛的制导律：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>a</mi><mi>M</mi></msub><mo>=</mo><mi>N</mi><mo>⋅</mo><msub><mi>V</mi><mi>c</mi></msub><mo>⋅</mo><mover accent="true"><mi>λ</mi><mo>˙</mo></mover></mrow><annotation encoding="application/x-tex">
+a_M = N \cdot V_c \cdot \dot{\lambda}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9313em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">λ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">a_M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是截击机的法向加速度指令，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span></span></span></span> 是导引比（Navigation Constant，通常取 3–5），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">V_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是接近速度，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>λ</mi><mo>˙</mo></mover></mrow><annotation encoding="application/x-tex">\dot{\lambda}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9313em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">λ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span></span></span></span> 是视线角速率。</p>
+<p><strong>核心思想</strong>：”截击机的转弯速率与视线角变化速率成正比。”当 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>λ</mi><mo>˙</mo></mover><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\dot{\lambda} = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9313em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9313em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">λ</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> 时——即视线角不变——截击机和目标将在碰撞点相遇，这就是<strong>碰撞三角形</strong>条件。</p>
+<table>
+<thead>
+<tr>
+<th>变体</th>
+<th>公式特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TPN（True PN）</td>
+<td>使用真实 LOS 角速率</td>
+<td>理论最优基线</td>
+</tr>
+<tr>
+<td>APN（Augmented PN）</td>
+<td>补偿目标加速度项</td>
+<td>机动目标</td>
+</tr>
+<tr>
+<td>RTPN（Realistic TPN）</td>
+<td>考虑截击机动力学约束</td>
+<td>工程实现</td>
+</tr>
+</tbody></table>
+<p><strong>为什么 PN 在截击无人机中如此流行？</strong></p>
+<ol>
+<li><strong>计算极其轻量</strong>：仅需视线角速率和接近速度，不需要目标的完整状态向量</li>
+<li><strong>对目标机动鲁棒</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">N=3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3</span></span></span></span> 对匀速目标是最优解，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">N=4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">4</span></span></span></span>–<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn></mrow><annotation encoding="application/x-tex">5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span></span></span></span> 对机动目标仍有很好的适应性</li>
+<li><strong>数十年导弹工程验证</strong>：PN 在实际导弹系统中已有几十年的成熟应用经验</li>
+</ol>
+<h4 id="4-1-3-增强比例导引（EPN）"><a href="#4-1-3-增强比例导引（EPN）" class="headerlink" title="4.1.3 增强比例导引（EPN）"></a>4.1.3 增强比例导引（EPN）</h4><p>2024 年 Pliska 等人在 IEEE RA-L 上提出的 <strong>EPN（Enhanced Proportional Navigation）</strong> 方法，专为非合作 UAV 空中拦截设计：</p>
+<ul>
+<li>在 PN 基础上增加了<strong>自适应导引比调整</strong>，根据目标机动幅度动态调节 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span></span></span></span> 值</li>
+<li>配合 IMM 滤波器进行目标状态估计</li>
+<li>在 100 条不同复杂度的目标轨迹仿真中（累计约 14 小时飞行数据），EPN 展现了<strong>最短响应时间和最高拦截次数</strong></li>
+<li>已通过实际飞行实验验证，拦截表现远超现有方案</li>
+</ul>
+<h3 id="4-2-深度强化学习制导律：2025–2026-年的前沿突破"><a href="#4-2-深度强化学习制导律：2025–2026-年的前沿突破" class="headerlink" title="4.2 深度强化学习制导律：2025–2026 年的前沿突破"></a>4.2 深度强化学习制导律：2025–2026 年的前沿突破</h3><p>经典制导律假设目标做相对简单的机动。面对高度敏捷或采取规避策略的目标，<strong>深度强化学习（DRL）</strong> 正在成为新一代制导律的研究热点。</p>
+<h4 id="4-2-1-GRU-DRL-补偿制导（Engineering-Applications-of-AI，2025）"><a href="#4-2-1-GRU-DRL-补偿制导（Engineering-Applications-of-AI，2025）" class="headerlink" title="4.2.1 GRU-DRL 补偿制导（Engineering Applications of AI，2025）"></a>4.2.1 GRU-DRL 补偿制导（Engineering Applications of AI，2025）</h4><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>a</mi><mi>M</mi></msub><mo>=</mo><msub><mi>a</mi><mrow><mi>P</mi><mi>N</mi></mrow></msub><mo>+</mo><msub><mi>a</mi><mrow><mi>D</mi><mi>R</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+a_M = a_{PN} + a_{DRL}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">P</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span><span class="mord mathnormal mtight" style="margin-right:0.0077em;">R</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<p>核心思想是让 DRL 输出 PN 的<strong>补偿量</strong>而非完全替代 PN：</p>
+<ul>
+<li>使用 GRU（门控循环单元）从视线角速率时间序列中提取隐含的目标机动信息</li>
+<li>建模为 POMDP（部分可观测马尔可夫决策过程），因为截击机只能测量 LOS 角速率，无法直接获得目标加速度</li>
+<li>使用 PPO（近端策略优化）训练</li>
+<li>蒙特卡洛仿真结果：平均脱靶量 <strong>0.091 m</strong>，能量消耗 192.26 m&#x2F;s，远优于传统制导律</li>
+</ul>
+<h4 id="4-2-2-RPPO-三维制导律（Aerospace，2025）"><a href="#4-2-2-RPPO-三维制导律（Aerospace，2025）" class="headerlink" title="4.2.2 RPPO 三维制导律（Aerospace，2025）"></a>4.2.2 RPPO 三维制导律（Aerospace，2025）</h4><p>针对低慢小（LSS）无人机拦截的 RPPO（循环近端策略优化）框架：</p>
+<ul>
+<li><strong>无需碰撞三角形</strong>：传统 DRL 制导律需要初始发射条件满足碰撞三角形，RPPO 设计了三维空间中更广泛的初始发射条件</li>
+<li><strong>LSTM 时序建模</strong>：引入 LSTM 网络从导引头观测序列中提取隐含时序信息</li>
+<li><strong>基于速度预测和过载约束的奖励函数</strong>：</li>
+</ul>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>r</mi><mo>=</mo><msub><mi>r</mi><mrow><mi>c</mi><mi>a</mi><mi>t</mi><mi>c</mi><mi>h</mi></mrow></msub><mo>−</mo><msub><mi>r</mi><mrow><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi></mrow></msub><mo>−</mo><msub><mi>r</mi><mrow><mi>e</mi><mi>n</mi><mi>e</mi><mi>r</mi><mi>g</mi><mi>y</mi></mrow></msub><mo>−</mo><msub><mi>r</mi><mrow><mi>o</mi><mi>v</mi><mi>e</mi><mi>r</mi><mi>l</mi><mi>o</mi><mi>a</mi><mi>d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+r = r_{catch} - r_{dist} - r_{energy} - r_{overload}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">er</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">er</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">d</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<ul>
+<li>仿真结果：拦截率 <strong>95.3%</strong>，脱靶量 1.29 m，对未知机动具有强泛化能力</li>
+</ul>
+<h4 id="4-2-3-竞争式多智能体强化学习（arXiv-2603-16279，2026-年-3-月）"><a href="#4-2-3-竞争式多智能体强化学习（arXiv-2603-16279，2026-年-3-月）" class="headerlink" title="4.2.3 竞争式多智能体强化学习（arXiv:2603.16279，2026 年 3 月）"></a>4.2.3 竞争式多智能体强化学习（arXiv:2603.16279，2026 年 3 月）</h4><p>Thales 和 ENAC（法国国立民航大学）联合发表的最新工作，将拦截建模为<strong>追逐-逃逸博弈</strong>：</p>
+<ul>
+<li><strong>追击者和逃逸者各自独立训练 PPO 策略</strong>，输入为低级控制量（集体推力和机体角速率）</li>
+<li>集成高保真四旋翼动力学模型，使两个智能体学习物理真实的敏捷飞行策略</li>
+<li><strong>协同进化训练</strong>：追击者和逃逸者在对抗中共同进化——追击者学会预判逃逸轨迹，逃逸者学会利用动力学极限规避</li>
+<li>仿真中 RL 策略<strong>显著优于</strong> PN 和纯追踪启发式方法</li>
+<li>已在室内飞行场地完成<strong>真实四旋翼 Sim-to-Real 迁移实验</strong></li>
+</ul>
+<h4 id="4-2-4-TD3-空对空主动防御制导（AFC-2025-会议，2026-年出版）"><a href="#4-2-4-TD3-空对空主动防御制导（AFC-2025-会议，2026-年出版）" class="headerlink" title="4.2.4 TD3 空对空主动防御制导（AFC 2025 会议，2026 年出版）"></a>4.2.4 TD3 空对空主动防御制导（AFC 2025 会议，2026 年出版）</h4><p>面向三体对抗场景（攻击方-防御方-目标方）的 TD3（双延迟深度确定策略梯度）制导律：</p>
+<ul>
+<li>防御方（截击机）需要在拦截攻击方的同时避开己方被保护目标</li>
+<li>在三维相对运动模型中建立完整的 DRL 制导算法</li>
+<li>与传统比例导引相比，智能博弈穿透制导算法在对抗高机动目标时脱靶量显著降低</li>
+</ul>
+<h3 id="4-3-制导律选型指南"><a href="#4-3-制导律选型指南" class="headerlink" title="4.3 制导律选型指南"></a>4.3 制导律选型指南</h3><table>
+<thead>
+<tr>
+<th>制导律</th>
+<th>计算量</th>
+<th>对目标信息的需求</th>
+<th>对机动目标适应性</th>
+<th>成熟度</th>
+<th>代表产品&#x2F;场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>纯追踪</td>
+<td>极低</td>
+<td>仅方向</td>
+<td>差</td>
+<td>成熟</td>
+<td>早期 FPV 截击</td>
+</tr>
+<tr>
+<td>PN&#x2F;APN</td>
+<td>低</td>
+<td>LOS 角速率</td>
+<td>中</td>
+<td>非常成熟</td>
+<td>STING、GOBI</td>
+</tr>
+<tr>
+<td>EPN</td>
+<td>低-中</td>
+<td>LOS 角速率+IMM</td>
+<td>高</td>
+<td>试验验证</td>
+<td>学术原型</td>
+</tr>
+<tr>
+<td>GRU-DRL</td>
+<td>中</td>
+<td>LOS 角速率</td>
+<td>很高</td>
+<td>仿真验证</td>
+<td>研究阶段</td>
+</tr>
+<tr>
+<td>RPPO</td>
+<td>中</td>
+<td>导引头观测序列</td>
+<td>很高</td>
+<td>仿真验证</td>
+<td>LSS 拦截</td>
+</tr>
+<tr>
+<td>竞争 MARL</td>
+<td>高</td>
+<td>全状态（仿真中）</td>
+<td>极高</td>
+<td>初步实飞</td>
+<td>敏捷对抗</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、第四层：GPS-拒止环境下的自主导航"><a href="#五、第四层：GPS-拒止环境下的自主导航" class="headerlink" title="五、第四层：GPS 拒止环境下的自主导航"></a>五、第四层：GPS 拒止环境下的自主导航</h2><h3 id="5-1-为什么截击无人机不能依赖-GPS"><a href="#5-1-为什么截击无人机不能依赖-GPS" class="headerlink" title="5.1 为什么截击无人机不能依赖 GPS"></a>5.1 为什么截击无人机不能依赖 GPS</h3><p>在现代电子战环境中，GPS 信号极易被干扰（jamming）或欺骗（spoofing）。俄乌战场的数据表明，前线附近的 GPS 可用性极不可靠。截击无人机必须具备在 GPS 完全不可用时仍能精确导航的能力。</p>
+<p>GOBI 的 AI 自主末段制导、Alta Ares 的 Pixel Lock 算法、以及多款截击机强调的”无 GNSS 拦截能力”，都指向同一个技术需求：<strong>机载自主定位与导航</strong>。</p>
+<h3 id="5-2-视觉惯性里程计（VIO）"><a href="#5-2-视觉惯性里程计（VIO）" class="headerlink" title="5.2 视觉惯性里程计（VIO）"></a>5.2 视觉惯性里程计（VIO）</h3><p><strong>VIO（Visual-Inertial Odometry）</strong> 融合相机和 IMU 两种传感器，实现不依赖外部信号的自主定位：</p>
+<ul>
+<li><strong>相机</strong>跟踪场景中的视觉特征点（角点、边缘、纹理），通过帧间运动估计位姿变化。帧率通常 30–60 Hz。</li>
+<li><strong>IMU</strong>测量加速度和角速度，频率 200–1000 Hz。</li>
+<li><strong>融合</strong>：IMU 提供高频率状态预测和快速机动处理；相机锚定 IMU 的漂移。两者互补。</li>
+</ul>
+<p>现代 VIO 系统的漂移率可低至行驶距离的 <strong>1–2%</strong>，且不可被干扰——不依赖任何外部信号。</p>
+<p><strong>工程实现示例</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>传感器</th>
+<th>计算平台</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Isaac ROS VSLAM</td>
+<td>Intel RealSense D435i（RGB-D + IMU）</td>
+<td>Jetson Orin Nano</td>
+<td>CUDA 加速，与 PX4 EKF2 融合</td>
+</tr>
+<tr>
+<td>MSCKF（多状态约束 KF）</td>
+<td>单&#x2F;双目 + IMU</td>
+<td>通用嵌入式</td>
+<td>轻量级，适合资源受限平台</td>
+</tr>
+<tr>
+<td>VINS-Fusion</td>
+<td>立体视觉 + IMU</td>
+<td>多平台</td>
+<td>支持回环检测，开源</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-NOVA：目标中心视觉自主（2025）"><a href="#5-3-NOVA：目标中心视觉自主（2025）" class="headerlink" title="5.3 NOVA：目标中心视觉自主（2025）"></a>5.3 NOVA：目标中心视觉自主（2025）</h3><p><strong>NOVA（Navigation via Object-Centric Visual Autonomy）</strong> 代表了截击无人机导航的最新思路——完全<strong>以目标为中心</strong>，不建图、不需要全局定位：</p>
+<ul>
+<li>使用双目相机 + IMU，所有计算完全机载</li>
+<li><strong>目标中心 VIO</strong>：不是估计截击机在世界坐标系中的位置，而是直接估计截击机<strong>相对目标</strong>的 6-DOF 位姿</li>
+<li><strong>深度补全</strong>：从稀疏双目视差生成稠密深度图，用于障碍物检测</li>
+<li><strong>NMPC（非线性模型预测控制）+ CBF（控制屏障函数）</strong>：在追踪目标的同时保证避障安全</li>
+<li>在 GPS 拒止的非结构化环境（树林、城市等）中高速追踪目标，保持实时目标锁定</li>
+</ul>
+<h3 id="5-4-IBVS：基于图像的视觉伺服"><a href="#5-4-IBVS：基于图像的视觉伺服" class="headerlink" title="5.4 IBVS：基于图像的视觉伺服"></a>5.4 IBVS：基于图像的视觉伺服</h3><p><strong>IBVS（Image-Based Visual Servoing）</strong> 是另一种不依赖全局定位的导航范式——直接在图像空间中定义控制目标：</p>
+<ul>
+<li>控制律直接将图像特征误差（如目标在图像中的位置偏差）映射为飞行器控制指令</li>
+<li>不需要 3D 重建或全局定位</li>
+<li>2025 年的工作（arXiv:2509.17435）展示了使用单 RGB 相机 + AI 单目深度估计（MiDaS）实现 GPS 拒止环境下的导航和避障，全部在 Jetson 平台上运行</li>
+</ul>
+<hr>
+<h2 id="六、边缘-AI-部署：在-10-瓦功耗内运行深度神经网络"><a href="#六、边缘-AI-部署：在-10-瓦功耗内运行深度神经网络" class="headerlink" title="六、边缘 AI 部署：在 10 瓦功耗内运行深度神经网络"></a>六、边缘 AI 部署：在 10 瓦功耗内运行深度神经网络</h2><h3 id="6-1-为什么必须在机载运行"><a href="#6-1-为什么必须在机载运行" class="headerlink" title="6.1 为什么必须在机载运行"></a>6.1 为什么必须在机载运行</h3><p>截击无人机不可能依赖云端推理：</p>
+<ul>
+<li><strong>延迟</strong>：卫星链路的往返延迟 500–1000 ms，在 300 km&#x2F;h 的交战中目标移动了 40–80 m</li>
+<li><strong>带宽</strong>：在电子战环境下，数据链可能被干扰或降级</li>
+<li><strong>可靠性</strong>：通信链路中断时必须能自主完成拦截</li>
+</ul>
+<p>因此，所有关键算法必须在<strong>机载嵌入式处理器</strong>上实时运行。</p>
+<h3 id="6-2-NVIDIA-Jetson-平台"><a href="#6-2-NVIDIA-Jetson-平台" class="headerlink" title="6.2 NVIDIA Jetson 平台"></a>6.2 NVIDIA Jetson 平台</h3><p>Jetson 系列是目前截击无人机边缘 AI 的事实标准：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>GPU</th>
+<th>AI 性能</th>
+<th>功耗</th>
+<th>适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Jetson Orin Nano</td>
+<td>Ampere</td>
+<td>40 TOPS</td>
+<td>7–15W</td>
+<td>轻量截击机（YOLO 检测+跟踪）</td>
+</tr>
+<tr>
+<td>Jetson Orin NX</td>
+<td>Ampere</td>
+<td>70–100 TOPS</td>
+<td>10–25W</td>
+<td>中型系统（多模型并行）</td>
+</tr>
+<tr>
+<td>Jetson AGX Orin</td>
+<td>Ampere</td>
+<td>275 TOPS</td>
+<td>15–60W</td>
+<td>高性能系统（SLAM+检测+制导）</td>
+</tr>
+<tr>
+<td>Jetson Thor（2026）</td>
+<td>Blackwell</td>
+<td>800 TOPS</td>
+<td>30–60W</td>
+<td>下一代（VLM + 端到端模型）</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-模型优化流水线"><a href="#6-3-模型优化流水线" class="headerlink" title="6.3 模型优化流水线"></a>6.3 模型优化流水线</h3><p>从训练到部署的典型优化路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">PyTorch 模型（FP32）</span><br><span class="line">    │</span><br><span class="line">    ├─ 导出为 ONNX 格式</span><br><span class="line">    │</span><br><span class="line">    ├─ TensorRT 转换（FP16/INT8 量化）</span><br><span class="line">    │   ├── FP16：精度损失 &lt;0.5%，速度提升 2-3×</span><br><span class="line">    │   └── INT8：精度损失 1-2%，速度提升 4-5×</span><br><span class="line">    │</span><br><span class="line">    └─ ONNX Runtime TensorRT Execution Provider</span><br><span class="line">        └── 部署在 Jetson 上推理</span><br></pre></td></tr></table></figure>
+
+<p><strong>实测性能</strong>（2026 年社区数据）：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>平台</th>
+<th>精度</th>
+<th>推理速度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>YOLO26n + ByteTrack</td>
+<td>Jetson Orin Nano</td>
+<td>FP16</td>
+<td>~60 FPS</td>
+</tr>
+<tr>
+<td>RF-DETR-nano</td>
+<td>Jetson Orin Nano</td>
+<td>FP16</td>
+<td>100 FPS</td>
+</tr>
+<tr>
+<td>YOLOv12m</td>
+<td>Jetson Orin NX</td>
+<td>FP16</td>
+<td>~50 FPS</td>
+</tr>
+</tbody></table>
+<h3 id="6-4-异构计算：不只是-GPU"><a href="#6-4-异构计算：不只是-GPU" class="headerlink" title="6.4 异构计算：不只是 GPU"></a>6.4 异构计算：不只是 GPU</h3><p>Jetson 平台内置多种专用加速器，可卸载 GPU 负载：</p>
+<ul>
+<li><strong>PVA（Programmable Vision Accelerator）</strong>：低功耗视觉任务（特征点检测、光流），适合 VIO 预处理</li>
+<li><strong>NVENC&#x2F;NVDEC</strong>：硬件视频编解码，处理相机输入流</li>
+<li><strong>ISP（Image Signal Processor）</strong>：相机原始数据处理</li>
+</ul>
+<p>合理利用异构计算，可以让 GPU 专注于深度学习推理，整体功耗降低 30–50%。</p>
+<hr>
+<h2 id="七、第五层：蜂群协同——多机拦截的算法挑战"><a href="#七、第五层：蜂群协同——多机拦截的算法挑战" class="headerlink" title="七、第五层：蜂群协同——多机拦截的算法挑战"></a>七、第五层：蜂群协同——多机拦截的算法挑战</h2><h3 id="7-1-为什么需要蜂群"><a href="#7-1-为什么需要蜂群" class="headerlink" title="7.1 为什么需要蜂群"></a>7.1 为什么需要蜂群</h3><p>面对大规模无人机袭击（如俄罗斯一个月发射 2500+ 架），单架截击机无法应对。系统需要同时指挥数十甚至数百架截击机协同工作。蜂群协同需要解决三个核心问题：</p>
+<ol>
+<li><strong>目标分配</strong>：N 架截击机 vs M 个目标，如何最优分配？</li>
+<li><strong>避撞协调</strong>：己方截击机之间如何不碰撞？</li>
+<li><strong>动态重规划</strong>：截击失败或新目标出现时如何实时调整？</li>
+</ol>
+<h3 id="7-2-拍卖式任务分配"><a href="#7-2-拍卖式任务分配" class="headerlink" title="7.2 拍卖式任务分配"></a>7.2 拍卖式任务分配</h3><p><strong>拍卖算法</strong>是目前工程落地最成熟的蜂群任务分配方法（MDPI Drones，2026 年 4 月）：</p>
+<ol>
+<li>所有未分配任务进入”拍卖池”</li>
+<li>每架截击机根据自身状态（距离、电量、载荷）对每个任务出价</li>
+<li>中央协调器（或分布式共识）选择最高出价者</li>
+<li>支持<strong>阈值触发协同拦截</strong>：当单机载荷不足以拦截高价值目标时，自动招募多机协同</li>
+</ol>
+<h3 id="7-3-Shepherd-Grid-策略（arXiv-2508-09536，2025-年）"><a href="#7-3-Shepherd-Grid-策略（arXiv-2508-09536，2025-年）" class="headerlink" title="7.3 Shepherd Grid 策略（arXiv:2508.09536，2025 年）"></a>7.3 Shepherd Grid 策略（arXiv:2508.09536，2025 年）</h3><p>针对高度敏捷目标的四阶段协调框架：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>行为</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chase</td>
+<td>所有截击机追向目标</td>
+<td>缩短距离</td>
+</tr>
+<tr>
+<td>Follow</td>
+<td>编队跟随，监视目标运动</td>
+<td>收集运动信息</td>
+</tr>
+<tr>
+<td>Formation</td>
+<td>形成包围网格</td>
+<td>系统性封锁逃逸路线</td>
+</tr>
+<tr>
+<td>Engagement</td>
+<td>指定的”打击手”执行拦截</td>
+<td>确定性命中</td>
+</tr>
+</tbody></table>
+<p>通过动态角色分配（编队维持者 vs 打击执行者）和自适应编队几何（根据目标运动模式调整包围形状），该策略实现了 <strong>&gt;95% 的拦截成功率</strong>，而传统方法仅 65%。</p>
+<h3 id="7-4-DRL-拦截优先级决策（arXiv-2508-00641，2025-年）"><a href="#7-4-DRL-拦截优先级决策（arXiv-2508-00641，2025-年）" class="headerlink" title="7.4 DRL 拦截优先级决策（arXiv:2508.00641，2025 年）"></a>7.4 DRL 拦截优先级决策（arXiv:2508.00641，2025 年）</h3><p>当面对蜂群来袭时，不仅要分配”谁去拦截谁”，还要决策”先拦截哪个”：</p>
+<ul>
+<li>将拦截优先级决策建模为 <strong>POMDP</strong></li>
+<li>使用 PPO 训练分布式策略，每个截击机独立决策但共享全局奖励</li>
+<li>在有限拦截器资源下，自适应调整拦截顺序以最大化整体拦截效果</li>
+<li>比规则式优先级（如”最近优先”或”最大威胁优先”）提升了 15–30% 的拦截覆盖率</li>
+</ul>
+<h3 id="7-5-通信受限下的-MARL-任务分配"><a href="#7-5-通信受限下的-MARL-任务分配" class="headerlink" title="7.5 通信受限下的 MARL 任务分配"></a>7.5 通信受限下的 MARL 任务分配</h3><p><strong>TACC（Task Allocation with Communication Coordination）</strong> 方法（Aerospace Science and Technology，2026 年）：</p>
+<ul>
+<li>使用<strong>门控通信机制</strong>：智能体自主决定何时通信、传什么信息</li>
+<li>建模为 POMDP + 约束多目标策略优化（MOCPO）</li>
+<li>十机编队的真实飞行实验验证：任务冲突显著减少，通信开销降低</li>
+<li>解决了”每次通信都有延迟和能耗成本”的实际工程问题</li>
+</ul>
+<hr>
+<h2 id="八、产品级算法架构案例分析"><a href="#八、产品级算法架构案例分析" class="headerlink" title="八、产品级算法架构案例分析"></a>八、产品级算法架构案例分析</h2><h3 id="8-1-STING（乌克兰-Wild-Hornets）"><a href="#8-1-STING（乌克兰-Wild-Hornets）" class="headerlink" title="8.1 STING（乌克兰 Wild Hornets）"></a>8.1 STING（乌克兰 Wild Hornets）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Kurbas-640 热成像 ──→ AI 目标识别（CNN 分类器）</span><br><span class="line">       │                    │</span><br><span class="line">       │               目标锁定 &amp; 跟踪（视觉跟踪器）</span><br><span class="line">       │                    │</span><br><span class="line">       └─────────────→ PN 制导律 ──→ 飞控指令</span><br><span class="line">                            │</span><br><span class="line">Hornet Vision 地面站 ←──── 卫星数据链（2000 km）──→ 操作员监督</span><br></pre></td></tr></table></figure>
+
+<p>STING 的算法特点是<strong>实用主义优先</strong>：热成像 + 传统 PN 制导的组合经过乌克兰战场数千次实战验证，可靠性极高。3900+ 次击落证明了”够用的简单算法 + 海量部署”比”完美的复杂算法 + 少量部署”更有效。</p>
+<h3 id="8-2-GOBI（法国-Harmattan-AI）"><a href="#8-2-GOBI（法国-Harmattan-AI）" class="headerlink" title="8.2 GOBI（法国 Harmattan AI）"></a>8.2 GOBI（法国 Harmattan AI）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">机载 AI 处理器 ──→ 端到端模型（检测+跟踪+制导融合）</span><br><span class="line">       │</span><br><span class="line">       ├── 无外部数据链依赖</span><br><span class="line">       ├── 无 GNSS 依赖</span><br><span class="line">       └── 纯自主末段制导</span><br></pre></td></tr></table></figure>
+
+<p>GOBI 的设计哲学是<strong>极致自主</strong>：嵌入式 AI 在机载处理器上运行完整的感知-决策-控制闭环，即使通信完全被干扰也能完成拦截。</p>
+<h3 id="8-3-Anduril-Anvil-Lattice-OS"><a href="#8-3-Anduril-Anvil-Lattice-OS" class="headerlink" title="8.3 Anduril Anvil + Lattice OS"></a>8.3 Anduril Anvil + Lattice OS</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Sentry 瞭望塔 ──→                    ┌── Anvil 1（短程动能）</span><br><span class="line">Wisp 被动红外 ──→  Lattice OS ──→    ├── Anvil 2（短程动能）</span><br><span class="line">Pulsar 主动雷达 ──→ （态势融合）      └── Anvil-M（高爆战斗部）</span><br><span class="line">                       │</span><br><span class="line">                  NixOS 边缘计算</span><br><span class="line">                  CV/ML 推理引擎</span><br><span class="line">                  多光谱融合制导</span><br></pre></td></tr></table></figure>
+
+<p>Anvil 的核心差异化不在单机算法，而在 <strong>Lattice OS 的系统级融合</strong>——将多源传感器数据在统一平台上融合后引导拦截，每架 Anvil 只需运行轻量级末段制导。</p>
+<hr>
+<h2 id="九、2026-年技术趋势与展望"><a href="#九、2026-年技术趋势与展望" class="headerlink" title="九、2026 年技术趋势与展望"></a>九、2026 年技术趋势与展望</h2><h3 id="9-1-五大前沿方向"><a href="#9-1-五大前沿方向" class="headerlink" title="9.1 五大前沿方向"></a>9.1 五大前沿方向</h3><p><strong>1. 端到端感知-制导模型</strong></p>
+<p>P2P 框架代表的趋势：用单一深度学习模型直接从原始传感器数据输出制导指令，替代传统的”检测→跟踪→制导”分离流水线。这将减少模块间信息损失和延迟累积。</p>
+<p><strong>2. DRL 制导律从仿真走向实飞</strong></p>
+<p>Thales&#x2F;ENAC 的竞争式 MARL 框架已完成 Sim-to-Real 迁移。2026–2027 年预计将有更多 DRL 制导律在真实截击任务中得到验证。关键挑战在于策略的鲁棒性——仿真中的完美观测在实际中退化为噪声观测。</p>
+<p><strong>3. VLM&#x2F;LLM 辅助态势理解</strong></p>
+<p>NVIDIA TensorRT Edge-LLM 已可在 Jetson Thor 上运行视觉语言模型（VLM）。未来的截击系统可能利用 VLM 进行高层次态势理解：”这是一架侦察型无人机还是自杀型？””蜂群的整体意图是什么？”这类语义级判断将辅助拦截优先级决策。</p>
+<p><strong>4. 非动能电子战算法</strong></p>
+<p>Coyote Block 3NK 代表的趋势：用电子战载荷替代物理碰撞。核心算法挑战转为实时频谱分析、通信协议识别、和自适应干扰波形生成。一架可回收截击机可同时瘫痪多架无人机。</p>
+<p><strong>5. 联邦学习与持续学习</strong></p>
+<p>前线部署的截击机持续积累实战数据。联邦学习可以在不回传原始数据的前提下，利用分布式部署的截击机协同改进检测和制导模型——每架截击机在本地训练，只上传模型参数更新。</p>
+<h3 id="9-2-算法成熟度分级"><a href="#9-2-算法成熟度分级" class="headerlink" title="9.2 算法成熟度分级"></a>9.2 算法成熟度分级</h3><table>
+<thead>
+<tr>
+<th>技术</th>
+<th>TRL</th>
+<th>实战状态</th>
+<th>预计成熟时间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PN&#x2F;APN 制导</td>
+<td>9</td>
+<td>大规模实战</td>
+<td>已成熟</td>
+</tr>
+<tr>
+<td>YOLO 目标检测</td>
+<td>8–9</td>
+<td>多产品部署</td>
+<td>已成熟</td>
+</tr>
+<tr>
+<td>KF&#x2F;EKF 状态估计</td>
+<td>9</td>
+<td>所有飞控</td>
+<td>已成熟</td>
+</tr>
+<tr>
+<td>ByteTrack&#x2F;DeepSORT</td>
+<td>7–8</td>
+<td>产品集成</td>
+<td>已成熟</td>
+</tr>
+<tr>
+<td>VIO 自主导航</td>
+<td>6–7</td>
+<td>演示验证</td>
+<td>2026–2027</td>
+</tr>
+<tr>
+<td>DRL 制导律</td>
+<td>4–5</td>
+<td>仿真&#x2F;初步实飞</td>
+<td>2027–2028</td>
+</tr>
+<tr>
+<td>端到端感知-制导</td>
+<td>3–4</td>
+<td>学术研究</td>
+<td>2028+</td>
+</tr>
+<tr>
+<td>VLM 态势理解</td>
+<td>2–3</td>
+<td>概念验证</td>
+<td>2029+</td>
+</tr>
+<tr>
+<td>联邦持续学习</td>
+<td>2–3</td>
+<td>概念研究</td>
+<td>2029+</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h2><p>截击无人机的算法技术栈是一个<strong>从成熟到前沿层层递进</strong>的体系：</p>
+<ul>
+<li><strong>检测层</strong>依赖 YOLO 系列和多传感器融合，已高度成熟，YOLO26 的无 NMS 端到端推理和小目标检测头是 2026 年的最新进展</li>
+<li><strong>跟踪层</strong>的卡尔曼滤波和 MOT 算法同样成熟，SCT-MOT 的蜂群耦合运动建模代表了空对空跟踪的新方向</li>
+<li><strong>制导层</strong>是当前最活跃的研究前沿——经典 PN 仍是实战主力，但 DRL 制导律已在仿真中展现出对高机动目标的显著优势，Sim-to-Real 迁移正在突破</li>
+<li><strong>导航层</strong>的 VIO&#x2F;SLAM 为 GPS 拒止环境提供了可靠替代，NOVA 的目标中心方案尤其适合截击场景</li>
+<li><strong>协同层</strong>的拍卖式任务分配已工程落地，MARL 和 Shepherd Grid 策略将多机拦截成功率推向 95%+</li>
+</ul>
+<p>从乌克兰 STING 的 3900+ 次实战击落到 Thales 实验室的竞争式 MARL 实飞实验，一个清晰的趋势正在浮现：<strong>截击无人机的算法正从”人类设计的规则”走向”机器自主学习的策略”</strong>。但在可预见的未来（2026–2028），经典制导律与 AI 增强的混合方案——如”PN 基线 + DRL 补偿”——才是最务实的工程选择。纯 DRL 端到端方案的成熟仍需时日，但其潜力不容忽视。</p>
+<p>这场算法竞赛的本质，是在**”60 秒拦截窗口”内，用最少的计算资源做出最精确的决策**。谁的算法能在 10 瓦功耗的嵌入式芯片上，以毫秒级延迟完成从像素到控制指令的全链路推理，谁就拥有了反无人机战场的算法优势。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>Pliska, M. et al. “Towards Safe Mid-Air Drone Interception: Strategies for Tracking &amp; Capture.” <em>IEEE Robotics and Automation Letters</em>, Vol. 9, No. 10, Oct 2024, pp. 8810–8817. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2405.13542">arXiv:2405.13542</a></li>
+<li>Gavin, T. et al. “Agile Interception of a Flying Target using Competitive Reinforcement Learning.” <em>arXiv:2603.16279</em>, Mar 2026. Thales LAS &amp; ENAC. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2603.16279">链接</a></li>
+<li>Ren, L. et al. “Maneuvering target interception via deep reinforcement learning guidance using only line-of-sight rate measurement.” <em>Engineering Applications of Artificial Intelligence</em>, Vol. 149, Jun 2025, 110523. <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.engappai.2025.110523">链接</a></li>
+<li>Zhu, P. et al. “Deep Reinforcement Learning-Based Guidance Law for Intercepting Low–Slow–Small UAVs.” <em>Aerospace</em>, Vol. 12, No. 11, 968, Oct 2025. <a target="_blank" rel="noopener" href="https://doi.org/10.3390/aerospace12110968">链接</a></li>
+<li>Wang, R. et al. “Reinforcement Learning Based Interception Guidance Law for Airborne Active Defense Against Maneuvering Targets.” <em>AFC 2025, Lecture Notes in Mechanical Engineering</em>, Springer, 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.1007/978-981-95-3016-8_36">链接</a></li>
+<li>Chen, P. et al. “SDD-YOLO: A Small-Target Detection Framework for Ground-to-Air Anti-UAV Surveillance.” <em>arXiv:2603.25218</em>, Mar 2026. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2603.25218">链接</a></li>
+<li>Ultralytics. “YOLO26 Documentation.” 2026. <a target="_blank" rel="noopener" href="https://docs.ultralytics.com/models/yolo26/">链接</a></li>
+<li>Li, M. et al. “Visual Detection Algorithms for Counter-UAV in Low-Altitude Air Defense.” <em>Computers, Materials &amp; Continua</em>, Vol. 86, No. 3, 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.32604/cmc.2025.072406">链接</a></li>
+<li>Ma, L. et al. “HMF-DEIM: High-Fidelity Multi-Domain Fusion Transformer for UAV Small Object Detection.” <em>Sensors</em>, Vol. 26, No. 7, 2187, Apr 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.3390/s26072187">链接</a></li>
+<li>Tao, Y. et al. “Intelligent Multimodal Multi-Sensor Fusion-Based UAV Identification, Localization, and Countermeasures.” <em>arXiv:2510.22947</em>, Oct 2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2510.22947">链接</a></li>
+<li>Sakellariou, N. et al. “Multi-Sensor Fusion for UAV Classification Based on Feature Maps of Image and Radar Data.” <em>arXiv:2410.16089</em>, Oct 2024. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2410.16089">链接</a></li>
+<li>Drone Warfare. “Counter-UAS 101 – Multi-Sensor Fusion.” Jan 2026. <a target="_blank" rel="noopener" href="https://drone-warfare.com/counter-uas/multi-sensor-fusion/">链接</a></li>
+<li>Cao, X. et al. “Improved UAV-to-Ground Multi-Target Tracking Algorithm Based on StrongSORT.” <em>Sensors</em>, Vol. 23, No. 22, 9239, Nov 2023. <a target="_blank" rel="noopener" href="https://doi.org/10.3390/s23229239">链接</a></li>
+<li>Safonyk, A. et al. “Comparative analysis of DeepSORT, ByteTrack and StrongSORT algorithms for multi-object tracking in UAV-based video surveillance.” <em>IAPGOS</em>, Vol. 16, No. 1, Mar 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.35784/iapgos.7691">链接</a></li>
+<li>Chu, Z. et al. “SCT-MOT: Enhancing Air-to-Air Multiple UAVs Tracking with Swarm-Coupled Motion and Trajectory Guidance.” <em>arXiv:2604.06883</em>, Apr 2026. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.06883">链接</a></li>
+<li>Ren, Y. et al. “Perception-to-Pursuit (P2P): A Track-Centric Temporal Reasoning Framework.” <em>arXiv:2601.19318</em>, Jan 2026. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2601.19318">链接</a></li>
+<li>NOVA. “Navigation via Object-Centric Visual Autonomy for High-Speed Target Tracking in GPS-Denied Environments.” <em>arXiv:2506.18689</em>, 2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2506.18689">链接</a></li>
+<li>Barbas Laina, S. et al. “Scalable Outdoors Autonomous Drone Flight with Visual-Inertial SLAM.” <em>arXiv:2403.09596</em>, 2024&#x2F;2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2403.09596">链接</a></li>
+<li>Wang, X. et al. “GPS Denied IBVS-Based Navigation and Collision Avoidance of UAV Using a Low-Cost RGB Camera.” <em>arXiv:2509.17435</em>, 2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2509.17435">链接</a></li>
+<li>NVIDIA. “Maximizing Memory Efficiency to Run Bigger Models on NVIDIA Jetson.” 2026. <a target="_blank" rel="noopener" href="https://developer.nvidia.com/blog/maximizing-memory-efficiency-to-run-bigger-models-on-nvidia-jetson/">链接</a></li>
+<li>NVIDIA. “Build Next-Gen Physical AI with Edge-First LLMs for Autonomous Vehicles and Robotics.” Mar 2026. <a target="_blank" rel="noopener" href="https://developer.nvidia.com/blog/build-next-gen-physical-ai-with-edge%E2%80%91first-llms-for-autonomous-vehicles-and-robotics/">链接</a></li>
+<li>Kriuk, B. &amp; Kriuk, F. “Shepherd Grid Strategy: Towards Reliable SWARM Interception.” <em>arXiv:2508.09536</em>, Aug 2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2508.09536">链接</a></li>
+<li>“Reinforcement Learning for Decision-Level Interception Prioritization in Drone Swarm Defense.” <em>arXiv:2508.00641</em>, Aug 2025. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2508.00641">链接</a></li>
+<li>Xiong, Z. et al. “Task allocation with communication coordination in UAV swarms via asynchronous multi-Objective policy optimization.” <em>Aerospace Science and Technology</em>, Vol. 174, Jul 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.ast.2026.111760">链接</a></li>
+<li>Zhang, L. et al. “A Task Allocation Cooperative Execution Method for Resource-Constrained UAVs in Complex Scenarios.” <em>Drones</em>, Vol. 10, No. 4, 307, Apr 2026. <a target="_blank" rel="noopener" href="https://doi.org/10.3390/drones10040307">链接</a></li>
+<li>Bernas, A. “GPS-Denied UAV with Visual SLAM.” 2024–2025. <a target="_blank" rel="noopener" href="https://andrewbernas.com/docs/projects/robots/vslam">链接</a></li>
+<li>Ostrovskyy, A. “Drone Object Detection on Jetson Orin Nano.” 2026. <a target="_blank" rel="noopener" href="https://alexostrovskyy.com/robotics-the-brain-of-the-drone-object-detection-with-yolov12-on-jetson-orin-nano/">链接</a></li>
+<li>Christian Mills. “Deploying YOLOX for Real-Time Object Tracking on Jetson Orin Nano.” 2024. <a target="_blank" rel="noopener" href="https://christianjmills.com/posts/pytorch-train-object-detector-yolox-tutorial/jetson-object-tracking/">链接</a></li>
+</ol>
+<hr>
+<p><strong>写在最后</strong>：截击无人机是算法密度最高的军事平台之一——在不到 5 kg 的机体内，集成了计算机视觉、信号处理、最优控制、强化学习、分布式系统等多个学科的核心算法。理解这些算法不仅有助于理解反无人机技术的现状，也为机器人学、自主系统和边缘 AI 的工程实践提供了极有价值的参考。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/04/21/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/">https://goodisok.github.io/2026/04/21/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA/">截击无人机</a><a class="post-meta__tags" href="/tags/C-UAS/">C-UAS</a><a class="post-meta__tags" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/">目标检测</a><a class="post-meta__tags" href="/tags/YOLO/">YOLO</a><a class="post-meta__tags" href="/tags/%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/">目标跟踪</a><a class="post-meta__tags" href="/tags/%E6%AF%94%E4%BE%8B%E5%AF%BC%E5%BC%95/">比例导引</a><a class="post-meta__tags" href="/tags/%E6%B7%B1%E5%BA%A6%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">深度强化学习</a><a class="post-meta__tags" href="/tags/%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2/">卡尔曼滤波</a><a class="post-meta__tags" href="/tags/%E8%A7%86%E8%A7%89%E6%83%AF%E6%80%A7%E9%87%8C%E7%A8%8B%E8%AE%A1/">视觉惯性里程计</a><a class="post-meta__tags" href="/tags/%E8%BE%B9%E7%BC%98AI/">边缘AI</a><a class="post-meta__tags" href="/tags/%E8%9C%82%E7%BE%A4%E5%8D%8F%E5%90%8C/">蜂群协同</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E4%BC%A0%E6%84%9F%E5%99%A8%E8%9E%8D%E5%90%88/">多传感器融合</a><a class="post-meta__tags" href="/tags/TensorRT/">TensorRT</a><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%AE%97%E6%B3%95/">无人机算法</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/21/AI%E7%94%9F%E6%88%90%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8C%87%E6%8E%A7%E7%B3%BB%E7%BB%9F-%E4%BB%8E%E9%9B%B6%E8%A1%8C%E4%BA%BA%E5%B7%A5%E4%BB%A3%E7%A0%81%E5%88%B0%E5%A4%A9%E7%A9%BA%E4%B8%AD%E7%9A%84%E9%A3%9E%E8%A1%8C%E7%BD%91%E7%AB%99/" title="AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: AI generated drone command and control station hosted in the sky 作者: Peter J. Burke（加州大学尔湾分校 电气工程与计算机科学系） 发表: npj Artificial Intelligence, 2, 43 (2026)，2026 年 4 月 15 日 DOI: 10.1038&#x2F;s44387-026-00101-6 代码: GitHub - PeterJBurke&#x2F;WebGCS 预印本: arXiv:2508.02962（2025 年 8 月）    一、一句话概括：机器给机器造了大脑这篇发表在 Nature 旗下 npj Artificial Intelligence 的论文做了一件听起来像科幻但实际上已经飞上天的事：用 LLM 从零开始编写一个完整的无人机指挥控制站（GCS），部署到树莓派上随无人机一起飞到天上，让无人机自身成为一个飞行网站。 整个过程中，没有一行代码是人类写的。人类只做了一件事——写 prompt。 这项工作由 UCI（加州大学尔湾分校...</div></div></div></a><a class="pagination-related" href="/2026/04/21/MAVEN%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E5%85%83%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%AE%9E%E7%8E%B0%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8F%98%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%95%8F%E6%8D%B7%E9%A3%9E%E8%A1%8C/" title="MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers 作者: Jin Zhou, Dongcheng Cao, Xian Wang, Shuo Li（浙江大学控制科学与工程学院） 发表: arXiv:2603.10714, 2026 年 3 月 链接: arXiv | 视频    一、为什么需要 MAVEN？1.1 标准 RL 的致命缺陷：动力学一变就崩近年来，深度强化学习在四旋翼敏捷飞行领域取得了令人瞩目的突破。2023 年 Kaufmann 等人在 Nature 上发表的工作证明，RL 策略可以在无人机竞速中击败世界冠军级别的人类飞手。然而，这些令人印象深刻的成果都建立在一个隐含假设之上：训练时的动力学模型与部署时完全一致。 现实世界远没有这么理想。一架四旋翼可能因为以下原因产生显著的动力学变化：  负载变化：挂载不同传感器、携带货物、电池电量变化导致质量改变 执行器故障：电机老化、螺旋桨损伤导致...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/21/%E5%85%A8%E7%90%83%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%88%AA%E5%87%BB%E6%9C%BA%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E4%B9%8C%E5%85%8B%E5%85%B0STING%E5%88%B0%E5%8C%97%E7%BA%A6%E6%96%B0%E9%94%90/" title="全球反无人机截击机深度解析：从乌克兰 STING 到中国天穹，全球主流系统技术全览"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">全球反无人机截击机深度解析：从乌克兰 STING 到中国天穹，全球主流系统技术全览</div></div><div class="info-2"><div class="info-item-1"> 当一枚造价 3.5 万美元的 Shahed 自杀无人机可以迫使防御方发射一枚数十万美元的防空导弹时，战争经济学就已经倒向了攻击方。截击无人机——用无人机拦截无人机——正在改写这一等式。本文基于公开资料、官方技术手册和战场验证数据，深度分析全球主流反无人机拦截系统，涵盖乌克兰、法国、美国、英国、以色列、拉脱维亚、德国、瑞士、中国等九个国家的产品。   一、为什么需要截击无人机1.1 成本不对称困境俄乌战争让一个残酷的数学问题摆上了每个防空指挥官的桌面：    攻击手段 单价 防御手段 单价 成本比    Shahed-136&#x2F;Geran-2 ~$35,000 IRIS-T SLM 导弹 ~$430,000 1:12   商用 FPV 无人机 ~$500 Gepard 35mm 弹药（一个射击周期） ~$5,000 1:10   Shahed-136 ~$35,000 STING 截击机 ~$2,100 17:1（防御方优势）   截击无人机将成本比逆转——用 2000 美元的消耗品击落 35000 美元的目标。2025 年 1 月，俄罗斯仅一个月就向乌克兰发射了超过 2...</div></div></div></a><a class="pagination-related" href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</div></div><div class="info-2"><div class="info-item-1"> 线性代数是无人机建模与控制的数学基石。本文从工程实际出发，系统讲解向量空间、矩阵、旋转、四元数、特征值等核心概念，每个知识点都给出数学定义、推导过程与无人机应用场景，帮你建立「定义 → 公式推导 → 物理直觉 → 代码实现」的完整认知链路。   一、为什么无人机工程师需要线性代数打开任何一份无人机动力学代码，你会发现线性代数无处不在：  坐标变换：地面站用经纬高（NED 系），飞控内部用机体系，传感器各有安装系——在它们之间转换全靠矩阵乘法 [1] 姿态表示：四旋翼「朝哪飞、歪了多少」用旋转矩阵或四元数描述 [5] 动力学方程：Iω˙+ω×Iω=τ\mathbf{I}\dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times \mathbf{I}\boldsymbol{\omega} = \boldsymbol{\tau}Iω˙+ω×Iω=τ 里的惯性张量 I\mathbf{I}I 是一个 3×33\times33×3 矩阵 [7] 控制器设计：PID 调参要看特征值判断稳定性，卡尔曼滤波核心是矩阵方程 [9] 传感器融合：多传...</div></div></div></a><a class="pagination-related" href="/2026/04/23/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%A7%86%E8%A7%89%E4%BB%BF%E7%9C%9F%E7%9A%848%E9%81%93%E9%B8%BF%E6%B2%9F-%E4%BB%8E%E7%90%86%E6%83%B3%E7%9B%B8%E6%9C%BA%E5%88%B0%E7%9C%9F%E5%AE%9E%E4%BC%A0%E6%84%9F%E5%99%A8%E7%9A%84%E5%B7%AE%E8%B7%9D%E4%B8%8E%E5%BC%A5%E5%90%88/" title="无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-23</div><div class="info-item-2">无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合</div></div><div class="info-2"><div class="info-item-1"> 一个 YOLO 模型在仿真里 mAP 92%，部署到实机上直接跌到 55%。根本原因不是 UE5 渲染不够逼真——Lumen + Nanite 已经足够好看了——而是仿真相机从来就不是一个真实传感器。渲染引擎追求的是”视觉上令人信服”，而真实 CMOS 传感器的输出充满噪声、畸变、动态范围截断和 ISP 链路的各种非线性变换。这两者之间的差距，才是 Sim-to-Real 视觉迁移失败的主因。 本文系统梳理仿真相机与真实传感器之间的 8 个关键差距维度，给出 AirSim&#x2F;Colosseum、Cosys-AirSim、Project AirSim、Isaac Sim、Gazebo 五个主流平台的建模能力对比，以及工程实践中缩小差距的方法。 前置阅读：  AirSim 相机传感器深度解析：架构、实现与优化实战 突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战    一、问题：为什么仿真图像”看起来对”但”用起来不对”一个典型场景：在 AirSim + UE5.7 的城市环境里训练了一个 YOLOv8 目标检测模型，用于检测低空...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">256</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">38</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%AE%97%E6%B3%95%E5%85%A8%E6%99%AF%EF%BC%9A%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%9A%84%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">一、算法全景：截击无人机的软件架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%AC%AC%E4%B8%80%E5%B1%82%EF%BC%9A%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">2.</span> <span class="toc-text">二、第一层：目标检测与分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E6%8C%91%E6%88%98"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 核心挑战</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-YOLO-%E7%B3%BB%E5%88%97%EF%BC%9A%E4%BB%8E-YOLOv8-%E5%88%B0-YOLO26"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 YOLO 系列：从 YOLOv8 到 YOLO26</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8F%8D%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%93%E7%94%A8%E6%A3%80%E6%B5%8B%E5%99%A8"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 反无人机专用检测器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%A4%9A%E4%BC%A0%E6%84%9F%E5%99%A8%E8%9E%8D%E5%90%88%E6%A3%80%E6%B5%8B"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 多传感器融合检测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%AC%AC%E4%BA%8C%E5%B1%82%EF%BC%9A%E5%A4%9A%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA%E4%B8%8E%E7%8A%B6%E6%80%81%E4%BC%B0%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">三、第二层：多目标跟踪与状态估计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%EF%BC%9A%E7%8A%B6%E6%80%81%E4%BC%B0%E8%AE%A1%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 卡尔曼滤波：状态估计的基石</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%A4%9A%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA%EF%BC%88MOT%EF%BC%89%E7%AE%97%E6%B3%95"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 多目标跟踪（MOT）算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%BB%8E%E6%84%9F%E7%9F%A5%E5%88%B0%E8%BF%BD%E5%87%BB%E7%9A%84%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%A1%86%E6%9E%B6%EF%BC%9AP2P"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 从感知到追击的端到端框架：P2P</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%AC%AC%E4%B8%89%E5%B1%82%EF%BC%9A%E5%88%B6%E5%AF%BC%E5%BE%8B%E2%80%94%E2%80%94%E4%BB%8E%E7%BB%8F%E5%85%B8%E5%88%B0%E6%B7%B1%E5%BA%A6%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0"><span class="toc-number">4.</span> <span class="toc-text">四、第三层：制导律——从经典到深度强化学习</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BB%8F%E5%85%B8%E5%88%B6%E5%AF%BC%E5%BE%8B"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 经典制导律</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-%E7%BA%AF%E8%BF%BD%E8%B8%AA%EF%BC%88Pure-Pursuit%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">4.1.1 纯追踪（Pure Pursuit）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-%E6%AF%94%E4%BE%8B%E5%AF%BC%E5%BC%95%EF%BC%88Proportional-Navigation%EF%BC%8CPN%EF%BC%89"><span class="toc-number">4.1.2.</span> <span class="toc-text">4.1.2 比例导引（Proportional Navigation，PN）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-3-%E5%A2%9E%E5%BC%BA%E6%AF%94%E4%BE%8B%E5%AF%BC%E5%BC%95%EF%BC%88EPN%EF%BC%89"><span class="toc-number">4.1.3.</span> <span class="toc-text">4.1.3 增强比例导引（EPN）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%B7%B1%E5%BA%A6%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%88%B6%E5%AF%BC%E5%BE%8B%EF%BC%9A2025%E2%80%932026-%E5%B9%B4%E7%9A%84%E5%89%8D%E6%B2%BF%E7%AA%81%E7%A0%B4"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 深度强化学习制导律：2025–2026 年的前沿突破</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-GRU-DRL-%E8%A1%A5%E5%81%BF%E5%88%B6%E5%AF%BC%EF%BC%88Engineering-Applications-of-AI%EF%BC%8C2025%EF%BC%89"><span class="toc-number">4.2.1.</span> <span class="toc-text">4.2.1 GRU-DRL 补偿制导（Engineering Applications of AI，2025）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-RPPO-%E4%B8%89%E7%BB%B4%E5%88%B6%E5%AF%BC%E5%BE%8B%EF%BC%88Aerospace%EF%BC%8C2025%EF%BC%89"><span class="toc-number">4.2.2.</span> <span class="toc-text">4.2.2 RPPO 三维制导律（Aerospace，2025）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-3-%E7%AB%9E%E4%BA%89%E5%BC%8F%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%EF%BC%88arXiv-2603-16279%EF%BC%8C2026-%E5%B9%B4-3-%E6%9C%88%EF%BC%89"><span class="toc-number">4.2.3.</span> <span class="toc-text">4.2.3 竞争式多智能体强化学习（arXiv:2603.16279，2026 年 3 月）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-4-TD3-%E7%A9%BA%E5%AF%B9%E7%A9%BA%E4%B8%BB%E5%8A%A8%E9%98%B2%E5%BE%A1%E5%88%B6%E5%AF%BC%EF%BC%88AFC-2025-%E4%BC%9A%E8%AE%AE%EF%BC%8C2026-%E5%B9%B4%E5%87%BA%E7%89%88%EF%BC%89"><span class="toc-number">4.2.4.</span> <span class="toc-text">4.2.4 TD3 空对空主动防御制导（AFC 2025 会议，2026 年出版）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%88%B6%E5%AF%BC%E5%BE%8B%E9%80%89%E5%9E%8B%E6%8C%87%E5%8D%97"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 制导律选型指南</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%AC%AC%E5%9B%9B%E5%B1%82%EF%BC%9AGPS-%E6%8B%92%E6%AD%A2%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E8%87%AA%E4%B8%BB%E5%AF%BC%E8%88%AA"><span class="toc-number">5.</span> <span class="toc-text">五、第四层：GPS 拒止环境下的自主导航</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8D%E8%83%BD%E4%BE%9D%E8%B5%96-GPS"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 为什么截击无人机不能依赖 GPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%A7%86%E8%A7%89%E6%83%AF%E6%80%A7%E9%87%8C%E7%A8%8B%E8%AE%A1%EF%BC%88VIO%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 视觉惯性里程计（VIO）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-NOVA%EF%BC%9A%E7%9B%AE%E6%A0%87%E4%B8%AD%E5%BF%83%E8%A7%86%E8%A7%89%E8%87%AA%E4%B8%BB%EF%BC%882025%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 NOVA：目标中心视觉自主（2025）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-IBVS%EF%BC%9A%E5%9F%BA%E4%BA%8E%E5%9B%BE%E5%83%8F%E7%9A%84%E8%A7%86%E8%A7%89%E4%BC%BA%E6%9C%8D"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 IBVS：基于图像的视觉伺服</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BE%B9%E7%BC%98-AI-%E9%83%A8%E7%BD%B2%EF%BC%9A%E5%9C%A8-10-%E7%93%A6%E5%8A%9F%E8%80%97%E5%86%85%E8%BF%90%E8%A1%8C%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="toc-number">6.</span> <span class="toc-text">六、边缘 AI 部署：在 10 瓦功耗内运行深度神经网络</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%9C%A8%E6%9C%BA%E8%BD%BD%E8%BF%90%E8%A1%8C"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 为什么必须在机载运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-NVIDIA-Jetson-%E5%B9%B3%E5%8F%B0"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 NVIDIA Jetson 平台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%A8%A1%E5%9E%8B%E4%BC%98%E5%8C%96%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 模型优化流水线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%BC%82%E6%9E%84%E8%AE%A1%E7%AE%97%EF%BC%9A%E4%B8%8D%E5%8F%AA%E6%98%AF-GPU"><span class="toc-number">6.4.</span> <span class="toc-text">6.4 异构计算：不只是 GPU</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%AC%AC%E4%BA%94%E5%B1%82%EF%BC%9A%E8%9C%82%E7%BE%A4%E5%8D%8F%E5%90%8C%E2%80%94%E2%80%94%E5%A4%9A%E6%9C%BA%E6%8B%A6%E6%88%AA%E7%9A%84%E7%AE%97%E6%B3%95%E6%8C%91%E6%88%98"><span class="toc-number">7.</span> <span class="toc-text">七、第五层：蜂群协同——多机拦截的算法挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%9C%82%E7%BE%A4"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 为什么需要蜂群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%8B%8D%E5%8D%96%E5%BC%8F%E4%BB%BB%E5%8A%A1%E5%88%86%E9%85%8D"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 拍卖式任务分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Shepherd-Grid-%E7%AD%96%E7%95%A5%EF%BC%88arXiv-2508-09536%EF%BC%8C2025-%E5%B9%B4%EF%BC%89"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 Shepherd Grid 策略（arXiv:2508.09536，2025 年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-DRL-%E6%8B%A6%E6%88%AA%E4%BC%98%E5%85%88%E7%BA%A7%E5%86%B3%E7%AD%96%EF%BC%88arXiv-2508-00641%EF%BC%8C2025-%E5%B9%B4%EF%BC%89"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 DRL 拦截优先级决策（arXiv:2508.00641，2025 年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E9%80%9A%E4%BF%A1%E5%8F%97%E9%99%90%E4%B8%8B%E7%9A%84-MARL-%E4%BB%BB%E5%8A%A1%E5%88%86%E9%85%8D"><span class="toc-number">7.5.</span> <span class="toc-text">7.5 通信受限下的 MARL 任务分配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%BA%A7%E5%93%81%E7%BA%A7%E7%AE%97%E6%B3%95%E6%9E%B6%E6%9E%84%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90"><span class="toc-number">8.</span> <span class="toc-text">八、产品级算法架构案例分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-STING%EF%BC%88%E4%B9%8C%E5%85%8B%E5%85%B0-Wild-Hornets%EF%BC%89"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 STING（乌克兰 Wild Hornets）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-GOBI%EF%BC%88%E6%B3%95%E5%9B%BD-Harmattan-AI%EF%BC%89"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 GOBI（法国 Harmattan AI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Anduril-Anvil-Lattice-OS"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 Anduril Anvil + Lattice OS</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%812026-%E5%B9%B4%E6%8A%80%E6%9C%AF%E8%B6%8B%E5%8A%BF%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="toc-number">9.</span> <span class="toc-text">九、2026 年技术趋势与展望</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%BA%94%E5%A4%A7%E5%89%8D%E6%B2%BF%E6%96%B9%E5%90%91"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 五大前沿方向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E7%AE%97%E6%B3%95%E6%88%90%E7%86%9F%E5%BA%A6%E5%88%86%E7%BA%A7"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 算法成熟度分级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">十、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">11.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛">无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛</a><time datetime="2026-04-23T16:00:00.000Z" title="发表于 2026-04-24 00:00:00">2026-04-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%A7%86%E8%A7%89%E4%BB%BF%E7%9C%9F%E7%9A%848%E9%81%93%E9%B8%BF%E6%B2%9F-%E4%BB%8E%E7%90%86%E6%83%B3%E7%9B%B8%E6%9C%BA%E5%88%B0%E7%9C%9F%E5%AE%9E%E4%BC%A0%E6%84%9F%E5%99%A8%E7%9A%84%E5%B7%AE%E8%B7%9D%E4%B8%8E%E5%BC%A5%E5%90%88/" title="无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合">无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合</a><time datetime="2026-04-23T14:00:00.000Z" title="发表于 2026-04-23 22:00:00">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/AirSim%E5%81%9C%E6%9B%B4%E4%B9%8B%E5%90%8E%E8%B0%81%E5%9C%A8%E6%8E%A5%E6%A3%92-%E4%B8%89%E5%A4%A7%E7%BB%A7%E6%89%BF%E8%80%85%E7%9A%84%E6%BA%90%E7%A0%81%E7%BA%A7%E8%BF%81%E7%A7%BB%E5%85%A8%E8%A7%A3%E6%9E%90/" title="AirSim 停更之后，谁在接棒：三大继承者的源码级迁移全解析">AirSim 停更之后，谁在接棒：三大继承者的源码级迁移全解析</a><time datetime="2026-04-23T10:00:00.000Z" title="发表于 2026-04-23 18:00:00">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C-%E4%BB%8E%E5%AE%9E%E6%B5%8B%E6%96%B9%E6%B3%95%E5%88%B0Gazebo-PX4%E9%85%8D%E7%BD%AE%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%8C%87%E5%8D%97/" title="截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南">截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南</a><time datetime="2026-04-22T10:00:00.000Z" title="发表于 2026-04-22 18:00:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/" title="视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战">视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战</a><time datetime="2026-04-22T06:00:00.000Z" title="发表于 2026-04-22 14:00:00">2026-04-22</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
