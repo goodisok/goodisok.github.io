@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="核心问题：我手里有一个四旋翼动力学模型，参数是猜的，怎么验证它离”真实飞机”有多远？ 本文用一个纯仿真闭环实验完整走通了 Sim-to-Real 动力学验证流程。实验设定很直接——用 PX4 官方的 x500 模型当”真实飞机”，自建的 interceptor 模型当”我的仿真”，两者参数故意拉开偏差，然后一轮一轮修正，看 RMSE 怎么收敛。4 轮迭代后，Z 方向位置 RMSE 从 0.71">
+<meta property="og:type" content="article">
+<meta property="og:title" content="无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛">
+<meta property="og:url" content="https://goodisok.github.io/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="核心问题：我手里有一个四旋翼动力学模型，参数是猜的，怎么验证它离”真实飞机”有多远？ 本文用一个纯仿真闭环实验完整走通了 Sim-to-Real 动力学验证流程。实验设定很直接——用 PX4 官方的 x500 模型当”真实飞机”，自建的 interceptor 模型当”我的仿真”，两者参数故意拉开偏差，然后一轮一轮修正，看 RMSE 怎么收敛。4 轮迭代后，Z 方向位置 RMSE 从 0.71">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-04-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-23T08:44:03.272Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="Gazebo">
+<meta property="article:tag" content="PX4">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="RMSE">
+<meta property="article:tag" content="SITL">
+<meta property="article:tag" content="Sim-to-Real">
+<meta property="article:tag" content="ULG">
+<meta property="article:tag" content="仿真验证">
+<meta property="article:tag" content="动力学验证">
+<meta property="article:tag" content="参数辨识">
+<meta property="article:tag" content="四旋翼">
+<meta property="article:tag" content="模型校准">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛",
+  "url": "https://goodisok.github.io/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-04-23T16:00:00.000Z",
+  "dateModified": "2026-04-23T08:44:03.272Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">256</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">38</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-23T16:00:00.000Z" title="发表于 2026-04-24 00:00:00">2026-04-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-23T08:44:03.272Z" title="更新于 2026-04-23 16:44:03">2026-04-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E4%BB%BF%E7%9C%9F%E5%BC%80%E5%8F%91/">仿真开发</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA/%E4%BB%BF%E7%9C%9F%E5%BC%80%E5%8F%91/%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1/">动力学建模</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>核心问题：我手里有一个四旋翼动力学模型，参数是猜的，怎么验证它离”真实飞机”有多远？</p>
+<p>本文用一个<strong>纯仿真闭环实验</strong>完整走通了 Sim-to-Real 动力学验证流程。实验设定很直接——用 PX4 官方的 x500 模型当”真实飞机”，自建的 interceptor 模型当”我的仿真”，两者参数故意拉开偏差，然后一轮一轮修正，看 RMSE 怎么收敛。4 轮迭代后，Z 方向位置 RMSE 从 0.71 m 降到 0.15 m，速度 RMSE 从 0.35 m&#x2F;s 降到 0.11 m&#x2F;s。</p>
+<p>这套方法的价值在于：<strong>研究者在买飞机之前，就能在纯仿真环境中把整条验证工具链跑通</strong>——飞行脚本、数据采集、ULG 解析、时间对齐、误差分析，全部验证完毕。切换到实机时，只需把 x500 的 ULG 替换成真实飞行日志。</p>
+</blockquote>
+<hr>
+<h2 id="1-实验设计"><a href="#1-实验设计" class="headerlink" title="1. 实验设计"></a>1. 实验设计</h2><h3 id="1-1-为什么是-Gazebo-PX4"><a href="#1-1-为什么是-Gazebo-PX4" class="headerlink" title="1.1 为什么是 Gazebo + PX4"></a>1.1 为什么是 Gazebo + PX4</h3><p>选型逻辑很简单：</p>
+<ul>
+<li><strong>开源可控</strong>：Gazebo Harmonic + PX4 v1.16.1，SDF 模型参数完全暴露，改一行 XML 就能改质量、惯量、推力系数。</li>
+<li><strong>Lockstep 同步</strong>：PX4 SITL 与 Gazebo 之间走 lockstep 时间同步，不会出现物理步长漂移——这对动力学对比至关重要，否则两边时间轴对不齐，RMSE 算出来全是噪声。</li>
+<li><strong>SDF 参数直接映射物理量</strong>：不像某些仿真器把参数藏在二进制配置里，Gazebo 的 SDF 就是一个结构清晰的 XML，<code>mass</code>、<code>inertia</code>、<code>motorConstant</code> 一目了然。</li>
+</ul>
+<h3 id="1-2-实验架构"><a href="#1-2-实验架构" class="headerlink" title="1.2 实验架构"></a>1.2 实验架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────────────────┐</span><br><span class="line">│                    同一台机器                              │</span><br><span class="line">│                                                          │</span><br><span class="line">│  ┌─────────────┐     MAVSDK-Python      ┌─────────────┐ │</span><br><span class="line">│  │  Gazebo #1  │  ◄── fly_mission.py ──► │  Gazebo #2  │ │</span><br><span class="line">│  │  x500       │      (相同指令序列)      │ interceptor │ │</span><br><span class="line">│  │  (真值)     │                         │ (待校准)     │ │</span><br><span class="line">│  └──────┬──────┘                         └──────┬──────┘ │</span><br><span class="line">│         │ ULG                                   │ ULG    │</span><br><span class="line">│         ▼                                       ▼        │</span><br><span class="line">│      compare.py ──► 时间对齐 ──► RMSE / R² ──► 报告     │</span><br><span class="line">└──────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>两个 Gazebo 实例分别跑 x500 和 interceptor，用<strong>同一个 MAVSDK-Python 脚本</strong>给它们下达完全相同的飞行指令序列，然后从各自的 PX4 ULG 日志中提取状态量做对比。</p>
+<h3 id="1-3-标准机动序列"><a href="#1-3-标准机动序列" class="headerlink" title="1.3 标准机动序列"></a>1.3 标准机动序列</h3><p>机动序列的设计原则是：<strong>每个机动激励一个特定的动力学参数</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>机动</th>
+<th>时长</th>
+<th>目标参数</th>
+<th>原理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>悬停</td>
+<td>10 s</td>
+<td>mass</td>
+<td>推力 &#x3D; mg，质量偏差直接体现为高度偏差</td>
+</tr>
+<tr>
+<td>Z 阶跃（上升 2m → 悬停）</td>
+<td>8 s</td>
+<td>motorConstant</td>
+<td>推力阶跃响应幅度由推力系数决定</td>
+</tr>
+<tr>
+<td>前飞 5 m&#x2F;s</td>
+<td>10 s</td>
+<td>阻力系数</td>
+<td>稳态前飞时推力 &#x3D; 阻力 + 重力分量</td>
+</tr>
+<tr>
+<td>侧飞 3 m&#x2F;s</td>
+<td>8 s</td>
+<td>Ixx</td>
+<td>侧飞需要 roll，roll 加速度 ∝ 1&#x2F;Ixx</td>
+</tr>
+<tr>
+<td>俯仰阶跃</td>
+<td>8 s</td>
+<td>Iyy</td>
+<td>同理，pitch 加速度 ∝ 1&#x2F;Iyy</td>
+</tr>
+<tr>
+<td>偏航 90°</td>
+<td>8 s</td>
+<td>Izz</td>
+<td>yaw 加速度 ∝ 1&#x2F;Izz</td>
+</tr>
+</tbody></table>
+<h3 id="1-4-参数偏差设定"><a href="#1-4-参数偏差设定" class="headerlink" title="1.4 参数偏差设定"></a>1.4 参数偏差设定</h3><p>Interceptor 的初始参数故意设置偏差，模拟”拿到一个新飞机、参数靠猜”的真实场景：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>x500 真值</th>
+<th>Interceptor 初始值</th>
+<th>偏差</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mass</td>
+<td>2.0 kg</td>
+<td>2.3 kg</td>
+<td>+15%</td>
+</tr>
+<tr>
+<td>Ixx&#x2F;Iyy</td>
+<td>0.02167</td>
+<td>0.0249</td>
+<td>+15%</td>
+</tr>
+<tr>
+<td>motorConstant</td>
+<td>8.549e-6</td>
+<td>7.01e-6</td>
+<td>-18%</td>
+</tr>
+<tr>
+<td>timeConstantUp</td>
+<td>0.0125 s</td>
+<td>0.020 s</td>
+<td>+60%</td>
+</tr>
+</tbody></table>
+<p>偏差幅度的选择参考了实际工程中常见的估计误差：质量称重误差一般在 10-20%，惯性矩用 CAD 估算误差在 15-30%，电机推力系数不上推力台根本不知道准不准。</p>
+<hr>
+<h2 id="2-工程搭建"><a href="#2-工程搭建" class="headerlink" title="2. 工程搭建"></a>2. 工程搭建</h2><h3 id="2-1-环境"><a href="#2-1-环境" class="headerlink" title="2.1 环境"></a>2.1 环境</h3><ul>
+<li>PX4 v1.16.1 + Gazebo Harmonic（gz-sim 8）</li>
+<li>MAVSDK-Python 2.x</li>
+<li>Python 3.10 + pyulog + numpy + matplotlib</li>
+</ul>
+<h3 id="2-2-自定义-interceptor-模型的坑"><a href="#2-2-自定义-interceptor-模型的坑" class="headerlink" title="2.2 自定义 interceptor 模型的坑"></a>2.2 自定义 interceptor 模型的坑</h3><p>Gazebo SDF 写自定义模型有一个<strong>文档里不说、但一定会踩的坑</strong>：你不能用 <code>&lt;include&gt;</code> 引用 x500 基础模型然后 <code>&lt;link&gt;</code> override 参数。这样做会导致<strong>重复 <code>base_link</code> 错误</strong>——Gazebo 的 SDF parser 在 include 展开后不做 link 去重，直接报 <code>duplicate link name: base_link</code> 然后模型加载失败。</p>
+<p>正确做法是<strong>完整复制 x500 的 SDF，改名为 interceptor，然后直接改参数</strong>。虽然丑，但可靠。</p>
+<p>SDF 中核心参数修改位置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- model.sdf: interceptor 质量与惯性 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">name</span>=<span class="string">&quot;base_link&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">inertial</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mass</span>&gt;</span>2.3<span class="tag">&lt;/<span class="name">mass</span>&gt;</span>  <span class="comment">&lt;!-- x500 是 2.0 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">inertia</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ixx</span>&gt;</span>0.0249<span class="tag">&lt;/<span class="name">ixx</span>&gt;</span>   <span class="comment">&lt;!-- x500 是 0.02167 --&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">iyy</span>&gt;</span>0.0249<span class="tag">&lt;/<span class="name">iyy</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">izz</span>&gt;</span>0.04742<span class="tag">&lt;/<span class="name">izz</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">inertia</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">inertial</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">link</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 电机推力系数（每个 rotor 的 plugin 里） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span> <span class="attr">filename</span>=<span class="string">&quot;gz-sim-multicopter-motor-model-system&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">name</span>=<span class="string">&quot;gz::sim::systems::MulticopterMotorModel&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">motorConstant</span>&gt;</span>7.01e-06<span class="tag">&lt;/<span class="name">motorConstant</span>&gt;</span>  <span class="comment">&lt;!-- x500 是 8.549e-06 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">timeConstantUp</span>&gt;</span>0.020<span class="tag">&lt;/<span class="name">timeConstantUp</span>&gt;</span>    <span class="comment">&lt;!-- x500 是 0.0125 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">timeConstantDown</span>&gt;</span>0.025<span class="tag">&lt;/<span class="name">timeConstantDown</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-PX4-Airframe-注册"><a href="#2-3-PX4-Airframe-注册" class="headerlink" title="2.3 PX4 Airframe 注册"></a>2.3 PX4 Airframe 注册</h3><p>在 PX4 的 <code>ROMFS/px4fmu_common/init.d-posix/airframes/</code> 下新建 <code>4050_gz_interceptor</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="comment"># 4050_gz_interceptor</span></span><br><span class="line">. <span class="variable">$&#123;R&#125;</span>etc/init.d/rc.mc_defaults</span><br><span class="line"></span><br><span class="line">param set-default SIM_GZ_EN 1</span><br><span class="line">param set-default SIM_GZ_EC_FUNC1 101</span><br><span class="line">param set-default SIM_GZ_EC_FUNC2 102</span><br><span class="line">param set-default SIM_GZ_EC_FUNC3 103</span><br><span class="line">param set-default SIM_GZ_EC_FUNC4 104</span><br><span class="line">param set-default SIM_GZ_EC_MIN 150</span><br><span class="line">param set-default SIM_GZ_EC_MAX 1000</span><br><span class="line"></span><br><span class="line">param set-default CA_ROTOR_COUNT 4</span><br><span class="line">param set-default CA_ROTOR0_PX 0.175</span><br><span class="line">param set-default CA_ROTOR0_PY 0.175</span><br><span class="line">param set-default CA_ROTOR0_KM 0.05</span><br><span class="line"><span class="comment"># ... 其余参数与 x500 一致</span></span><br></pre></td></tr></table></figure>
+
+<p>然后 <code>CMakeLists.txt</code> 加上 <code>4050_gz_interceptor</code>，重新编译 PX4。</p>
+<h3 id="2-4-自动化飞行脚本"><a href="#2-4-自动化飞行脚本" class="headerlink" title="2.4 自动化飞行脚本"></a>2.4 自动化飞行脚本</h3><p><code>fly_mission.py</code> 的核心逻辑有两个关键点：</p>
+<p><strong>第一，必须先用 <code>action.takeoff()</code> 起飞，再切 offboard。</strong> 在 Gazebo SITL 中，直接从地面用 offboard 模式起飞大概率失败——PX4 的 failsafe 会在检测到飞机还在地面时拒绝 offboard 模式。</p>
+<p><strong>第二，通过 <code>set_velocity_ned</code> 间接激励 roll&#x2F;pitch 响应。</strong> offboard 模式下没有直接的 attitude setpoint（那个需要 actuator control），但通过给水平速度指令，PX4 会自动计算所需的 roll&#x2F;pitch 来跟踪——这正好激励了我们要验证的姿态动力学。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">fly_mission</span>(<span class="params">drone</span>):</span><br><span class="line">    <span class="keyword">await</span> drone.action.arm()</span><br><span class="line">    <span class="keyword">await</span> drone.action.takeoff()</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> drone.offboard.start()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 悬停 10s</span></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Z 阶跃：上升 2m/s 持续 3s</span></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">0.0</span>, -<span class="number">2.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">3</span>)</span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 前飞 5 m/s</span></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">5.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 侧飞 3 m/s</span></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">3.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">8</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 回到悬停，准备降落</span></span><br><span class="line">    <span class="keyword">await</span> drone.offboard.set_velocity_ned(</span><br><span class="line">        VelocityNedYaw(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">3</span>)</span><br><span class="line">    <span class="keyword">await</span> drone.offboard.stop()</span><br><span class="line">    <span class="keyword">await</span> drone.action.land()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-Round-1：初始猜测"><a href="#3-Round-1：初始猜测" class="headerlink" title="3. Round 1：初始猜测"></a>3. Round 1：初始猜测</h2><p>两个仿真器跑完同一套机动序列后，从 ULG 中提取 <code>vehicle_local_position</code> 和 <code>vehicle_attitude</code>，用 compare.py 做时间对齐和误差计算。</p>
+<p>时间对齐是最关键的一步——两个 PX4 实例的 ULG 时间戳不在同一个 epoch 上。对齐策略是<strong>找 takeoff 时刻</strong>：检测 Z 速度首次超过 0.5 m&#x2F;s 的时间戳，以此为零点对齐。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">align_by_takeoff</span>(<span class="params">df_real, df_sim, vz_threshold=<span class="number">0.5</span></span>):</span><br><span class="line">    t0_real = df_real.loc[df_real[<span class="string">&#x27;vz&#x27;</span>].<span class="built_in">abs</span>() &gt; vz_threshold, <span class="string">&#x27;timestamp&#x27;</span>].iloc[<span class="number">0</span>]</span><br><span class="line">    t0_sim = df_sim.loc[df_sim[<span class="string">&#x27;vz&#x27;</span>].<span class="built_in">abs</span>() &gt; vz_threshold, <span class="string">&#x27;timestamp&#x27;</span>].iloc[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    df_real[<span class="string">&#x27;t_aligned&#x27;</span>] = (df_real[<span class="string">&#x27;timestamp&#x27;</span>] - t0_real) * <span class="number">1e-6</span>  <span class="comment"># μs → s</span></span><br><span class="line">    df_sim[<span class="string">&#x27;t_aligned&#x27;</span>] = (df_sim[<span class="string">&#x27;timestamp&#x27;</span>] - t0_sim) * <span class="number">1e-6</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 插值到公共时间轴</span></span><br><span class="line">    t_common = np.arange(<span class="number">0</span>, <span class="built_in">min</span>(df_real[<span class="string">&#x27;t_aligned&#x27;</span>].<span class="built_in">max</span>(),</span><br><span class="line">                                 df_sim[<span class="string">&#x27;t_aligned&#x27;</span>].<span class="built_in">max</span>()), <span class="number">0.01</span>)</span><br><span class="line">    <span class="keyword">return</span> interpolate_to_common(df_real, df_sim, t_common)</span><br></pre></td></tr></table></figure>
+
+<p>Round 1 结果——初始猜测参数下的表现：</p>
+<table>
+<thead>
+<tr>
+<th>通道</th>
+<th>RMSE</th>
+<th>R²</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Position Z</td>
+<td>0.7058 m</td>
+<td>0.7967</td>
+</tr>
+<tr>
+<td>Velocity Z</td>
+<td>0.3495 m&#x2F;s</td>
+<td>0.3666</td>
+</tr>
+<tr>
+<td>Roll</td>
+<td>4.5851°</td>
+<td>-0.2587</td>
+</tr>
+<tr>
+<td>Pitch</td>
+<td>2.4893°</td>
+<td>-0.2098</td>
+</tr>
+<tr>
+<td>Velocity X</td>
+<td>0.4121 m&#x2F;s</td>
+<td>0.7873</td>
+</tr>
+</tbody></table>
+<p>几个关键发现：</p>
+<ol>
+<li><strong>Z 方向误差最大</strong>。质量偏大 15% + 推力系数偏小 18%，双重叠加导致悬停高度偏低、Z 阶跃响应幅度不足。</li>
+<li><strong>Roll&#x2F;Pitch 的 R² 为负</strong>。R² &lt; 0 意味着仿真模型的预测还不如直接用均值——惯性矩偏大导致姿态响应迟钝，相位严重滞后。</li>
+<li><strong>Velocity X 的 R² &#x3D; 0.79</strong>，勉强及格。因为前飞主要靠 pitch 倾斜，而 pitch 偏差没有特别离谱。</li>
+</ol>
+<p><img src="/images/sim2real-dynamics/round1_position.png" alt="Round 1 位置对比"></p>
+<p><img src="/images/sim2real-dynamics/round1_attitude.png" alt="Round 1 姿态对比"></p>
+<hr>
+<h2 id="4-迭代修正过程"><a href="#4-迭代修正过程" class="headerlink" title="4. 迭代修正过程"></a>4. 迭代修正过程</h2><h3 id="4-1-Round-2：修正质量（2-3-→-2-0-kg）"><a href="#4-1-Round-2：修正质量（2-3-→-2-0-kg）" class="headerlink" title="4.1 Round 2：修正质量（2.3 → 2.0 kg）"></a>4.1 Round 2：修正质量（2.3 → 2.0 kg）</h3><p>质量是悬停推力平衡的<strong>第一主因</strong>。修正质量后：</p>
+<ul>
+<li>Z RMSE：0.71 → 0.17 m（<strong>-76%</strong>）</li>
+<li>Vz RMSE：0.35 → 0.25 m&#x2F;s（-30%）</li>
+<li>Roll RMSE：4.59° → 3.66°（改善有限）</li>
+</ul>
+<p>Z 方向的改善是立竿见影的——悬停段几乎完美重合。但 Roll&#x2F;Pitch 改善有限，因为惯性矩还没修，姿态响应的时间常数仍然偏大。</p>
+<h3 id="4-2-Round-3：修正推力常数（7-01e-6-→-8-549e-6）"><a href="#4-2-Round-3：修正推力常数（7-01e-6-→-8-549e-6）" class="headerlink" title="4.2 Round 3：修正推力常数（7.01e-6 → 8.549e-6）"></a>4.2 Round 3：修正推力常数（7.01e-6 → 8.549e-6）</h3><p>这一轮的结果出乎意料：</p>
+<ul>
+<li>Z RMSE：0.17 → 0.29 m（<strong>恶化</strong>！）</li>
+<li>Roll RMSE：3.66° → 4.87°（也恶化了）</li>
+<li>Vz RMSE：0.25 → 0.25 m&#x2F;s（基本不变）</li>
+</ul>
+<p>原因是<strong>参数耦合补偿</strong>：Round 1 中质量偏大（需要更多推力）和推力系数偏小（能提供的推力少）刚好部分抵消。Round 2 修正了质量，但推力系数还是偏小，所以系统处于”推力略不足”状态。Round 3 把推力系数修正回真值，反而打破了之前的局部平衡——因为其他参数（惯性矩、时间常数）还没修正，推力变大后，动态响应的超调变大了。</p>
+<p><strong>教训：参数辨识不能一个一个独立修——参数之间存在耦合，修一个可能让另一个的补偿效应消失。</strong> 实际工程中应该用系统辨识工具（如最小二乘拟合）同时辨识多个参数。这里为了演示方法论，仍然按单参数逐步推进。</p>
+<h3 id="4-3-Round-4：修正惯性矩-电机时间常数"><a href="#4-3-Round-4：修正惯性矩-电机时间常数" class="headerlink" title="4.3 Round 4：修正惯性矩 + 电机时间常数"></a>4.3 Round 4：修正惯性矩 + 电机时间常数</h3><p>把剩下两组参数一起修正：</p>
+<ul>
+<li>Ixx&#x2F;Iyy：0.0249 → 0.02167</li>
+<li>timeConstantUp：0.020 → 0.0125 s</li>
+</ul>
+<p>最终结果：</p>
+<ul>
+<li>Z RMSE：0.29 → 0.15 m</li>
+<li>Vz RMSE：0.25 → 0.11 m&#x2F;s</li>
+<li>Roll RMSE：4.87° → 3.44°</li>
+</ul>
+<p>Z 和 Vz 基本收敛到满意水平。Roll 仍有 3.44° 的残余误差——后面专门分析原因。</p>
+<hr>
+<h2 id="5-收敛分析"><a href="#5-收敛分析" class="headerlink" title="5. 收敛分析"></a>5. 收敛分析</h2><p><img src="/images/sim2real-dynamics/convergence.png" alt="收敛曲线"></p>
+<p>4 轮迭代的汇总：</p>
+<table>
+<thead>
+<tr>
+<th>轮次</th>
+<th>修正参数</th>
+<th>Z RMSE</th>
+<th>Roll RMSE</th>
+<th>Vz RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Round 1</td>
+<td>初始猜测</td>
+<td>0.706</td>
+<td>4.585</td>
+<td>0.350</td>
+</tr>
+<tr>
+<td>Round 2</td>
+<td>质量</td>
+<td>0.171</td>
+<td>3.662</td>
+<td>0.245</td>
+</tr>
+<tr>
+<td>Round 3</td>
+<td>+推力常数</td>
+<td>0.288</td>
+<td>4.868</td>
+<td>0.253</td>
+</tr>
+<tr>
+<td>Round 4</td>
+<td>+惯性矩+时间常数</td>
+<td>0.147</td>
+<td>3.436</td>
+<td>0.113</td>
+</tr>
+</tbody></table>
+<p><strong>灵敏度排序：质量 &gt; 惯性矩 &gt; 推力常数 &gt; 时间常数。</strong></p>
+<p>质量修正带来的 Z RMSE 降幅最大（-76%），因为它直接影响悬停平衡点。惯性矩和时间常数的联合修正把 Vz RMSE 从 0.25 压到 0.11——主要贡献来自时间常数修正，它让阶跃响应的上升沿更陡。推力常数的单独修正反而导致恶化（Round 3），只有在其他参数也修正后，它的”正确值”才真正发挥正面作用。</p>
+<p><img src="/images/sim2real-dynamics/round4_position.png" alt="Round 4 位置对比"></p>
+<p><img src="/images/sim2real-dynamics/round4_attitude.png" alt="Round 4 姿态对比"></p>
+<hr>
+<h2 id="6-残余误差分析"><a href="#6-残余误差分析" class="headerlink" title="6. 残余误差分析"></a>6. 残余误差分析</h2><h3 id="6-1-Roll-Pitch-为什么还有-3-4°"><a href="#6-1-Roll-Pitch-为什么还有-3-4°" class="headerlink" title="6.1 Roll&#x2F;Pitch 为什么还有 3.4°"></a>6.1 Roll&#x2F;Pitch 为什么还有 3.4°</h3><p>所有参数都修正到真值了，Roll RMSE 仍然有 3.44°，不为零。原因是 <strong>PX4 控制器本身的行为差异</strong>。</p>
+<p>两个 Gazebo 实例各跑一个独立的 PX4 SITL 进程。虽然给的 offboard 指令完全相同（都是 <code>set_velocity_ned</code>），但 PX4 内部的位置控制器 → 速度控制器 → 姿态控制器这条链路中，<strong>状态估计（EKF2）和控制器积分项在两个实例上会各自演化</strong>。即使初始条件相同，浮点运算顺序的微小差异会在积分环节中累积，导致两个 PX4 对同一个速度指令计算出略有不同的 roll&#x2F;pitch setpoint。</p>
+<p>这不是方法论的缺陷——<strong>在实机验证中，同样的残余误差也会存在</strong>，因为实机和仿真各自跑各自的 PX4。</p>
+<h3 id="6-2-Yaw-为什么漂移严重（-60°）"><a href="#6-2-Yaw-为什么漂移严重（-60°）" class="headerlink" title="6.2 Yaw 为什么漂移严重（~60°）"></a>6.2 Yaw 为什么漂移严重（~60°）</h3><p>Yaw RMSE 达到约 60°，看起来很吓人，但原因很明确：<strong>offboard 速度指令模式下，PX4 的 yaw 控制是”尽力而为”的</strong>。<code>VelocityNedYaw</code> 中的 yaw 字段设为 0，但 PX4 在执行水平速度指令时，yaw 的优先级低于位置&#x2F;速度跟踪。两个实例的 yaw 控制器各自积分，累积漂移在 60 秒的飞行中达到 60° 并不意外。</p>
+<p>如果需要精确验证 yaw 动力学（Izz），应该用专门的 yaw 指令模式（<code>set_attitude</code>），而不是依赖速度指令的附带 yaw 控制。</p>
+<hr>
+<h2 id="7-方法论总结与实机验证路线图"><a href="#7-方法论总结与实机验证路线图" class="headerlink" title="7. 方法论总结与实机验证路线图"></a>7. 方法论总结与实机验证路线图</h2><h3 id="7-1-纯仿真验证的价值"><a href="#7-1-纯仿真验证的价值" class="headerlink" title="7.1 纯仿真验证的价值"></a>7.1 纯仿真验证的价值</h3><p>这套实验证明了一件事：<strong>在买飞机之前，整条 Sim-to-Real 验证工具链可以在纯仿真环境中完整走通。</strong> 包括：</p>
+<ul>
+<li>飞行脚本（MAVSDK-Python offboard 控制）</li>
+<li>数据采集（PX4 ULG 日志）</li>
+<li>后处理（pyulog 解析 + 时间对齐 + 插值）</li>
+<li>误差分析（RMSE &#x2F; R² &#x2F; 分通道对比）</li>
+<li>参数灵敏度分析（单参数扫描）</li>
+</ul>
+<p>当你最终拿到实机时，需要改的只有一行代码：<strong>把 x500 的 ULG 路径替换成实际飞行日志的路径。</strong></p>
+<h3 id="7-2-推荐的实机验证流程"><a href="#7-2-推荐的实机验证流程" class="headerlink" title="7.2 推荐的实机验证流程"></a>7.2 推荐的实机验证流程</h3><p>拿到实机后，参数辨识的优先级按灵敏度排序：</p>
+<ol>
+<li><strong>称重 → 修正 mass</strong>。最简单、影响最大。一台秤解决 76% 的 Z 方向误差。</li>
+<li><strong>摆振测试 → 修正 Ixx&#x2F;Iyy&#x2F;Izz</strong>。双线悬挂法或扭摆法，精度在 5% 以内。</li>
+<li><strong>推力台测试 → 修正 motorConstant</strong>。单电机上推力台，记录油门-推力曲线，拟合二次系数。</li>
+<li><strong>阶跃响应对比 → 修正 timeConstant</strong>。给一个已知的油门阶跃，对比实机和仿真的推力上升沿，调节时间常数直到吻合。</li>
+</ol>
+<p>每完成一步，就跑一遍标准机动序列，算一次 RMSE，看收敛趋势。如果某一步修正后 RMSE 反而上升（类似 Round 3 的情况），说明存在参数耦合，需要联合辨识。</p>
+<hr>
+<h2 id="8-代码仓库与复现"><a href="#8-代码仓库与复现" class="headerlink" title="8. 代码仓库与复现"></a>8. 代码仓库与复现</h2><blockquote>
+<p>完整代码将在论文发表后开源（占位）。</p>
+</blockquote>
+<p>仓库文件结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">sim2real-dynamics-validation/</span><br><span class="line">├── fly_mission.py          # MAVSDK-Python 自动化飞行脚本</span><br><span class="line">├── compare.py              # ULG 对比分析（时间对齐 + RMSE + 绘图）</span><br><span class="line">├── models/</span><br><span class="line">│   ├── x500/               # PX4 官方 x500 SDF（真值）</span><br><span class="line">│   └── interceptor/        # 自定义待校准模型 SDF</span><br><span class="line">├── airframes/</span><br><span class="line">│   └── 4050_gz_interceptor # PX4 airframe 定义</span><br><span class="line">├── logs/                   # 各轮实验的 ULG 日志</span><br><span class="line">│   ├── round1/</span><br><span class="line">│   ├── round2/</span><br><span class="line">│   ├── round3/</span><br><span class="line">│   └── round4/</span><br><span class="line">├── results/                # 分析结果图表</span><br><span class="line">└── README.md</span><br></pre></td></tr></table></figure>
+
+<p>一键复现：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 启动 x500（真值模型）</span></span><br><span class="line">PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL=x500 ./build/px4_sitl_default/bin/px4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 另一个终端，启动 interceptor（待校准模型）</span></span><br><span class="line">PX4_SYS_AUTOSTART=4050 PX4_GZ_MODEL=interceptor \</span><br><span class="line">  MAVLINK_INSTANCE=1 ./build/px4_sitl_default/bin/px4 -i 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 对两个实例执行相同的飞行任务</span></span><br><span class="line">python fly_mission.py --uri udp://:14540  <span class="comment"># x500</span></span><br><span class="line">python fly_mission.py --uri udp://:14541  <span class="comment"># interceptor</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 收集 ULG 日志，运行对比分析</span></span><br><span class="line">python compare.py --real logs/round1/x500.ulg \</span><br><span class="line">                  --sim  logs/round1/interceptor.ulg \</span><br><span class="line">                  --output results/round1/</span><br></pre></td></tr></table></figure>
+
+<p>每轮修正 interceptor 的 SDF 参数后，重复步骤 1-4，观察 RMSE 收敛曲线。</p>
+<hr>
+<blockquote>
+<p>动力学验证没有捷径，但有方法。先在仿真里把工具链跑通，实机验证时才不会手忙脚乱。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/">https://goodisok.github.io/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Sim-to-Real/">Sim-to-Real</a><a class="post-meta__tags" href="/tags/PX4/">PX4</a><a class="post-meta__tags" href="/tags/Gazebo/">Gazebo</a><a class="post-meta__tags" href="/tags/SITL/">SITL</a><a class="post-meta__tags" href="/tags/%E5%8F%82%E6%95%B0%E8%BE%A8%E8%AF%86/">参数辨识</a><a class="post-meta__tags" href="/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC/">四旋翼</a><a class="post-meta__tags" href="/tags/%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81/">仿真验证</a><a class="post-meta__tags" href="/tags/%E5%8A%A8%E5%8A%9B%E5%AD%A6%E9%AA%8C%E8%AF%81/">动力学验证</a><a class="post-meta__tags" href="/tags/RMSE/">RMSE</a><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/ULG/">ULG</a><a class="post-meta__tags" href="/tags/%E6%A8%A1%E5%9E%8B%E6%A0%A1%E5%87%86/">模型校准</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/04/23/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%A7%86%E8%A7%89%E4%BB%BF%E7%9C%9F%E7%9A%848%E9%81%93%E9%B8%BF%E6%B2%9F-%E4%BB%8E%E7%90%86%E6%83%B3%E7%9B%B8%E6%9C%BA%E5%88%B0%E7%9C%9F%E5%AE%9E%E4%BC%A0%E6%84%9F%E5%99%A8%E7%9A%84%E5%B7%AE%E8%B7%9D%E4%B8%8E%E5%BC%A5%E5%90%88/" title="无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合</div></div><div class="info-2"><div class="info-item-1"> 一个 YOLO 模型在仿真里 mAP 92%，部署到实机上直接跌到 55%。根本原因不是 UE5 渲染不够逼真——Lumen + Nanite 已经足够好看了——而是仿真相机从来就不是一个真实传感器。渲染引擎追求的是”视觉上令人信服”，而真实 CMOS 传感器的输出充满噪声、畸变、动态范围截断和 ISP 链路的各种非线性变换。这两者之间的差距，才是 Sim-to-Real 视觉迁移失败的主因。 本文系统梳理仿真相机与真实传感器之间的 8 个关键差距维度，给出 AirSim&#x2F;Colosseum、Cosys-AirSim、Project AirSim、Isaac Sim、Gazebo 五个主流平台的建模能力对比，以及工程实践中缩小差距的方法。 前置阅读：  AirSim 相机传感器深度解析：架构、实现与优化实战 突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战    一、问题：为什么仿真图像”看起来对”但”用起来不对”一个典型场景：在 AirSim + UE5.7 的城市环境里训练了一个 YOLOv8 目标检测模型，用于检测低空...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/04/21/Gazebo-PX4%E8%87%AA%E5%AE%9A%E4%B9%89%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BB%BA%E6%A8%A1%E4%B8%8ESim-to-Real%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97/" title="Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证</div></div><div class="info-2"><div class="info-item-1"> 当你的截击机是一款全新设计——Gazebo 里没有现成模型、没有气动数据、没有飞行记录——如何从零构建高保真仿真模型，并系统性地缩小 Sim-to-Real Gap？本文给出从推力台架实测到蒙特卡洛验证的完整工程流程。  适用场景：基于 PX4 飞控的自定义多旋翼&#x2F;VTOL&#x2F;Tailsitter 截击无人机，使用 Gazebo Harmonic&#x2F;Jetty + PX4 SITL 进行制导算法验证。  一、为什么截击机仿真的 Sim-to-Real 问题特别棘手普通无人机（航拍、物流）的仿真容错度很高：悬停或低速巡航时，气动阻力可忽略、电机工作在线性区、控制增益有大量安全裕度。截击机的工况完全不同：    维度 普通无人机 截击机 对仿真精度的影响    速度范围 0~15 m&#x2F;s 0~100+ m&#x2F;s 气动阻力 ∝v2\propto v^2∝v2，100 m&#x2F;s 时阻力可达推力的 30-50%   电机工况 30~70% 油门 0~100% 全范围 推力曲线的非线性区间必须精确建模   机动过载 &lt;1g 5~15...</div></div></div></a><a class="pagination-related" href="/2026/04/21/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="AirSim&#x2F;Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">AirSim&#x2F;Colosseum 四旋翼动力学建模源码深度解析：从 C++ 源码到自定义无人机建模</div></div><div class="info-2"><div class="info-item-1"> AirSim&#x2F;Colosseum 的四旋翼仿真不是黑盒。本文基于 Colosseum 仓库 [1] 的 C++ 源码逐文件解析，明确哪些参数硬编码在 C++ 中、哪些可以通过 settings.json 配置、哪些需要修改源码才能改变，手把手讲解如何为自己的无人机建立仿真模型。  前置阅读：本文建立在以下两篇文章的基础上，建议先阅读：  无人机建模中的线性代数：从坐标变换到姿态控制的数学基础——旋转矩阵、四元数、特征值等数学工具 无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导——牛顿-欧拉方程、螺旋桨空气动力学、六自由度 ODE   一、AirSim 与 Colosseum：项目背景AirSim 由微软研究院开发，2017 年开源 [8]。2022 年微软停止维护后，社区 fork 出 Colosseum [1] 继续开发，当前主分支支持 Unreal Engine 5.6。两者核心物理引擎代码一致，本文基于 Colosseum main 分支源码分析，同时适用于原版 AirSim。 核心设计哲学：AirSim 将物理仿真（AirLib）与渲染引擎（Unre...</div></div></div></a><a class="pagination-related" href="/2026/04/21/Gazebo-Sim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8EECS%E6%9E%B6%E6%9E%84%E5%88%B0%E4%BB%BF%E7%9C%9F%E4%B8%BB%E5%BE%AA%E7%8E%AF%E7%9A%84%E5%AE%8C%E6%95%B4%E5%89%96%E6%9E%90/" title="Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战</div></div><div class="info-2"><div class="info-item-1"> 源码版本：Gazebo Sim 10 (Jetty)，对应仓库 gazebosim&#x2F;gz-sim参考：Zread - gz-sim 源码解读，Gazebo Sim API 文档本文定位：不仅分析源码架构，还覆盖组件生态的用法和实战配置，帮助无人机开发者快速上手   一、为什么要读 Gazebo Sim 源码？Gazebo Sim（原 Ignition Gazebo）是当前机器人仿真领域事实标准之一。它是 Gazebo Classic 的完全重写版本，积累了超过 16 年的机器人仿真经验。理解其源码对以下场景有直接价值：  自定义物理仿真：需要修改物理步进逻辑、添加自定义力&#x2F;力矩 高性能传感器开发：编写自定义传感器插件（如事件相机、声纳阵列） PX4&#x2F;Ardupilot SITL 集成：理解仿真端如何与飞控软件交互 Sim-to-Real 调优：精确控制仿真步长、物理引擎参数、传感器噪声模型 分布式仿真：理解多 Runner、网络同步的实现机制  本文将从源码层面逐层剖析 Gazebo Sim 的核心架构。  二、仓库结构总览123456789101...</div></div></div></a><a class="pagination-related" href="/2026/04/22/%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C-%E4%BB%8E%E5%AE%9E%E6%B5%8B%E6%96%B9%E6%B3%95%E5%88%B0Gazebo-PX4%E9%85%8D%E7%BD%AE%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%8C%87%E5%8D%97/" title="截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-22</div><div class="info-item-2">截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南</div></div><div class="info-2"><div class="info-item-1"> 截击机仿真的核心矛盾：参数不准，仿真就是在骗自己。但截击机不是实验室里的标准件——机体里塞满了 RK3588 计算板、数字图传模块、PX4 飞控板、电池和各种线缆，每一台的质量分布都不完全一样。本文基于多篇学术论文和工程实践，系统阐述截击机仿真所需的全部参数、每个参数的实测方法、以及如何填入 Gazebo + PX4 SITL 仿真框架。   一、参数体系总览截击机仿真需要的参数可以按用途分为六层： 12345678910111213┌──────────────────────────────────────────────────┐│  第六层：环境参数（风场、空气密度）                 │├──────────────────────────────────────────────────┤│  第五层：目标无人机参数（尺寸、速度、机动模式）     │├──────────────────────────────────────────────────┤│  第四层：感知参数（相机、雷达、检测算法）           │├───────────────...</div></div></div></a><a class="pagination-related" href="/2026/04/20/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-20</div><div class="info-item-2">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</div></div><div class="info-2"><div class="info-item-1"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div></a><a class="pagination-related" href="/2026/04/21/MAVEN%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E5%85%83%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%AE%9E%E7%8E%B0%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8F%98%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%95%8F%E6%8D%B7%E9%A3%9E%E8%A1%8C/" title="MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-21</div><div class="info-item-2">MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers 作者: Jin Zhou, Dongcheng Cao, Xian Wang, Shuo Li（浙江大学控制科学与工程学院） 发表: arXiv:2603.10714, 2026 年 3 月 链接: arXiv | 视频    一、为什么需要 MAVEN？1.1 标准 RL 的致命缺陷：动力学一变就崩近年来，深度强化学习在四旋翼敏捷飞行领域取得了令人瞩目的突破。2023 年 Kaufmann 等人在 Nature 上发表的工作证明，RL 策略可以在无人机竞速中击败世界冠军级别的人类飞手。然而，这些令人印象深刻的成果都建立在一个隐含假设之上：训练时的动力学模型与部署时完全一致。 现实世界远没有这么理想。一架四旋翼可能因为以下原因产生显著的动力学变化：  负载变化：挂载不同传感器、携带货物、电池电量变化导致质量改变 执行器故障：电机老化、螺旋桨损伤导致...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">256</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">38</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.</span> <span class="toc-text">1. 实验设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-Gazebo-PX4"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 为什么是 Gazebo + PX4</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%AE%9E%E9%AA%8C%E6%9E%B6%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 实验架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%A0%87%E5%87%86%E6%9C%BA%E5%8A%A8%E5%BA%8F%E5%88%97"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 标准机动序列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E8%AE%BE%E5%AE%9A"><span class="toc-number">1.4.</span> <span class="toc-text">1.4 参数偏差设定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%B7%A5%E7%A8%8B%E6%90%AD%E5%BB%BA"><span class="toc-number">2.</span> <span class="toc-text">2. 工程搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%8E%AF%E5%A2%83"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%87%AA%E5%AE%9A%E4%B9%89-interceptor-%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%9D%91"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 自定义 interceptor 模型的坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-PX4-Airframe-%E6%B3%A8%E5%86%8C"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 PX4 Airframe 注册</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A3%9E%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 自动化飞行脚本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Round-1%EF%BC%9A%E5%88%9D%E5%A7%8B%E7%8C%9C%E6%B5%8B"><span class="toc-number">3.</span> <span class="toc-text">3. Round 1：初始猜测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%BF%AD%E4%BB%A3%E4%BF%AE%E6%AD%A3%E8%BF%87%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">4. 迭代修正过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Round-2%EF%BC%9A%E4%BF%AE%E6%AD%A3%E8%B4%A8%E9%87%8F%EF%BC%882-3-%E2%86%92-2-0-kg%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 Round 2：修正质量（2.3 → 2.0 kg）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Round-3%EF%BC%9A%E4%BF%AE%E6%AD%A3%E6%8E%A8%E5%8A%9B%E5%B8%B8%E6%95%B0%EF%BC%887-01e-6-%E2%86%92-8-549e-6%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 Round 3：修正推力常数（7.01e-6 → 8.549e-6）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Round-4%EF%BC%9A%E4%BF%AE%E6%AD%A3%E6%83%AF%E6%80%A7%E7%9F%A9-%E7%94%B5%E6%9C%BA%E6%97%B6%E9%97%B4%E5%B8%B8%E6%95%B0"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 Round 4：修正惯性矩 + 电机时间常数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%94%B6%E6%95%9B%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">5. 收敛分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%AE%8B%E4%BD%99%E8%AF%AF%E5%B7%AE%E5%88%86%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">6. 残余误差分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Roll-Pitch-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E6%9C%89-3-4%C2%B0"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 Roll&#x2F;Pitch 为什么还有 3.4°</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Yaw-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%BC%82%E7%A7%BB%E4%B8%A5%E9%87%8D%EF%BC%88-60%C2%B0%EF%BC%89"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 Yaw 为什么漂移严重（~60°）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%96%B9%E6%B3%95%E8%AE%BA%E6%80%BB%E7%BB%93%E4%B8%8E%E5%AE%9E%E6%9C%BA%E9%AA%8C%E8%AF%81%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-number">7.</span> <span class="toc-text">7. 方法论总结与实机验证路线图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%BA%AF%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 纯仿真验证的价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%8E%A8%E8%8D%90%E7%9A%84%E5%AE%9E%E6%9C%BA%E9%AA%8C%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 推荐的实机验证流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E4%BB%A3%E7%A0%81%E4%BB%93%E5%BA%93%E4%B8%8E%E5%A4%8D%E7%8E%B0"><span class="toc-number">8.</span> <span class="toc-text">8. 代码仓库与复现</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/24/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛">无人机动力学仿真验证实战：从 Gazebo 参数偏差到 4 轮迭代收敛</a><time datetime="2026-04-23T16:00:00.000Z" title="发表于 2026-04-24 00:00:00">2026-04-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%A7%86%E8%A7%89%E4%BB%BF%E7%9C%9F%E7%9A%848%E9%81%93%E9%B8%BF%E6%B2%9F-%E4%BB%8E%E7%90%86%E6%83%B3%E7%9B%B8%E6%9C%BA%E5%88%B0%E7%9C%9F%E5%AE%9E%E4%BC%A0%E6%84%9F%E5%99%A8%E7%9A%84%E5%B7%AE%E8%B7%9D%E4%B8%8E%E5%BC%A5%E5%90%88/" title="无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合">无人机视觉仿真的 8 道鸿沟：从理想相机到真实传感器的差距与弥合</a><time datetime="2026-04-23T14:00:00.000Z" title="发表于 2026-04-23 22:00:00">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/23/AirSim%E5%81%9C%E6%9B%B4%E4%B9%8B%E5%90%8E%E8%B0%81%E5%9C%A8%E6%8E%A5%E6%A3%92-%E4%B8%89%E5%A4%A7%E7%BB%A7%E6%89%BF%E8%80%85%E7%9A%84%E6%BA%90%E7%A0%81%E7%BA%A7%E8%BF%81%E7%A7%BB%E5%85%A8%E8%A7%A3%E6%9E%90/" title="AirSim 停更之后，谁在接棒：三大继承者的源码级迁移全解析">AirSim 停更之后，谁在接棒：三大继承者的源码级迁移全解析</a><time datetime="2026-04-23T10:00:00.000Z" title="发表于 2026-04-23 18:00:00">2026-04-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C-%E4%BB%8E%E5%AE%9E%E6%B5%8B%E6%96%B9%E6%B3%95%E5%88%B0Gazebo-PX4%E9%85%8D%E7%BD%AE%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%8C%87%E5%8D%97/" title="截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南">截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南</a><time datetime="2026-04-22T10:00:00.000Z" title="发表于 2026-04-22 18:00:00">2026-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/22/%E8%A7%86%E9%A2%91%E6%B5%81%E6%8E%A8%E6%8B%89%E6%B5%81%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97-%E4%BB%8ERTSP%E5%88%B0WebRTC%E7%9A%84%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E6%88%98/" title="视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战">视频流推拉流完整指南：从 RTSP 到 WebRTC 的协议选型与工程实战</a><time datetime="2026-04-22T06:00:00.000Z" title="发表于 2026-04-22 14:00:00">2026-04-22</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
