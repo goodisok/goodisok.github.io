@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><style>text{font-family:'WenQuanYi Zen Hei','Droid Sans Fallback','Noto Sans CJK SC',sans-serif;}</style>
+<defs><marker id="a" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,8 2.5,0 5" fill="#2563eb"/></marker></defs>
+<rect width="800" height="400" fill="#ffffff"/>
+<text x="400" y="30" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">真实机翼的复杂性：升力线理论的扩展</text>
+<rect x="250" y="55" width="300" height="40" rx="20" fill="#1d4ed8"/>
+<text x="400" y="81" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">升力线理论基础</text>
+<line x1="300" y1="95" x2="200" y2="125" stroke="#6b7280" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="400" y1="95" x2="400" y2="125" stroke="#6b7280" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="500" y1="95" x2="600" y2="125" stroke="#6b7280" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="60" y="130" width="200" height="60" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>
+<text x="160" y="153" text-anchor="middle" fill="#0284c7" font-size="13" font-weight="600">后掠翼</text>
+<text x="160" y="174" text-anchor="middle" fill="#6b7280" font-size="11">Maeff=Ma∞cosΛ→延迟波阻</text>
+<rect x="300" y="130" width="200" height="60" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+<text x="400" y="153" text-anchor="middle" fill="#16a34a" font-size="13" font-weight="600">三角翼/边条翼</text>
+<text x="400" y="174" text-anchor="middle" fill="#6b7280" font-size="11">前缘分离涡→大迎角涡升力</text>
+<rect x="540" y="130" width="200" height="60" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+<text x="640" y="153" text-anchor="middle" fill="#d97706" font-size="13" font-weight="600">翼梢小翼</text>
+<text x="640" y="174" text-anchor="middle" fill="#6b7280" font-size="11">等效展弦比↑→CD,i↓5-15%</text>
+<line x1="160" y1="190" x2="160" y2="220" stroke="#6b7280" stroke-width="1"/>
+<line x1="400" y1="190" x2="400" y2="220" stroke="#6b7280" stroke-width="1"/>
+<line x1="640" y1="190" x2="640" y2="220" stroke="#6b7280" stroke-width="1"/>
+<rect x="60" y="225" width="200" height="50" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+<text x="160" y="248" text-anchor="middle" fill="#15803d" font-size="11">翼尖先失速·需翼尖修形</text>
+<rect x="300" y="225" width="200" height="50" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
+<text x="400" y="248" text-anchor="middle" fill="#c2410c" font-size="11">涡升力·适合超声速</text>
+<rect x="540" y="225" width="200" height="50" rx="6" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+<text x="640" y="248" text-anchor="middle" fill="#dc2626" font-size="11">Whitcomb 1976 NASA</text>
+<rect x="60" y="310" width="680" height="50" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+<text x="400" y="330" text-anchor="middle" fill="#1d4ed8" font-size="12">地面效应：h/b→0时CD,i→0→地效飞行器(VVA-14,里海怪物)</text>
+<text x="400" y="348" text-anchor="middle" fill="#6b7280" font-size="11">涡面法VLM是升力线理论的三维扩展，可处理任意平面形状</text>
+</svg>

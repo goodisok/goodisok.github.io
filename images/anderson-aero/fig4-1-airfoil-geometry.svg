@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420"><style>text{font-family:'WenQuanYi Zen Hei','Droid Sans Fallback','Noto Sans CJK SC',sans-serif;}</style>
+<rect width="800" height="420" fill="#ffffff"/>
+<text x="400" y="30" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">翼型几何要素</text>
+<rect x="40" y="55" width="200" height="55" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>
+<text x="140" y="78" text-anchor="middle" fill="#0284c7" font-size="13" font-weight="600">弦线 Chord Line</text>
+<text x="140" y="97" text-anchor="middle" fill="#6b7280" font-size="11">连接前缘与后缘，长度=c</text>
+<rect x="280" y="55" width="200" height="55" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+<text x="380" y="78" text-anchor="middle" fill="#16a34a" font-size="13" font-weight="600">中弧线 Camber Line</text>
+<text x="380" y="97" text-anchor="middle" fill="#6b7280" font-size="11">上下表面中点连线</text>
+<rect x="520" y="55" width="200" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+<text x="620" y="78" text-anchor="middle" fill="#d97706" font-size="13" font-weight="600">厚度分布</text>
+<text x="620" y="97" text-anchor="middle" fill="#6b7280" font-size="11">垂直于中弧线测量</text>
+<rect x="40" y="145" width="200" height="55" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+<text x="140" y="168" text-anchor="middle" fill="#dc2626" font-size="13" font-weight="600">前缘半径 LE Radius</text>
+<text x="140" y="187" text-anchor="middle" fill="#6b7280" font-size="11">影响大迎角性能</text>
+<rect x="280" y="145" width="200" height="55" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+<text x="380" y="168" text-anchor="middle" fill="#7c3aed" font-size="13" font-weight="600">后缘角 TE Angle</text>
+<text x="380" y="187" text-anchor="middle" fill="#6b7280" font-size="11">影响库塔条件数值实现</text>
+<rect x="520" y="145" width="200" height="55" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+<text x="620" y="168" text-anchor="middle" fill="#ea580c" font-size="13" font-weight="600">迎角 Angle of Attack</text>
+<text x="620" y="187" text-anchor="middle" fill="#6b7280" font-size="11">α=弦线与来流的夹角</text>
+<rect x="40" y="235" width="720" height="55" rx="8" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+<text x="400" y="258" text-anchor="middle" fill="#374151" font-size="13" font-weight="600">NACA四位数字编码</text>
+<text x="160" y="280" fill="#6b7280" font-size="11">NACA 2412: 弯度2%|弯度位置40%c|最大厚度12%c</text>
+<text x="500" y="280" fill="#6b7280" font-size="11">NACA 0012: 对称翼型（弯度=0）</text>
+<rect x="60" y="315" width="680" height="50" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+<text x="400" y="335" text-anchor="middle" fill="#1d4ed8" font-size="12">薄翼理论的核心：用涡面替代翼型 → 求解环量分布 γ(x)</text>
+<text x="400" y="355" text-anchor="middle" fill="#6b7280" font-size="11">∫γ(ξ)dξ/(x-ξ) = 2πV∞(α - dyc/dx) → 傅里叶级数求解</text>
+</svg>

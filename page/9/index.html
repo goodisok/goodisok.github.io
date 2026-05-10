@@ -1,0 +1,535 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="goodisok 的博客">
+<meta property="og:url" content="https://goodisok.github.io/page/9/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="goodisok">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/page/9/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'goodisok 的博客',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">goodisok 的博客</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/09/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-09T02:00:00.000Z" title="发表于 2026-03-09 10:00:00">2026-03-09</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="content"> 线性代数是无人机建模与控制的数学基石。本文从工程实际出发，系统讲解向量空间、矩阵、旋转、四元数、特征值等核心概念，每个知识点都给出数学定义、推导过程与无人机应用场景，帮你建立「定义 → 公式推导 → 物理直觉 → 代码实现」的完整认知链路。   一、为什么无人机工程师需要线性代数打开任何一份无人机动力学代码，你会发现线性代数无处不在：  坐标变换：地面站用经纬高（NED 系），飞控内部用机体系，传感器各有安装系——在它们之间转换全靠矩阵乘法 [1] 姿态表示：四旋翼「朝哪飞、歪了多少」用旋转矩阵或四元数描述 [5] 动力学方程：Iω˙+ω×Iω=τ\mathbf{I}\dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times \mathbf{I}\boldsymbol{\omega} = \boldsymbol{\tau}Iω˙+ω×Iω=τ 里的惯性张量 I\mathbf{I}I 是一个 3×33\times33×3 矩阵 [7] 控制器设计：PID 调参要看特征值判断稳定性，卡尔曼滤波核心是矩阵方程 [9] 传感器融合：多传...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/08/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m/s 阻力模型修正">四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m/s 阻力模型修正</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-08T02:00:00.000Z" title="发表于 2026-03-08 10:00:00">2026-03-08</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="content"> 本文做了什么：在没有实机的前提下，用纯仿真（Gazebo+PX4）把 Sim-to-Real 动力学验证的完整工具链跑通——验证方法本身是否可行、找到方法的能力边界、修复仿真平台在高速下的结构性缺陷。 三层递进：  方法验证（0-12 m&#x2F;s）：用 twin experiment（x500 当”真值”、interceptor 当”仿真”）验证 setpoint replay + k_f 辨识 + 迭代修正这套流程能收敛——4 轮后 Vz RMSE 下降 48%，Pitch RMSE 下降 45%。 高速极限诊断（50-97 m&#x2F;s）：用 x500_hp 和 Gobi 模型把速度推到 97 m&#x2F;s，发现 Gazebo 线性阻力模型在 50+ m&#x2F;s 完全失效（97 m&#x2F;s 时误差达 4 倍），桨盘前进比效应在 70+ m&#x2F;s 引入 20-50% 推力偏差。 缺陷修复：开发 QuadraticDrag 自定义插件实现物理正确的 v² 阻力，gobi_v2 验证了修复效果（最高速降低 14 m&#x2F;s，符合推力-阻力平...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/07/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="无人机仿真开发需要的基础知识">无人机仿真开发需要的基础知识</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-07T02:00:00.000Z" title="发表于 2026-03-07 10:00:00">2026-03-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="content">做无人机仿真（如 AirSim&#x2F;Colosseum&#x2F;PX4）时，会反复用到下面这些概念。  一、坐标系与姿态1.1 常用坐标系   坐标系 含义 仿真里的用法    NED（North-East-Down） 北-东-地，x 北、y 东、z 向下 AirSim、PX4、很多飞控用 NED 做「世界系」   ENU（East-North-Up） 东-北-天，z 向上 部分视觉、ROS 用 ENU   机体系（Body） 原点在质心，x 前、y 右、z 下（NED 约定） 传感器输出、推力&#x2F;力矩、角速度 pqr 都在机体系   仿真里要先约定世界系是 NED 还是 ENU，所有公式、接口统一，避免符号和轴搞反。 1.2 姿态的几种表示   表示 含义 优点 缺点    欧拉角（roll, pitch, yaw） 绕 3 个轴依次转动的角度（° 或 rad） 直观，便于调试、可视化 万向锁、插值不线性   四元数（q0,q1,q2,q3） 4 个数表示旋转，单位四元数 无万向锁、积分简单、插值好 不直观   旋转矩阵（3×3） 机体相对世界系的旋转 变换向量...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/06/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-06T02:00:00.000Z" title="发表于 2026-03-06 10:00:00">2026-03-06</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="content"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/05/%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C-%E4%BB%8E%E5%AE%9E%E6%B5%8B%E6%96%B9%E6%B3%95%E5%88%B0Gazebo-PX4%E9%85%8D%E7%BD%AE%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%8C%87%E5%8D%97/" title="截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南">截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-05T02:00:00.000Z" title="发表于 2026-03-05 10:00:00">2026-03-05</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8E%A7%E5%88%B6/">无人机控制</a></span></div><div class="content"> 截击机仿真的核心矛盾：参数不准，仿真就是在骗自己。但截击机不是实验室里的标准件——机体里塞满了 RK3588 计算板、数字图传模块、PX4 飞控板、电池和各种线缆，每一台的质量分布都不完全一样。本文基于多篇学术论文和工程实践，系统阐述截击机仿真所需的全部参数、每个参数的实测方法、以及如何填入 Gazebo + PX4 SITL 仿真框架。   一、参数体系总览截击机仿真需要的参数可以按用途分为六层： 12345678910111213┌──────────────────────────────────────────────────┐│  第六层：环境参数（风场、空气密度）                 │├──────────────────────────────────────────────────┤│  第五层：目标无人机参数（尺寸、速度、机动模式）     │├──────────────────────────────────────────────────┤│  第四层：感知参数（相机、雷达、检测算法）           │├───────────────...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/04/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/" title="截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）">截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-04T02:00:00.000Z" title="发表于 2026-03-04 10:00:00">2026-03-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8E%A7%E5%88%B6/">无人机控制</a></span></div><div class="content"> 一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。   一、算法全景：截击无人机的软件架构一次完整的无人机拦截任务可以分解为五个算法层次，从感知到执行依次递进： 1234567891011┌─────────────────────────────────────────────────────────┐│  第五层：蜂群协同        任务分配 / 多机编队 / 目标优先级  │├─────────────────────────────────────────────────────────┤│  第四层：自主导航        VIO / SLAM / 无GPS定位           │├───────────────────────────────────────────────────...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/03/%E5%B0%86Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages/" title="将 Hexo 博客部署到 GitHub Pages">将 Hexo 博客部署到 GitHub Pages</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-03T02:00:00.000Z" title="发表于 2026-03-03 10:00:00">2026-03-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%BC%80%E5%8F%91%E8%BF%90%E7%BB%B4/">开发运维</a></span></div><div class="content">本文记录从零到把 Hexo 博客成功部署到 GitHub Pages 的完整过程，方便日后查阅或分享给他人。 一、前提条件 已安装 Node.js（建议 12.0 及以上） 已安装 Git 已注册 GitHub 账号（本文示例用户名为 goodisok）  二、初始化 Hexo 项目在本地选一个目录（如 e:\hexo-blog），执行： 1npx hexo-cli init .  执行完成后，当前目录下会生成 Hexo 的站点结构，并自动安装依赖（若使用 pnpm 则可能是 pnpm install）。 三、配置站点与 GitHub 部署1. 修改站点信息编辑项目根目录的 _config.yml，按需修改以下部分： 123456789# Sitetitle: goodisok 的博客    # 博客标题author: goodisok          # 作者名language: zh-CN           # 语言timezone: &#x27;Asia/Shanghai&#x27; # 时区# URL（GitHub 用户名.github.io）url: https:/...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/03/02/%E5%9C%A8%E6%96%B0%E7%94%B5%E8%84%91%E4%B8%8A%E5%86%99Hexo%E5%8D%9A%E5%AE%A2/" title="在新电脑上写 Hexo 博客">在新电脑上写 Hexo 博客</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-03-02T02:00:00.000Z" title="发表于 2026-03-02 10:00:00">2026-03-02</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%BC%80%E5%8F%91%E8%BF%90%E7%BB%B4/">开发运维</a></span></div><div class="content">换电脑后想继续写博客，只要把「博客源码」从 GitHub 拉下来、装好环境，就能像在本机一样写文章和部署。本文说明如何把源码保存到 GitHub，以及在新电脑上的完整操作步骤。 为什么要单独一个「源码仓库」？部署到 GitHub Pages 时，hexo deploy 只会把生成好的静态文件（public/ 里的内容）推送到 goodisok.github.io 仓库。那个仓库里没有：  文章源文件（source/_posts/*.md） 主题和插件配置 _config.yml 等站点配置  所以要在多台电脑之间写博客，需要另建一个仓库专门存放「博客源码」，新电脑克隆这个仓库即可继续写作和部署。 一、第一次：在现有电脑上把源码保存到 GitHub（只需做一次）1. 在 GitHub 新建仓库 打开 GitHub 新建仓库 仓库名可随意，例如 hexo-blog 或 blog-source（与 goodisok.github.io 区分开） 选择 Public，不要勾选「Add a README file」（避免与本地已有文件冲突） 创建仓库  2. 在本地项目目录执行 Git 命...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/02/28/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="四旋翼飞行力学基础：推力、反扭矩与三轴控制——四旋翼特有的力和力矩">四旋翼飞行力学基础：推力、反扭矩与三轴控制——四旋翼特有的力和力矩</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-28T02:00:00.000Z" title="发表于 2026-02-28 10:00:00">2026-02-28</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8E%A7%E5%88%B6/">无人机控制</a></span></div><div class="content">要做四旋翼设计、调参或写仿真，飞行原理是最先要建立正确直觉的一块：四个电机各自产生什么力与力矩、它们怎样组合成「上升、前倾、转弯」。本文从单桨推力与反扭出发，讲到欠驱动、俯仰滚转偏航与油门，便于对照实机与公式阅读。  一、从单桨说起：推力与反扭1.1 桨产生升力螺旋桨旋转时，桨叶像机翼一样产生升力（在机体上常沿桨轴方向，对常见多旋翼可理解为沿电机轴、指向机体上方或下方，具体与桨的安装方向、正反转约定有关）。飞控里常把「四个桨沿 z 轴的合力」称为总推力，记为 TTT（或四个 TiT_iTi​ 之和）。 简化理解：转速越高，单桨推力越大（常近似与转速平方成正比，具体系数与桨型、空气密度有关）。 1.2 反扭矩（反扭）螺旋桨除了产生沿轴的推力，还会给机身一个绕电机轴的反扭矩。下面把文中用到的物理名词和「为什么会这样」说清楚。 名词与公式（尽量简短） 力矩（扭矩）使物体绕某根轴产生转动趋势的物理量，类似直线运动里的「力」。绕固定轴时，大小可写成   M=r⊥ F   M = r_\perp \, F   M=r⊥​F   即：力 FFF 作用在离转轴垂直距离 r⊥r_\perpr⊥​ ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/" title="可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-27T02:00:00.000Z" title="发表于 2026-02-27 10:00:00">2026-02-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF/">仿真技术</a></span></div><div class="content"> 本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真完全入门 讲名词，本篇讲引擎本身。    一、先把”可微物理引擎”这五个字拆开1.1 什么是物理引擎？任何物理仿真本质上是一个状态递推： st+1=f(st, ut, θ)s_{t+1} = f(s_t,\, u_t,\, \theta)st+1​=f(st​,ut​,θ)   sts_tst​：当前状态（位置、速度、姿态、角速度……） utu_tut​：当前控制输入（电机指令、舵面偏转……） θ\thetaθ：物理参数（质量、惯量、摩擦、空气阻力、电机系数……） fff：物理引擎本身——给定当前状态和输入，告诉你下一时刻的状态  PhysX、Bullet、ODE、MuJoCo、Drak...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/8/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/#content-inner">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/#content-inner">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/#content-inner">12</a><a class="extend next" rel="next" href="/page/10/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI%E4%B8%8E%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/"><span class="card-category-list-name">AI与机器学习</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/"><span class="card-category-list-name">人工智能</span><span class="card-category-list-count">9</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="card-category-list-name">机器人</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF/"><span class="card-category-list-name">仿真技术</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/"><span class="card-category-list-name">具身智能</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%BF%90%E7%BB%B4/"><span class="card-category-list-name">开发运维</span><span class="card-category-list-count">7</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/"><span class="card-category-list-name">数学基础</span><span class="card-category-list-count">20</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%95%B0%E5%AD%A6%E7%9F%A5%E8%AF%86%E7%82%B9/"><span class="card-category-list-name">数学知识点</span><span class="card-category-list-count">6</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">图像处理</a> <a href="/tags/%E8%BE%B9%E7%BC%98%E9%83%A8%E7%BD%B2/" style="font-size: 1.1em; color: #999">边缘部署</a> <a href="/tags/ROS2/" style="font-size: 1.4em; color: #99a5b6">ROS2</a> <a href="/tags/RGBD/" style="font-size: 1.1em; color: #999">RGBD</a> <a href="/tags/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86/" style="font-size: 1.3em; color: #99a1ac">可微物理</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF/" style="font-size: 1.3em; color: #99a1ac">技术前沿</a> <a href="/tags/%E6%9F%AF%E8%A5%BF%E7%A7%AF%E5%88%86%E5%AE%9A%E7%90%86/" style="font-size: 1.1em; color: #999">柯西积分定理</a> <a href="/tags/%E4%BA%BA%E5%BD%A2%E6%9C%BA%E5%99%A8%E4%BA%BA/" style="font-size: 1.1em; color: #999">人形机器人</a> <a href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%87%AA%E4%B8%BB/" style="font-size: 1.1em; color: #999">无人机自主</a> <a href="/tags/Stevens/" style="font-size: 1.5em; color: #99a9bf">Stevens</a> <a href="/tags/%E8%B0%83%E5%92%8C%E5%87%BD%E6%95%B0/" style="font-size: 1.1em; color: #999">调和函数</a> <a href="/tags/%E6%97%8B%E8%BD%AC%E7%9F%A9%E9%98%B5/" style="font-size: 1.1em; color: #999">旋转矩阵</a> <a href="/tags/%E5%9B%BE%E8%AE%BA/" style="font-size: 1.1em; color: #999">图论</a> <a href="/tags/Karpathy/" style="font-size: 1.1em; color: #999">Karpathy</a> <a href="/tags/%E6%8E%A8%E6%8B%89%E6%B5%81/" style="font-size: 1.1em; color: #999">推拉流</a> <a href="/tags/%E6%99%AE%E6%9C%97%E7%89%B9/" style="font-size: 1.2em; color: #999da3">普朗特</a> <a href="/tags/Brown%E7%95%B8%E5%8F%98/" style="font-size: 1.1em; color: #999">Brown畸变</a> <a href="/tags/%E7%82%B9%E4%BA%91/" style="font-size: 1.2em; color: #999da3">点云</a> <a href="/tags/%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E5%8F%98%E6%8D%A2/" style="font-size: 1.2em; color: #999da3">拉普拉斯变换</a> <a href="/tags/GPU/" style="font-size: 1.2em; color: #999da3">GPU</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/05/">
+            <span class="card-archive-list-date">
+              五月 2026
+            </span>
+            <span class="card-archive-list-count">28</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/04/">
+            <span class="card-archive-list-date">
+              四月 2026
+            </span>
+            <span class="card-archive-list-count">30</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              三月 2026
+            </span>
+            <span class="card-archive-list-count">30</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/02/">
+            <span class="card-archive-list-date">
+              二月 2026
+            </span>
+            <span class="card-archive-list-count">28</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">116</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-10T16:24:16.699Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤">
+<meta property="og:type" content="article">
+<meta property="og:title" content="上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/10/shanghai-jiaotong-e2e-fly-5/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-10T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-10T10:16:13.589Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="Sim-to-Real">
+<meta property="article:tag" content="可微物理">
+<meta property="article:tag" content="四旋翼">
+<meta property="article:tag" content="强化学习">
+<meta property="article:tag" content="无人机">
+<meta property="article:tag" content="端到端">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制",
+  "url": "https://goodisok.github.io/2026/05/10/shanghai-jiaotong-e2e-fly-5/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-10T10:00:00.000Z",
+  "dateModified": "2026-05-10T10:16:13.589Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/10/shanghai-jiaotong-e2e-fly-5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-10T10:00:00.000Z" title="发表于 2026-05-10 18:00:00">2026-05-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-10T10:16:13.589Z" title="更新于 2026-05-10 18:16:13">2026-05-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%BB%BF%E7%9C%9F/">机器人仿真</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="https://img.shields.io/badge/Diff%20Sim-Quadrotor%20End--to--End-blue?style=for-the-badge" alt="Badge"></p>
+<h2 id="一、一个团队，一年四篇顶刊"><a href="#一、一个团队，一年四篇顶刊" class="headerlink" title="一、一个团队，一年四篇顶刊"></a>一、一个团队，一年四篇顶刊</h2><p>2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。</p>
+<p>四篇论文不是孤立的工作——它们是一套逐渐完善的技术栈：</p>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>arXiv</th>
+<th>核心贡献</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>E2E-Fly</td>
+<td>2604.12916</td>
+<td>完整训练-部署系统：可微物理→渲染→域随机化→真机</td>
+</tr>
+<tr>
+<td>High-Fidelity Diff Sim</td>
+<td>2604.10548</td>
+<td>深度图直接映射体速率，替代传统感知→规划→控制管线</td>
+</tr>
+<tr>
+<td>VisFly-Lab</td>
+<td>2603.21123</td>
+<td>统一可微框架：悬停&#x2F;追踪&#x2F;着陆&#x2F;竞速，修正 BPTT 梯度</td>
+</tr>
+<tr>
+<td>Gap Traversal</td>
+<td>2604.02779</td>
+<td>SE(3) 可微仿真，零样本穿越不规则缝隙</td>
+</tr>
+</tbody></table>
+<p>下面逐一拆解。</p>
+<p><img src="/images/domain-randomization/sjtu-four-papers.png" alt="上交大四连发演进链路"></p>
+<h2 id="二、E2E-Fly：从可微物理到真机部署的完整管线"><a href="#二、E2E-Fly：从可微物理到真机部署的完整管线" class="headerlink" title="二、E2E-Fly：从可微物理到真机部署的完整管线"></a>二、E2E-Fly：从可微物理到真机部署的完整管线</h2><p>arXiv:2604.12916</p>
+<h3 id="2-1-系统的六个组件"><a href="#2-1-系统的六个组件" class="headerlink" title="2.1 系统的六个组件"></a>2.1 系统的六个组件</h3><p>E2E-Fly 不是一篇算法论文——它是一个<strong>系统工程</strong>。它把端到端四旋翼自主飞行的整个流程拆成了六个可独立优化、但联合工作的组件：</p>
+<p><strong>组件 1：系统辨识</strong>。在仿真中飞一次真实轨迹，用可微物理反推真实系统的质量、惯量、气动参数。这一步的目的不是建”完美仿真器”，而是把确定性参数锁定——之后域随机化只需覆盖剩余不确定性。</p>
+<p><strong>组件 2：可微物理学习</strong>。物理引擎本身是可微的——梯度可以穿过空气动力学、接触动力学、传感器噪声模型。策略网络在仿真中训练时，损失函数的梯度不仅更新网络权重，还能<strong>同时</strong>精细化仿真器参数。</p>
+<p><strong>组件 3：视觉渲染</strong>。不是简单的 RGB 渲染——E2E-Fly 的渲染管线模拟了真实相机的噪声特性、动态范围、运动模糊和镜头畸变。这意味着在仿真中训练的策略天然对真实相机的缺陷有鲁棒性。</p>
+<p><strong>组件 4：域随机化</strong>。在可微物理锁定确定性参数后，对剩余不确定性（纹理、光照、风扰动、电机温漂）做大范围随机化。相比 Tobin 2017 的”全部随机化”，这种”先辨识再随机化”的策略更高效。</p>
+<p><strong>组件 5：延迟补偿</strong>。真实系统中的控制延迟（通信+计算）通常在 20-50ms。E2E-Fly 在训练中显式建模了这个延迟——观测是 t 时刻的，但动作要到 t+delay 才生效。这迫使策略学会<strong>预测性控制</strong>而非反应性控制。</p>
+<p><strong>组件 6：噪声建模</strong>。IMU 噪声、电机推力波动、GPS 漂移——这些在仿真中被精确建模为随机过程，而非简单的加性高斯噪声。</p>
+<p><img src="/images/domain-randomization/e2e-fly-architecture.png" alt="E2E-Fly 六组件架构"></p>
+<h3 id="2-2-真机验证"><a href="#2-2-真机验证" class="headerlink" title="2.2 真机验证"></a>2.2 真机验证</h3><p>E2E-Fly 在六个端到端任务上做了真实硬件验证：悬停、轨迹追踪、避障、着陆、穿框、追逐。所有任务都是从零在仿真中训练，直接部署到真实四旋翼上，没有使用任何真实飞行数据微调。</p>
+<p>这六个任务覆盖了从静态到动态、从简单到复杂的完整谱系——证明了可微物理+域随机化的组合可以在多种任务上一致地实现零样本 Sim-to-Real 迁移。</p>
+<h2 id="三、High-Fidelity-Diff-Sim：深度图就是你的控制器"><a href="#三、High-Fidelity-Diff-Sim：深度图就是你的控制器" class="headerlink" title="三、High-Fidelity Diff Sim：深度图就是你的控制器"></a>三、High-Fidelity Diff Sim：深度图就是你的控制器</h2><p>arXiv:2604.10548</p>
+<h3 id="3-1-核心思想"><a href="#3-1-核心思想" class="headerlink" title="3.1 核心思想"></a>3.1 核心思想</h3><p>传统四旋翼自主飞行需要三个独立模块：感知（深度估计&#x2F;目标检测）→ 规划（路径生成）→ 控制（姿态&#x2F;位置跟踪）。每个模块需要独立调试，模块间接口需要手动定义。</p>
+<p>这篇论文的核心主张是：<strong>当仿真器足够精确且可微时，你不需要这三个模块。</strong> 一个神经网络可以直接把深度图映射为四旋翼的体速率指令——中间没有地图构建、没有路径规划、没有参考轨迹。</p>
+<h3 id="3-2-为什么可微仿真能做到这一点"><a href="#3-2-为什么可微仿真能做到这一点" class="headerlink" title="3.2 为什么可微仿真能做到这一点"></a>3.2 为什么可微仿真能做到这一点</h3><p>可微仿真允许梯度从体速率指令一直回传到深度图的每个像素。这意味着策略可以<strong>学会注意</strong>深度图中与飞行控制相关的区域——自动发现哪些像素对应障碍物，哪些对应可通行空间。</p>
+<p>这不是监督学习。网络不需要”正确”的体速率标签——它只需要仿真器告诉它”你刚才的选择导致了什么后果”。可微仿真让这个”后果→选择”的因果关系以梯度形式精确传递。</p>
+<h3 id="3-3-关键结果"><a href="#3-3-关键结果" class="headerlink" title="3.3 关键结果"></a>3.3 关键结果</h3><p>训练后的策略在没有地图、没有规划器、没有参考轨迹的情况下，完成了障碍物环境中的自主飞行。网络的隐式表征自动编码了环境的几何结构——“地图”和”规划”都压缩在了网络权重里。</p>
+<h2 id="四、VisFly-Lab：一个框架，四种任务"><a href="#四、VisFly-Lab：一个框架，四种任务" class="headerlink" title="四、VisFly-Lab：一个框架，四种任务"></a>四、VisFly-Lab：一个框架，四种任务</h2><p>arXiv:2603.21123</p>
+<h3 id="4-1-统一接口"><a href="#4-1-统一接口" class="headerlink" title="4.1 统一接口"></a>4.1 统一接口</h3><p>VisFly-Lab 的核心贡献是证明了<strong>同一个可微仿框架可以训练出执行完全不同任务的策略</strong>——不需要为每个任务重新设计仿真环境。</p>
+<p>框架支持四种标准任务：</p>
+<ul>
+<li><strong>悬停</strong>：静态位置保持</li>
+<li><strong>追踪</strong>：跟随移动目标</li>
+<li><strong>着陆</strong>：精确降落在标记点上</li>
+<li><strong>竞速</strong>：以最快速度穿越门框序列</li>
+</ul>
+<h3 id="4-2-ABPT：修正不可微奖励的梯度偏差"><a href="#4-2-ABPT：修正不可微奖励的梯度偏差" class="headerlink" title="4.2 ABPT：修正不可微奖励的梯度偏差"></a>4.2 ABPT：修正不可微奖励的梯度偏差</h3><p>BPTT（Backpropagation Through Time）是可微 RL 的核心算法——把策略展开成时间序列，梯度沿着时间步回传。但问题在于：<strong>奖励函数通常有不可微的部分</strong>——比如 “是否成功穿越门框” 是一个 0&#x2F;1 判断——在门框边界处没有梯度。</p>
+<p>ABPT（Amended BPTT）用奖励函数的平滑近似替代原始不可微奖励，在保留语义的同时恢复了梯度流。这是工程上非常重要的贡献——因为它让 BPTT 可以处理现实任务中常见的离散奖励。</p>
+<h2 id="五、Gap-Traversal：SE-3-可微仿真与零样本缝隙穿越"><a href="#五、Gap-Traversal：SE-3-可微仿真与零样本缝隙穿越" class="headerlink" title="五、Gap Traversal：SE(3) 可微仿真与零样本缝隙穿越"></a>五、Gap Traversal：SE(3) 可微仿真与零样本缝隙穿越</h2><p>arXiv:2604.02779</p>
+<h3 id="5-1-问题的难度"><a href="#5-1-问题的难度" class="headerlink" title="5.1 问题的难度"></a>5.1 问题的难度</h3><p>让四旋翼穿越一个不规则的窄缝隙——缝隙的形状、位置、朝向都是未知的——是自主飞行中最难的任务之一。传统方法需要精确的缝隙检测、轨迹生成、在线重规划。</p>
+<h3 id="5-2-SE-3-可微仿真"><a href="#5-2-SE-3-可微仿真" class="headerlink" title="5.2 SE(3) 可微仿真"></a>5.2 SE(3) 可微仿真</h3><p>这篇论文的可微仿真直接运行在 SE(3)（三维特殊欧几里得群）上——四旋翼的位姿用 6 自由度李代数表示。在这个空间中做可微物理，意味着策略可以同时优化位置和姿态的控制序列，而不需要解耦为位置控制和姿态控制两个回路。</p>
+<p>训练后的策略在仿真中学会了穿越任意形状的缝隙——三角形、矩形、椭圆、不规则多边形。部署到真机后，完成了<strong>零样本穿越</strong>——真实缝隙从未在训练中出现过。</p>
+<h2 id="六、四篇论文的内在逻辑"><a href="#六、四篇论文的内在逻辑" class="headerlink" title="六、四篇论文的内在逻辑"></a>六、四篇论文的内在逻辑</h2><p>这四篇论文不是孤立的——它们构成了一条从理论到实践的完整链条：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Back to Newton&#x27;s Laws (Nature MI 2025)</span><br><span class="line">  → 证明了用牛顿点质量模型+可微仿真可以训练高速飞行策略</span><br><span class="line">  │</span><br><span class="line">  ├─→ High-Fidelity Diff Sim (2604.10548)</span><br><span class="line">  │    → 将点质量升级为全 6DOF 模型，深度图直接映射控制</span><br><span class="line">  │</span><br><span class="line">  ├─→ VisFly-Lab (2603.21123)</span><br><span class="line">  │    → 统一框架，多任务验证，修正 BPTT 的梯度问题</span><br><span class="line">  │</span><br><span class="line">  ├─→ Gap Traversal (2604.02779)</span><br><span class="line">  │    → 推到极限：SE(3) 可微仿真，零样本穿越</span><br><span class="line">  │</span><br><span class="line">  └─→ E2E-Fly (2604.12916)</span><br><span class="line">       → 系统集成：全部组件 + 真机部署 = 完整管线</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心方法论</strong>：可微仿真 → 系统辨识 → 域随机化 → 真机部署。每一步都建立在可微物理的基础上。</p>
+<h2 id="七、对比与启示"><a href="#七、对比与启示" class="headerlink" title="七、对比与启示"></a>七、对比与启示</h2><h3 id="7-1-与-Tobin-2017-的对比"><a href="#7-1-与-Tobin-2017-的对比" class="headerlink" title="7.1 与 Tobin 2017 的对比"></a>7.1 与 Tobin 2017 的对比</h3><p><img src="/images/domain-randomization/tobin-vs-e2efly.png" alt="方法论演进对比"></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Tobin 2017</th>
+<th>E2E-Fly 2026</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>物理模型</td>
+<td>不可微刚体</td>
+<td>可微 6DOF + 气动</td>
+</tr>
+<tr>
+<td>域随机化</td>
+<td>全随机</td>
+<td>先辨识再随机</td>
+</tr>
+<tr>
+<td>训练方法</td>
+<td>监督学习（定位）</td>
+<td>端到端 RL（控制）</td>
+</tr>
+<tr>
+<td>部署方式</td>
+<td>固定策略</td>
+<td>在线可适应</td>
+</tr>
+<tr>
+<td>精度</td>
+<td>1.5cm 定位</td>
+<td>自主飞行全任务</td>
+</tr>
+</tbody></table>
+<p>区别的本质不在于精度，而在于<strong>方法论</strong>：Tobin 证明了域随机化可行；E2E-Fly 证明了可微物理+域随机化可以在完整任务链上做到零样本迁移。</p>
+<h3 id="7-2-对截击机仿真的启示"><a href="#7-2-对截击机仿真的启示" class="headerlink" title="7.2 对截击机仿真的启示"></a>7.2 对截击机仿真的启示</h3><p>上交大团队的方法论对高速截击机仿真有直接参考价值：</p>
+<ol>
+<li><strong>可微气动模型</strong>：如果能把 JSBSim 的气动计算变成可微的（至少对关键参数可微），就可以用梯度直接优化截击轨迹</li>
+<li><strong>延迟补偿</strong>：截击场景中的通信和控制延迟往往比普通四旋翼更大，E2E-Fly 的延迟建模方法可以直接复用</li>
+<li><strong>先辨识再随机化</strong>：先用真实飞行数据锁定 JSBSim 参数，再对剩余不确定性做域随机化</li>
+</ol>
+<h2 id="八、关键要点"><a href="#八、关键要点" class="headerlink" title="八、关键要点"></a>八、关键要点</h2><ol>
+<li><strong>可微物理是端到端四旋翼控制的使能技术</strong>——梯度穿过物理引擎，让感知和控制可以联合优化</li>
+<li><strong>E2E-Fly 代表了 2026 年的工程前沿</strong>——从可微物理到真机部署的完整管线</li>
+<li><strong>ABPT 修正了 BPTT 的根本问题</strong>——让可微 RL 可以处理离散奖励</li>
+<li><strong>SE(3) 可微仿真</strong> 让同时优化位置和姿态成为可能，不再需要层层解耦</li>
+<li><strong>先辨识再随机化</strong> 是比全随机更高效的域随机化策略</li>
+</ol>
+<h2 id="九、延伸阅读"><a href="#九、延伸阅读" class="headerlink" title="九、延伸阅读"></a>九、延伸阅读</h2><ul>
+<li>E2E-Fly: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.12916">arXiv:2604.12916</a></li>
+<li>High-Fidelity Diff Sim: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.10548">arXiv:2604.10548</a></li>
+<li>VisFly-Lab: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2603.21123">arXiv:2603.21123</a></li>
+<li>Gap Traversal: <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.02779">arXiv:2604.02779</a></li>
+<li>Back to Newton’s Laws (Nature MI 2025): <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2407.10648">arXiv:2407.10648</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/10/shanghai-jiaotong-e2e-fly-5/">https://goodisok.github.io/2026/05/10/shanghai-jiaotong-e2e-fly-5/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">强化学习</a><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><a class="post-meta__tags" href="/tags/Sim-to-Real/">Sim-to-Real</a><a class="post-meta__tags" href="/tags/%E7%AB%AF%E5%88%B0%E7%AB%AF/">端到端</a><a class="post-meta__tags" href="/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC/">四旋翼</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86/">可微物理</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/11/grade7-math-textbook-1/" title="七年级数学上册·知识点速查——有理数、整式、方程、几何初步"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">七年级数学上册·知识点速查——有理数、整式、方程、几何初步</div></div><div class="info-2"><div class="info-item-1"> 人教版七年级上册。   一、有理数1.1 正数和负数定义：大于 0 的数是正数，小于 0 的数是负数。0 既不是正数也不是负数。 正数前面可以加”+”，负数前面加”−”。 1.2 有理数的分类整数和分数统称有理数（rational number）。 12345678有理数：  ├── 整数  │     ├── 正整数（1, 2, 3, …）  │     ├── 0  │     └── 负整数（−1, −2, −3, …）  └── 分数        ├── 正分数        └── 负分数  所有有理数都可以写成 p&#x2F;q 的形式（p, q 为整数，q ≠ 0）。 1.3 数轴数轴：规定了原点、正方向和单位长度的直线叫数轴。   原点右侧的点表示正数，左侧表示负数 数轴上两个点，右边的点表示的数总比左边的大  比较大小：正数 &gt; 0 &gt; 负数；两个负数，绝对值大的反而小。 1.4 相反数与绝对值相反数：只有符号不同的两个数互为相反数。a 的相反数是 −a；0 的相反数是 0。 绝对值：数轴上表示数 a 的点到原点的距离，记作 ∣a∣。 ∣a∣={...</div></div></div></a><a class="pagination-related" href="/2026/05/10/newton-physics-engine-4/" title="Newton 物理引擎深度解析 — 可微物理如何革命机器人学习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Newton 物理引擎深度解析 — 可微物理如何革命机器人学习</div></div><div class="info-2"><div class="info-item-1"> 一、从 “仿真训练策略” 到 “梯度穿过物理引擎”2021 年 Isaac Gym 让 GPU 并行仿真成为可能——训练从几天变成几小时。2025 年 Isaac Lab 统一了仿真+渲染+传感器+RL 训练管线。但直到 2026 年 3 月 Newton 引擎 GA 发布，一个更根本的变革才真正落地：梯度可以穿过物理引擎了。 这意味着什么？传统 RL 训练是 trial-and-error：策略输出动作→仿真器计算后果→奖励信号回传→策略更新。这个循环里，仿真器是个黑盒——RL 只能通过采样来摸索物理规律。 有了可微物理，仿真器变成了可微分层。策略网络的梯度可以直接穿过接触动力学、关节约束、碰撞检测，一路回传到损失函数。端到端优化不再依赖采样，而是直接计算梯度。 二、Newton 是什么Newton 是 NVIDIA × Google DeepMind × Disney Research 联合推出的开源物理引擎，2026 年 3 月 GTC 大会上正式发布 1.0 GA。Linux Foundation 项目，Apache 2.0 协议，GitHub 4,874 ⭐。  它的...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/02/12/MAVEN%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E5%85%83%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%AE%9E%E7%8E%B0%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8F%98%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%95%8F%E6%8D%B7%E9%A3%9E%E8%A1%8C/" title="MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers 作者: Jin Zhou, Dongcheng Cao, Xian Wang, Shuo Li（浙江大学控制科学与工程学院） 发表: arXiv:2603.10714, 2026 年 3 月 链接: arXiv | 视频    一、为什么需要 MAVEN？1.1 标准 RL 的致命缺陷：动力学一变就崩近年来，深度强化学习在四旋翼敏捷飞行领域取得了令人瞩目的突破。2023 年 Kaufmann 等人在 Nature 上发表的工作证明，RL 策略可以在无人机竞速中击败世界冠军级别的人类飞手。然而，这些令人印象深刻的成果都建立在一个隐含假设之上：训练时的动力学模型与部署时完全一致。 现实世界远没有这么理想。一架四旋翼可能因为以下原因产生显著的动力学变化：  负载变化：挂载不同传感器、携带货物、电池电量变化导致质量改变 执行器故障：电机老化、螺旋桨损伤导致...</div></div></div></a><a class="pagination-related" href="/2026/03/08/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正</div></div><div class="info-2"><div class="info-item-1"> 本文做了什么：在没有实机的前提下，用纯仿真（Gazebo+PX4）把 Sim-to-Real 动力学验证的完整工具链跑通——验证方法本身是否可行、找到方法的能力边界、修复仿真平台在高速下的结构性缺陷。 三层递进：  方法验证（0-12 m&#x2F;s）：用 twin experiment（x500 当”真值”、interceptor 当”仿真”）验证 setpoint replay + k_f 辨识 + 迭代修正这套流程能收敛——4 轮后 Vz RMSE 下降 48%，Pitch RMSE 下降 45%。 高速极限诊断（50-97 m&#x2F;s）：用 x500_hp 和 Gobi 模型把速度推到 97 m&#x2F;s，发现 Gazebo 线性阻力模型在 50+ m&#x2F;s 完全失效（97 m&#x2F;s 时误差达 4 倍），桨盘前进比效应在 70+ m&#x2F;s 引入 20-50% 推力偏差。 缺陷修复：开发 QuadraticDrag 自定义插件实现物理正确的 v² 阻力，gobi_v2 验证了修复效果（最高速降低 14 m&#x2F;s，符合推力-阻力平...</div></div></div></a><a class="pagination-related" href="/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-06</div><div class="info-item-2">E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统</div></div><div class="info-2"><div class="info-item-1"> 摘要：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。    一、引言：端到端四旋翼自主飞行面临的核心挑战四旋翼自主飞行系统的传统开发范式是模块化流水线： 1感知（视觉/IMU）→ 状态估计 → 轨迹规划 → 控制（PID/MPC）→ 执行  每个模块由独立团队开发，通过人工定义的接口传递信息。这种架构存在根本性缺陷：  信息损失：图像→边界框→轨迹→控制指令，每步都在压缩信息 误差传递：感知的微小偏差经过规划和控制放大，最终表现为飞行性能退化 接口僵硬：人工定义的中间表示限制了系统性能上限 开发成本：模块间调试、调参、适配耗费大量工程时间  端到端学习试图用单一可微模型替代整个流水线，但应用到四旋翼领域面临三大难题：    难题 具体表现 传统解决    �...</div></div></div></a><a class="pagination-related" href="/2026/03/06/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-06</div><div class="info-item-2">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</div></div><div class="info-2"><div class="info-item-1"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div></a><a class="pagination-related" href="/2026/05/09/2026-05-09-neural-residual-correction/" title="神经残差补正：为什么AI+物理方程才是仿真和飞控的正确姿势"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">神经残差补正：为什么AI+物理方程才是仿真和飞控的正确姿势</div></div><div class="info-2"><div class="info-item-1">  本文目标：系统论证「物理方程 + 小神经网络补正」这条技术路线的正确性，提供完整的论文证据链。适合对飞控仿真和 AI 结合感兴趣的读者。   引言：两条极端的死胡同在无人机飞控和物理仿真领域，存在两条看似合理但都走不通的极端路线：  纯物理方程：精确、可解释、守恒律严格。但在复杂气动（地面效应、桨间干扰、大攻角失速）面前无能为力。 纯神经网络：灵活、数据驱动、不需要先验知识。但外推崩溃、不保证物理守恒、需要海量数据。  有没有第三条路？ 有。它叫神经残差补正（Neural Residual Correction）——让物理方程管主干（95%），神经网络只补细节（5%）。 这条路不仅有工程直觉支撑，更有从 ICRA 2019 到 Science Robotics 2022 的完整论文链。  一、概念：神经残差补正是什么1.1 核心思想 传统飞控仿真中，飞行器的总受力可以写为： Ftrue=mg+Faero+Fground effect+Frotor interference+⋯F_{\text{true}} = mg + F_{\text{aero}} + F_{\text{g...</div></div></div></a><a class="pagination-related" href="/2026/03/21/%E5%9F%BA%E4%BA%8EBlender%E5%92%8CHDRI%E7%9A%84%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A3%80%E6%B5%8B%E5%90%88%E6%88%90%E6%95%B0%E6%8D%AE%E9%9B%86%E7%94%9F%E6%88%90-%E4%BB%8E%E5%85%89%E7%85%A7%E7%9C%9F%E5%AE%9E%E6%84%9F%E5%88%B0YOLOv8%E8%AE%AD%E7%BB%83%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AE%A1%E7%BA%BF/" title="基于 Blender + HDRI 的无人机检测合成数据集生成：从光照真实感到 YOLOv8 训练的完整管线"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-21</div><div class="info-item-2">基于 Blender + HDRI 的无人机检测合成数据集生成：从光照真实感到 YOLOv8 训练的完整管线</div></div><div class="info-2"><div class="info-item-1"> 训练一个能在空中可靠检测无人机的 YOLOv8 模型，最大的瓶颈不是算法，而是数据。真实空对空无人机图像极难获取——你需要另一架无人机在空中拍摄，天气、光照、距离、姿态的组合几乎无穷无尽，而每张图片都需要人工标注 bounding box。 本文提出一种基于 Blender Cycles 路径追踪 + HDRI 全景天空 + 3D 无人机模型的全自动合成数据集生成管线。一条命令即可批量生产带 YOLO 格式标注的 1080p 图像——无人机模型的光照、阴影、反射完全由 HDRI 天空自然驱动，Sim-to-Real gap 远小于传统合成方法。 需要明确的是：Cycles 路径追踪是一种离线渲染技术（CPU 约 2 秒&#x2F;帧，GPU 约 0.15 秒&#x2F;帧），其物理精确的光照计算代价决定了它无法支持实时 3D 渲染。本方案定位于高质量训练数据的离线批量生成，而非仿真环境中的实时视觉输出。对于实时渲染需求（如 SITL 闭环仿真），需要使用 EEVEE 或 Gazebo 等光栅化渲染器作为替代，但画质会有显著下降。   一、方案选型：一次走弯路的经验在确定最终方案...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%80%E4%B8%AA%E5%9B%A2%E9%98%9F%EF%BC%8C%E4%B8%80%E5%B9%B4%E5%9B%9B%E7%AF%87%E9%A1%B6%E5%88%8A"><span class="toc-number">1.</span> <span class="toc-text">一、一个团队，一年四篇顶刊</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81E2E-Fly%EF%BC%9A%E4%BB%8E%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%88%B0%E7%9C%9F%E6%9C%BA%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AE%A1%E7%BA%BF"><span class="toc-number">2.</span> <span class="toc-text">二、E2E-Fly：从可微物理到真机部署的完整管线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%85%AD%E4%B8%AA%E7%BB%84%E4%BB%B6"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 系统的六个组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%9C%9F%E6%9C%BA%E9%AA%8C%E8%AF%81"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 真机验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81High-Fidelity-Diff-Sim%EF%BC%9A%E6%B7%B1%E5%BA%A6%E5%9B%BE%E5%B0%B1%E6%98%AF%E4%BD%A0%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">三、High-Fidelity Diff Sim：深度图就是你的控制器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E8%83%BD%E5%81%9A%E5%88%B0%E8%BF%99%E4%B8%80%E7%82%B9"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 为什么可微仿真能做到这一点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%85%B3%E9%94%AE%E7%BB%93%E6%9E%9C"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 关键结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81VisFly-Lab%EF%BC%9A%E4%B8%80%E4%B8%AA%E6%A1%86%E6%9E%B6%EF%BC%8C%E5%9B%9B%E7%A7%8D%E4%BB%BB%E5%8A%A1"><span class="toc-number">4.</span> <span class="toc-text">四、VisFly-Lab：一个框架，四种任务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BB%9F%E4%B8%80%E6%8E%A5%E5%8F%A3"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 统一接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-ABPT%EF%BC%9A%E4%BF%AE%E6%AD%A3%E4%B8%8D%E5%8F%AF%E5%BE%AE%E5%A5%96%E5%8A%B1%E7%9A%84%E6%A2%AF%E5%BA%A6%E5%81%8F%E5%B7%AE"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 ABPT：修正不可微奖励的梯度偏差</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Gap-Traversal%EF%BC%9ASE-3-%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E4%B8%8E%E9%9B%B6%E6%A0%B7%E6%9C%AC%E7%BC%9D%E9%9A%99%E7%A9%BF%E8%B6%8A"><span class="toc-number">5.</span> <span class="toc-text">五、Gap Traversal：SE(3) 可微仿真与零样本缝隙穿越</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%97%AE%E9%A2%98%E7%9A%84%E9%9A%BE%E5%BA%A6"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 问题的难度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-SE-3-%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 SE(3) 可微仿真</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%9B%9B%E7%AF%87%E8%AE%BA%E6%96%87%E7%9A%84%E5%86%85%E5%9C%A8%E9%80%BB%E8%BE%91"><span class="toc-number">6.</span> <span class="toc-text">六、四篇论文的内在逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AF%B9%E6%AF%94%E4%B8%8E%E5%90%AF%E7%A4%BA"><span class="toc-number">7.</span> <span class="toc-text">七、对比与启示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%8E-Tobin-2017-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 与 Tobin 2017 的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%AF%B9%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E7%9A%84%E5%90%AF%E7%A4%BA"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 对截击机仿真的启示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%85%B3%E9%94%AE%E8%A6%81%E7%82%B9"><span class="toc-number">8.</span> <span class="toc-text">八、关键要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">9.</span> <span class="toc-text">九、延伸阅读</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420"><style>text{font-family:'WenQuanYi Zen Hei','Droid Sans Fallback','Noto Sans CJK SC',sans-serif;}</style>
+<rect width="800" height="420" fill="#ffffff"/>
+<text x="400" y="30" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">层流 vs 湍流边界层对比 (平板,L=0.5m,V∞=20m/s)</text>
+<rect x="60" y="60" width="300" height="35" rx="4" fill="#16a34a"/><text x="210" y="83" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">层流边界层 (Blasius)</text>
+<rect x="440" y="60" width="300" height="35" rx="4" fill="#dc2626"/><text x="590" y="83" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">湍流边界层 (1/7次幂)</text>
+<rect x="60" y="100" width="300" height="40" fill="#f9fafb"/><text x="210" y="125" text-anchor="middle" fill="#374151" font-size="11">δ = 5.0x/√Rex = 3.0mm</text>
+<rect x="440" y="100" width="300" height="40" fill="#f9fafb"/><text x="590" y="125" text-anchor="middle" fill="#374151" font-size="11">δ = 0.382x/Rex^(1/5) = 7.7mm</text>
+<rect x="60" y="145" width="300" height="40" fill="#ffffff"/><text x="210" y="170" text-anchor="middle" fill="#374151" font-size="11">Cf = 0.664/√Rex</text>
+<rect x="440" y="145" width="300" height="40" fill="#ffffff"/><text x="590" y="170" text-anchor="middle" fill="#374151" font-size="11">Cf = 0.0592/Rex^(1/5)</text>
+<rect x="60" y="190" width="300" height="40" fill="#f9fafb"/><text x="210" y="215" text-anchor="middle" fill="#374151" font-size="11">CD = 1.328/√ReL = 0.00160</text>
+<rect x="440" y="190" width="300" height="40" fill="#f9fafb"/><text x="590" y="215" text-anchor="middle" fill="#374151" font-size="11">CD = 0.074/ReL^(1/5) = 0.00635</text>
+<rect x="60" y="235" width="300" height="40" fill="#dcfce7"/><text x="210" y="258" text-anchor="middle" fill="#16a34a" font-size="12" font-weight="600">易分离 → 失速陡峭</text>
+<rect x="440" y="235" width="300" height="40" fill="#fef2f2"/><text x="590" y="258" text-anchor="middle" fill="#dc2626" font-size="12" font-weight="600">难分离 → 失速平缓</text>
+<rect x="60" y="280" width="300" height="40" fill="#f0fdf4"/><text x="210" y="303" text-anchor="middle" fill="#15803d" font-size="11">Re &lt; 5×10⁵（转捩前）</text>
+<rect x="440" y="280" width="300" height="40" fill="#fef2f2"/><text x="590" y="303" text-anchor="middle" fill="#b91c1c" font-size="11">Re &gt; 5×10⁵（转捩后）</text>
+<rect x="60" y="345" width="680" height="45" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+<text x="400" y="363" text-anchor="middle" fill="#1d4ed8" font-size="12">关键：湍流摩擦阻力是层流约4倍，但湍流更难分离→工程中需平衡</text>
+<text x="400" y="381" text-anchor="middle" fill="#6b7280" font-size="11">分离判据：∂u/∂y|y=0=0 → 逆压梯度足够强时发生</text>
+</svg>

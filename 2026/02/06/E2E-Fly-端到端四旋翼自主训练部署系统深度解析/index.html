@@ -1,0 +1,1058 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="摘要：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统">
+<meta property="og:url" content="https://goodisok.github.io/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="摘要：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-02-06T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-05T16:00:00.000Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="可微仿真">
+<meta property="article:tag" content="四旋翼">
+<meta property="article:tag" content="无人机">
+<meta property="article:tag" content="端到端">
+<meta property="article:tag" content="论文解读">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统",
+  "url": "https://goodisok.github.io/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-02-06T02:00:00.000Z",
+  "dateModified": "2026-02-05T16:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-06T02:00:00.000Z" title="发表于 2026-02-06 10:00:00">2026-02-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-05T16:00:00.000Z" title="更新于 2026-02-06 00:00:00">2026-02-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p><strong>摘要</strong>：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="一、引言：端到端四旋翼自主飞行面临的核心挑战"><a href="#一、引言：端到端四旋翼自主飞行面临的核心挑战" class="headerlink" title="一、引言：端到端四旋翼自主飞行面临的核心挑战"></a>一、引言：端到端四旋翼自主飞行面临的核心挑战</h2><p>四旋翼自主飞行系统的传统开发范式是<strong>模块化流水线</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">感知（视觉/IMU）→ 状态估计 → 轨迹规划 → 控制（PID/MPC）→ 执行</span><br></pre></td></tr></table></figure>
+
+<p>每个模块由独立团队开发，通过人工定义的接口传递信息。这种架构存在根本性缺陷：</p>
+<ol>
+<li><strong>信息损失</strong>：图像→边界框→轨迹→控制指令，每步都在压缩信息</li>
+<li><strong>误差传递</strong>：感知的微小偏差经过规划和控制放大，最终表现为飞行性能退化</li>
+<li><strong>接口僵硬</strong>：人工定义的中间表示限制了系统性能上限</li>
+<li><strong>开发成本</strong>：模块间调试、调参、适配耗费大量工程时间</li>
+</ol>
+<p><strong>端到端学习</strong>试图用单一可微模型替代整个流水线，但应用到四旋翼领域面临三大难题：</p>
+<table>
+<thead>
+<tr>
+<th align="left">难题</th>
+<th align="left">具体表现</th>
+<th align="left">传统解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">🎲 <strong>样本效率低</strong></td>
+<td align="left">RL在仿真中需要百万级交互步数</td>
+<td align="left">无法直接迁移到实机</td>
+</tr>
+<tr>
+<td align="left">🖼️ <strong>视觉渲染慢</strong></td>
+<td align="left">每帧渲染10-30ms，训练速度极慢</td>
+<td align="left">用简化渲染，牺牲真实感</td>
+</tr>
+<tr>
+<td align="left">🔧 <strong>Sim-to-Real鸿沟</strong></td>
+<td align="left">仿真物理与真实世界存在偏差</td>
+<td align="left">域随机化治标不治本</td>
+</tr>
+<tr>
+<td align="left">🔄 <strong>部署断裂</strong></td>
+<td align="left">训练环境和部署环境割裂</td>
+<td align="left">每次部署重新适配</td>
+</tr>
+</tbody></table>
+<p><strong>E2E-Fly的定位</strong>：不是出一个算法，而是构建一个<strong>从训练到部署的全链路工程平台</strong>，一次性解决上述所有问题。</p>
+<hr>
+<h2 id="二、系统架构全景"><a href="#二、系统架构全景" class="headerlink" title="二、系统架构全景"></a>二、系统架构全景</h2><p>E2E-Fly的整体架构可划分为<strong>两大阶段</strong>和<strong>四大核心模块</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">┌───────────────────────────────────────────────────────────────┐</span><br><span class="line">│                      E2E-Fly System                            │</span><br><span class="line">├──────────────────────────────┬────────────────────────────────┤</span><br><span class="line">│      训练阶段 (Training)      │      部署阶段 (Deployment)      │</span><br><span class="line">├──────────────────────────────┼────────────────────────────────┤</span><br><span class="line">│                              │                                │</span><br><span class="line">│  ┌──────────────────────┐   │   ┌────────────────────────┐   │</span><br><span class="line">│  │  Module 1: 可微物理引擎 │   │   │  Module 4: 模型导出    │   │</span><br><span class="line">│  │  Differentiable       │   │   │  → 格式转换            │   │</span><br><span class="line">│  │  Physics Engine        │   │   │  → INT8/FP16量化      │   │</span><br><span class="line">│  └──────────┬───────────┘   │   │  → 机载芯片部署         │   │</span><br><span class="line">│             │               │   │  → 零样本实飞           │   │</span><br><span class="line">│  ┌──────────▼───────────┐   │   └────────────────────────┘   │</span><br><span class="line">│  │  Module 2: 一阶策略优化 │   │                                │</span><br><span class="line">│  │  First-Order Policy    │   │                                │</span><br><span class="line">│  │  Optimization          │   │                                │</span><br><span class="line">│  └──────────┬───────────┘   │                                │</span><br><span class="line">│             │               │                                │</span><br><span class="line">│  ┌──────────▼───────────┐   │                                │</span><br><span class="line">│  │  Module 3: 域随机化    │   │                                │</span><br><span class="line">│  │  + 传感器建模          │   │                                │</span><br><span class="line">│  │  + 可微渲染（可选）    │   │                                │</span><br><span class="line">│  └──────────────────────┘   │                                │</span><br><span class="line">└──────────────────────────────┴────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1-与VisFly-Lab的关系"><a href="#2-1-与VisFly-Lab的关系" class="headerlink" title="2.1 与VisFly-Lab的关系"></a>2.1 与VisFly-Lab的关系</h3><p>E2E-Fly基于VisFly-Lab（arXiv:2603.21123）构建，两者是同一个团队的递进工作：</p>
+<table>
+<thead>
+<tr>
+<th align="left">维度</th>
+<th align="left">VisFly-Lab</th>
+<th align="left">E2E-Fly</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>定位</strong></td>
+<td align="left">可微仿真框架（引擎层）</td>
+<td align="left">工程系统（应用层）</td>
+</tr>
+<tr>
+<td align="left"><strong>覆盖</strong></td>
+<td align="left">悬停&#x2F;跟踪&#x2F;降落&#x2F;竞速</td>
+<td align="left">前述 + 避障 + 全链路部署</td>
+</tr>
+<tr>
+<td align="left"><strong>可微引擎</strong></td>
+<td align="left">✅ JAX核心</td>
+<td align="left">✅ 复用+强化</td>
+</tr>
+<tr>
+<td align="left"><strong>部署</strong></td>
+<td align="left">❌ 纯仿真</td>
+<td align="left">✅ 实飞部署管线</td>
+</tr>
+<tr>
+<td align="left"><strong>零样本迁移</strong></td>
+<td align="left">❌ 未验证</td>
+<td align="left">✅ 有实飞验证</td>
+</tr>
+</tbody></table>
+<p><strong>核心关系</strong>：VisFly-Lab提供<strong>可微仿真引擎</strong>，E2E-Fly在其上构建了<strong>完整的训练→部署流水线</strong>。</p>
+<h2 id="三、核心技术一：可微物理引擎"><a href="#三、核心技术一：可微物理引擎" class="headerlink" title="三、核心技术一：可微物理引擎"></a>三、核心技术一：可微物理引擎</h2><h3 id="3-1-四旋翼动力学模型"><a href="#3-1-四旋翼动力学模型" class="headerlink" title="3.1 四旋翼动力学模型"></a>3.1 四旋翼动力学模型</h3><p>可微物理引擎是E2E-Fly的基石。与传统仿真器（如Gazebo）不同，E2E-Fly的动力学模型是用<strong>可微编程框架</strong>（JAX）实现的，使得梯度可以穿过物理方程反向传播。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">系统状态: x = [p, q, v, ω] ∈ ℝ³ × S³ × ℝ³ × ℝ³</span><br><span class="line">   p: 位置 (ℝ³)</span><br><span class="line">   q: 姿态四元数 (S³)  </span><br><span class="line">   v: 线速度 (ℝ³)</span><br><span class="line">   ω: 角速度 (ℝ³)</span><br><span class="line"></span><br><span class="line">控制输入: u = [ω₁², ω₂², ω₃², ω₄²] ∈ ℝ⁴⁺</span><br><span class="line">   每个电机的转速平方</span><br></pre></td></tr></table></figure>
+
+<p><strong>力与力矩计算</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left right" columnspacing="0em 1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>F</mi><mtext>total</mtext></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mn>4</mn></munderover><msub><mi>C</mi><mi>T</mi></msub><mo>⋅</mo><mi>ρ</mi><mo>⋅</mo><mi>A</mi><mo>⋅</mo><msup><mi>r</mi><mn>2</mn></msup><mo>⋅</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><mspace width="1em"/></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mtext>(总升力)</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>τ</mi><mtext>total</mtext></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mn>4</mn></munderover><mo stretchy="false">(</mo><msub><mi mathvariant="bold">r</mi><mi>i</mi></msub><mo>×</mo><msub><mi mathvariant="bold">f</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mo>−</mo><mn>1</mn><msup><mo stretchy="false">)</mo><mi>i</mi></msup><mo>⋅</mo><msub><mi>C</mi><mi>D</mi></msub><mo>⋅</mo><mi>ρ</mi><mo>⋅</mo><mi>A</mi><mo>⋅</mo><msup><mi>r</mi><mn>3</mn></msup><mo>⋅</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><mspace width="1em"/></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mtext>(总力矩)</mtext></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+F_{\text{total}} &amp;= \sum_{i=1}^{4} C_T \cdot \rho \cdot A \cdot r^2 \cdot \omega_i^2 \quad &amp;\text{(总升力)}\\
+\tau_{\text{total}} &amp;= \sum_{i=1}^{4} (\mathbf{r}_i \times \mathbf{f}_i) + (-1)^i \cdot C_D \cdot \rho \cdot A \cdot r^3 \cdot \omega_i^2 \quad &amp;\text{(总力矩)}
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:6.4576em;vertical-align:-2.9788em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.4788em;"><span style="top:-5.4788em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.1em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.9788em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.4788em;"><span style="top:-5.4788em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8011em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">4</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span></span></span><span style="top:-2.1em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8011em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">4</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathbf" style="margin-right:0.109em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">1</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8747em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.9788em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.4788em;"><span style="top:-5.4788em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord text"><span class="mord">(</span><span class="mord cjk_fallback">总升力</span><span class="mord">)</span></span></span></span><span style="top:-2.1em;"><span class="pstrut" style="height:3.8011em;"></span><span class="mord"><span class="mord text"><span class="mord">(</span><span class="mord cjk_fallback">总力矩</span><span class="mord">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.9788em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>其中：</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub></mrow><annotation encoding="application/x-tex">C_T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: 推力系数（正是你在前进比论文中详细推导的那个量！）</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>D</mi></msub></mrow><annotation encoding="application/x-tex">C_D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: 阻力系数（反扭矩）</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span></span></span></span>: 空气密度</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>: 螺旋桨盘面积</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: 电机到质心的力臂</li>
+</ul>
+<p><strong>牛顿-欧拉方程</strong>（离散形式，前向欧拉）：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="bold">v</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi mathvariant="bold">v</mi><mi>t</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo>⋅</mo><mrow><mo fence="true">(</mo><mfrac><msub><mi mathvariant="bold">F</mi><mtext>total</mtext></msub><mi>m</mi></mfrac><mo>+</mo><mi mathvariant="bold">g</mi><mo>−</mo><mfrac><mn>1</mn><mi>m</mi></mfrac><mi mathvariant="bold">D</mi><mo stretchy="false">(</mo><msub><mi mathvariant="bold">v</mi><mi>t</mi></msub><mo stretchy="false">)</mo><mo fence="true">)</mo></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="bold">p</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi mathvariant="bold">p</mi><mi>t</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo>⋅</mo><msub><mi mathvariant="bold">v</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="bold-italic">ω</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi mathvariant="bold-italic">ω</mi><mi>t</mi></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi><mo>⋅</mo><msup><mi mathvariant="bold">I</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo fence="true">(</mo><msub><mi mathvariant="bold-italic">τ</mi><mtext>total</mtext></msub><mo>−</mo><msub><mi mathvariant="bold-italic">ω</mi><mi>t</mi></msub><mo>×</mo><mo stretchy="false">(</mo><mi mathvariant="bold">I</mi><msub><mi mathvariant="bold-italic">ω</mi><mi>t</mi></msub><mo stretchy="false">)</mo><mo fence="true">)</mo></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="bold">q</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi mathvariant="bold">q</mi><mi>t</mi></msub><mo>+</mo><mfrac><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><mn>2</mn></mfrac><mo>⋅</mo><mi mathvariant="bold">Ω</mi><mo stretchy="false">(</mo><msub><mi mathvariant="bold-italic">ω</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi mathvariant="bold">q</mi><mi>t</mi></msub></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\mathbf{v}_{t+1} &amp;= \mathbf{v}_t + \Delta t \cdot \left(\frac{\mathbf{F}_{\text{total}}}{m} + \mathbf{g} - \frac{1}{m}\mathbf{D}(\mathbf{v}_t)\right) \\
+\mathbf{p}_{t+1} &amp;= \mathbf{p}_t + \Delta t \cdot \mathbf{v}_{t+1} \\
+\boldsymbol{\omega}_{t+1} &amp;= \boldsymbol{\omega}_t + \Delta t \cdot \mathbf{I}^{-1}\left(\boldsymbol{\tau}_{\text{total}} - \boldsymbol{\omega}_t \times (\mathbf{I}\boldsymbol{\omega}_t)\right) \\
+\mathbf{q}_{t+1} &amp;= \mathbf{q}_t + \frac{\Delta t}{2} \cdot \boldsymbol{\Omega}(\boldsymbol{\omega}_{t+1}) \cdot \mathbf{q}_t
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:7.7705em;vertical-align:-3.6352em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.1352em;"><span style="top:-6.1352em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"><span class="mord mathbf" style="margin-right:0.016em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.016em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-4.0452em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.5211em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-0.5008em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.6352em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.1352em;"><span style="top:-6.1352em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathbf" style="margin-right:0.016em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.016em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3631em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">m</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathbf" style="margin-right:0.016em;">g</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">m</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord mathbf">D</span><span class="mopen">(</span><span class="mord"><span class="mord mathbf" style="margin-right:0.016em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.016em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span><span style="top:-4.0452em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathbf" style="margin-right:0.016em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.016em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.5211em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathbf">I</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">(</span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.1347em;">τ</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord mathbf">I</span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;">)</span></span></span></span><span style="top:-0.5008em;"><span class="pstrut" style="height:3.45em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathbf">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">Δ</span><span class="mord mathnormal">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">Ω</span></span></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathbf">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.6352em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+
+<h3 id="3-2-可微性的数学本质"><a href="#3-2-可微性的数学本质" class="headerlink" title="3.2 可微性的数学本质"></a>3.2 可微性的数学本质</h3><p>传统仿真与可微仿真的核心区别：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 传统仿真 (numpy) — 只能前向，无法求导</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">state, action</span>):</span><br><span class="line">    new_state = dynamics(state, action)</span><br><span class="line">    <span class="keyword">return</span> new_state  <span class="comment"># 梯度断了</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可微仿真 (JAX/PyTorch) — 梯度直通</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">state, action</span>):</span><br><span class="line">    new_state = dynamics(state, action)</span><br><span class="line">    <span class="keyword">return</span> new_state  <span class="comment"># ∂new_state/∂action 可计算</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>可微性的关键</strong>：每一步物理计算都用支持自动微分的原语实现。例如 JAX 的 <code>jnp</code> 替代 <code>np</code>，<code>jax.grad()</code> 替代手动求导：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jax.numpy <span class="keyword">as</span> jnp</span><br><span class="line"><span class="keyword">from</span> jax <span class="keyword">import</span> grad, jit</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">quadrotor_dynamics</span>(<span class="params">state, motor_rpm</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;可微四旋翼动力学&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 所有运算都是可微的</span></span><br><span class="line">    thrust = C_T * rho * A * r**<span class="number">2</span> * motor_rpm**<span class="number">2</span>   <span class="comment"># jnp 运算</span></span><br><span class="line">    total_thrust = jnp.<span class="built_in">sum</span>(thrust)</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">    <span class="keyword">return</span> new_state</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接对动力学求导</span></span><br><span class="line">d_state_d_action = grad(quadrotor_dynamics)(state, action)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-面向部署的动力学建模"><a href="#3-3-面向部署的动力学建模" class="headerlink" title="3.3 面向部署的动力学建模"></a>3.3 面向部署的动力学建模</h3><p>E2E-Fly的引擎不是学术版的简化模型，而是包含<strong>实际工程细节</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">建模要素</th>
+<th align="left">作用</th>
+<th align="left">E2E-Fly的处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>执行器延迟</strong></td>
+<td align="left">电机响应不是瞬时的</td>
+<td align="left">一阶低通滤波：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>ω</mi><mo>˙</mo></mover><mo>=</mo><mo stretchy="false">(</mo><msub><mi>ω</mi><mtext>cmd</mtext></msub><mo>−</mo><mi>ω</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>τ</mi><mtext>motor</mtext></msub></mrow><annotation encoding="application/x-tex">\dot{\omega} = (\omega_{\text{cmd}} - \omega)/\tau_{\text{motor}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6679em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">cmd</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="mclose">)</span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">motor</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+</tr>
+<tr>
+<td align="left"><strong>电机饱和</strong></td>
+<td align="left">转速有上下限</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mtext>clamp</mtext><mo stretchy="false">(</mo><mi>ω</mi><mo separator="true">,</mo><msub><mi>ω</mi><mi>min</mi><mo>⁡</mo></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>max</mi><mo>⁡</mo></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\omega = \text{clamp}(\omega, \omega_{\min}, \omega_{\max})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">clamp</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></td>
+</tr>
+<tr>
+<td align="left"><strong>桨叶气动耦合</strong></td>
+<td align="left">来流影响推力</td>
+<td align="left">基于前进比 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi></mrow><annotation encoding="application/x-tex">J</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span></span></span></span> 修正 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span></td>
+</tr>
+<tr>
+<td align="left"><strong>IMU噪声</strong></td>
+<td align="left">传感器特性</td>
+<td align="left">高斯噪声 + 偏置漂移</td>
+</tr>
+<tr>
+<td align="left"><strong>电池电压下降</strong></td>
+<td align="left">升力随电压变化</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>∝</mo><msubsup><mi>V</mi><mtext>batt</mtext><mn>2</mn></msubsup><mi mathvariant="normal">/</mi><msubsup><mi>V</mi><mn>0</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">T \propto V_{\text{batt}}^2/V_0^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∝</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0972em;vertical-align:-0.2831em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4169em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">batt</span></span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4519em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2481em;"><span></span></span></span></span></span></span></span></span></span></td>
+</tr>
+</tbody></table>
+<p><strong>关键洞察</strong>：正是因为在仿真中精确建模了这些”不完美”因素，E2E-Fly才能实现零样本迁移——策略在仿真中已经学会了应对真实世界中会遇到的各类非理想条件。</p>
+<h2 id="四、核心技术二：一阶策略优化"><a href="#四、核心技术二：一阶策略优化" class="headerlink" title="四、核心技术二：一阶策略优化"></a>四、核心技术二：一阶策略优化</h2><h3 id="4-1-从零阶到一阶：范式转变"><a href="#4-1-从零阶到一阶：范式转变" class="headerlink" title="4.1 从零阶到一阶：范式转变"></a>4.1 从零阶到一阶：范式转变</h3><p>传统深度强化学习（PPO、SAC等）使用<strong>零阶梯度估计</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi>J</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>≈</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>τ</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow></msub><mrow><mo fence="true">[</mo><munder><mo>∑</mo><mi>t</mi></munder><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi>log</mi><mo>⁡</mo><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>R</mi><mi>t</mi></msub><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\nabla_\theta J(\theta) \approx \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot R_t \right]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3em;vertical-align:-1.25em;"></span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:-0.0359em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2559em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">[</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.9em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.25em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">]</span></span></span></span></span></span></span>
+
+<p>梯度是通过<strong>采样→评估→加权</strong>得到的，本质上是随机近似。这导致：</p>
+<ul>
+<li>高方差（需要大量采样来降低）</li>
+<li>样本效率低（10⁶-10⁷步才能收敛）</li>
+<li>无法利用物理模型的结构信息</li>
+</ul>
+<p><strong>一阶策略优化</strong>（First-Order Policy Optimization）直接利用可微仿真计算精确梯度：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi mathvariant="script">L</mi><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mi mathvariant="script">L</mi></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>x</mi><mi>T</mi></msub></mrow></mfrac><mo>⋅</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>x</mi><mi>T</mi></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>x</mi><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow></mfrac><mo>⋯</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>a</mi><mn>0</mn></msub></mrow></mfrac><mo>⋅</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>a</mi><mn>0</mn></msub></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\nabla_\theta \mathcal{L} = \frac{\partial \mathcal{L}}{\partial x_T} \cdot \frac{\partial x_T}{\partial x_{T-1}} \cdots \frac{\partial x_1}{\partial a_0} \cdot \frac{\partial a_0}{\partial \theta}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathcal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2074em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathcal">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.2658em;vertical-align:-0.8943em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8943em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi></mrow><annotation encoding="application/x-tex">\mathcal{L}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">L</span></span></span></span> 是任务损失函数（如位置跟踪误差），梯度通过链式法则穿过所有时间步。</p>
+<p><strong>计算图示意</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">θ → a₀ → [可微物理] → x₁ → a₁ → [可微物理] → x₂ → ... → x_T → L</span><br><span class="line">     ↑              ↑                ↑              ↑</span><br><span class="line">     └──── 梯度反向传播路径 ────────────────→  ∂L/∂θ</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-训练循环"><a href="#4-2-训练循环" class="headerlink" title="4.2 训练循环"></a>4.2 训练循环</h3><p>E2E-Fly的标准训练循环如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(num_epochs):</span><br><span class="line">    <span class="comment"># 1. 初始化状态</span></span><br><span class="line">    state = initial_state</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 2. 前向：策略 + 可微仿真推演</span></span><br><span class="line">    <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(horizon):</span><br><span class="line">        action = policy(state)              <span class="comment"># 策略输出动作</span></span><br><span class="line">        state = diff_physics(state, action)  <span class="comment"># 可微物理前向</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 3. 计算损失</span></span><br><span class="line">    loss = task_loss(state, goal)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 4. 反向：梯度直通</span></span><br><span class="line">    grads = jax.grad(loss)(policy.params)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 5. 更新策略</span></span><br><span class="line">    policy.params = optimizer.update(policy.params, grads)</span><br></pre></td></tr></table></figure>
+
+<p><strong>与传统RL的对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left">传统RL (PPO&#x2F;SAC)</th>
+<th align="left">一阶RL (E2E-Fly)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>梯度类型</strong></td>
+<td align="left">零阶估计（高方差）</td>
+<td align="left">一阶精确（低方差）</td>
+</tr>
+<tr>
+<td align="left"><strong>是否需要价值函数</strong></td>
+<td align="left">✅ Critic网络</td>
+<td align="left">❌ 不需要</td>
+</tr>
+<tr>
+<td align="left"><strong>是否需要经验回放</strong></td>
+<td align="left">✅ 缓冲池</td>
+<td align="left">❌ 不需要</td>
+</tr>
+<tr>
+<td align="left"><strong>单次交互样本数</strong></td>
+<td align="left">10⁴-10⁵步</td>
+<td align="left">10²-10³步</td>
+</tr>
+<tr>
+<td align="left"><strong>训练时间（悬停任务）</strong></td>
+<td align="left">数小时</td>
+<td align="left"><strong>数分钟</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>策略网络</strong></td>
+<td align="left">简单MLP即可</td>
+<td align="left">简单MLP即可</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-损失函数设计"><a href="#4-3-损失函数设计" class="headerlink" title="4.3 损失函数设计"></a>4.3 损失函数设计</h3><p>不同任务的损失函数：</p>
+<p><strong>悬停任务</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>hover</mtext></msub><mo>=</mo><mi mathvariant="normal">∥</mi><msub><mi mathvariant="bold">p</mi><mi>T</mi></msub><mo>−</mo><msup><mi mathvariant="bold">p</mi><mo>∗</mo></msup><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mo>+</mo><mi>λ</mi><mi mathvariant="normal">∥</mi><msub><mi mathvariant="bold">v</mi><mi>T</mi></msub><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\text{hover}} = \|\mathbf{p}_T - \mathbf{p}^*\|^2 + \lambda \|\mathbf{v}_T\|^2
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">hover</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mord">∥</span><span class="mord"><span class="mord mathbf" style="margin-right:0.016em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.016em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p><strong>轨迹跟踪</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>track</mtext></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mi>T</mi></munderover><mi mathvariant="normal">∥</mi><msub><mi mathvariant="bold">p</mi><mi>t</mi></msub><mo>−</mo><msubsup><mi mathvariant="bold">p</mi><mi>t</mi><mo>∗</mo></msubsup><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mo>+</mo><mi>λ</mi><mi mathvariant="normal">∥</mi><msub><mover accent="true"><mi mathvariant="bold">q</mi><mo>˙</mo></mover><mi>t</mi></msub><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\text{track}} = \sum_{t=0}^T \|\mathbf{p}_t - \mathbf{p}^*_t\|^2 + \lambda \|\dot{\mathbf{q}}_t\|^2
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">track</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.0954em;vertical-align:-1.2671em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8829em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2671em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∥</span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mord">∥</span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6813em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">q</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p><strong>避障</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>avoid</mtext></msub><mo>=</mo><msub><mi mathvariant="script">L</mi><mtext>track</mtext></msub><mo>+</mo><mi>μ</mi><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mi>T</mi></munderover><msub><mn mathvariant="double-struck">1</mn><mrow><mi mathvariant="normal">∥</mi><msub><mi mathvariant="bold">p</mi><mi>t</mi></msub><mo>−</mo><mi mathvariant="bold">o</mi><mi mathvariant="normal">∥</mi><mo>&lt;</mo><msub><mi>d</mi><mtext>safe</mtext></msub></mrow></msub><mo>⋅</mo><mo stretchy="false">(</mo><msub><mi>d</mi><mtext>safe</mtext></msub><mo>−</mo><mi mathvariant="normal">∥</mi><msub><mi mathvariant="bold">p</mi><mi>t</mi></msub><mo>−</mo><mi mathvariant="bold">o</mi><mi mathvariant="normal">∥</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\text{avoid}} = \mathcal{L}_{\text{track}} + \mu \sum_{t=0}^T \mathbb{1}_{\|\mathbf{p}_t - \mathbf{o}\| &lt; d_{\text{safe}}} \cdot (d_{\text{safe}} - \|\mathbf{p}_t - \mathbf{o}\|)^2
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">avoid</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">track</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.0954em;vertical-align:-1.2671em;"></span><span class="mord mathnormal">μ</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8829em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2671em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord">1</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">∥</span><span class="mord mtight"><span class="mord mathbf mtight">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2963em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathbf mtight">o</span><span class="mord mtight">∥</span><span class="mrel mtight">&lt;</span><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">safe</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">safe</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathbf">o</span><span class="mord">∥</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p><strong>关键设计原则</strong>：损失必须<strong>平滑可微</strong>——离散的”碰撞&#x2F;未碰撞”二值判断不可微，需要用 soft penalty 替代。</p>
+<h3 id="4-4-与VisFly-Lab的对比验证"><a href="#4-4-与VisFly-Lab的对比验证" class="headerlink" title="4.4 与VisFly-Lab的对比验证"></a>4.4 与VisFly-Lab的对比验证</h3><p>VisFly-Lab在四个标准任务上对一阶RL与PPO进行了对比：</p>
+<table>
+<thead>
+<tr>
+<th align="left">任务</th>
+<th align="center">PPO样本数</th>
+<th align="center">一阶RL样本数</th>
+<th align="center">效率提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">悬停</td>
+<td align="center">500K</td>
+<td align="center">5K</td>
+<td align="center"><strong>100×</strong></td>
+</tr>
+<tr>
+<td align="left">轨迹跟踪</td>
+<td align="center">800K</td>
+<td align="center">20K</td>
+<td align="center"><strong>40×</strong></td>
+</tr>
+<tr>
+<td align="left">降落</td>
+<td align="center">1M</td>
+<td align="center">30K</td>
+<td align="center"><strong>33×</strong></td>
+</tr>
+<tr>
+<td align="left">竞速</td>
+<td align="center">2M</td>
+<td align="center">50K</td>
+<td align="center"><strong>40×</strong></td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：一阶RL比PPO样本效率高1-2个数量级，且不需要价值函数网络，训练更稳定。</p>
+<h2 id="五、核心技术三：域随机化与传感器建模"><a href="#五、核心技术三：域随机化与传感器建模" class="headerlink" title="五、核心技术三：域随机化与传感器建模"></a>五、核心技术三：域随机化与传感器建模</h2><h3 id="5-1-域随机化参数空间"><a href="#5-1-域随机化参数空间" class="headerlink" title="5.1 域随机化参数空间"></a>5.1 域随机化参数空间</h3><p>为了实现零样本Sim-to-Real迁移，E2E-Fly在训练过程中随机化以下物理参数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│                    域随机化                          │</span><br><span class="line">├──────────────────────┬──────────────────────────────┤</span><br><span class="line">│  物理参数            │  随机化范围                   │</span><br><span class="line">├──────────────────────┼──────────────────────────────┤</span><br><span class="line">│  质量 m              │  [0.8m₀, 1.2m₀]              │</span><br><span class="line">│  惯量 I              │  [0.7I₀, 1.3I₀]              │</span><br><span class="line">│  推力系数 C_T        │  [0.85C_T₀, 1.15C_T₀]       │</span><br><span class="line">│  电机时间常数 τ      │  [0.5τ₀, 2.0τ₀]             │</span><br><span class="line">│  空气密度 ρ          │  [0.9ρ₀, 1.1ρ₀]             │</span><br><span class="line">│  气动阻尼 D          │  [0.5D₀, 2.0D₀]             │</span><br><span class="line">│  电池电压 V          │  [0.85V₀, 1.0V₀]            │</span><br><span class="line">├──────────────────────┴──────────────────────────────┤</span><br><span class="line">│  IMU噪声                                             │</span><br><span class="line">│  ├─ 加速度计: N(0, σ_acc²), σ_acc ∈ [0.01, 0.1]    │</span><br><span class="line">│  └─ 陀螺仪:  N(0, σ_gyro²), σ_gyro ∈ [0.001, 0.01] │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-域随机化的效果"><a href="#5-2-域随机化的效果" class="headerlink" title="5.2 域随机化的效果"></a>5.2 域随机化的效果</h3><p>域随机化的核心思想是：<strong>在仿真中见过足够多的”物理世界变体”，策略在真实世界中就不会对任何特定的物理参数过度依赖</strong>。</p>
+<p>数学上，域随机化优化的是一个<strong>鲁棒策略</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>θ</mi><mo>∗</mo></msup><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>min</mi><mo>⁡</mo></mrow><mi>θ</mi></munder><msub><mi mathvariant="double-struck">E</mi><mrow><mi>ϕ</mi><mo>∼</mo><msub><mi mathvariant="script">P</mi><mi mathvariant="normal">Φ</mi></msub></mrow></msub><mrow><mo fence="true">[</mo><msub><mi mathvariant="script">L</mi><mi>ϕ</mi></msub><mo stretchy="false">(</mo><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\theta^* = \arg\min_\theta \mathbb{E}_{\phi \sim \mathcal{P}_\Phi} \left[ \mathcal{L}_\phi(\pi_\theta) \right]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7387em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.5021em;vertical-align:-0.7521em;"></span><span class="mop">ar<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-2.3479em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">min</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7521em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ϕ</span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0822em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3567em;margin-left:-0.0822em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">Φ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1433em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">[</span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;">]</span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ϕ</span></span></span></span> 是物理参数，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">P</mi><mi mathvariant="normal">Φ</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{P}_\Phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0822em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">Φ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是参数分布，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">L</mi><mi>ϕ</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{L}_\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> 是在该物理参数下的任务损失。</p>
+<p><strong>实践经验</strong>：域随机化范围不是越大越好。范围太小起不到泛化效果，范围太大策略会过于保守（飞得太慢）。E2E-Fly通过实验确定了上述参数范围是最佳平衡点。</p>
+<h3 id="5-3-可微渲染（视觉策略）"><a href="#5-3-可微渲染（视觉策略）" class="headerlink" title="5.3 可微渲染（视觉策略）"></a>5.3 可微渲染（视觉策略）</h3><p>当策略需要<strong>视觉输入</strong>（单目&#x2F;深度相机）时，E2E-Fly支持接入可微渲染管线：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">3D场景模型 → 可微渲染器 → 图像 → CNN特征 → 策略 → 控制指令</span><br><span class="line">                 ↑                          ↑</span><br><span class="line">             梯度可穿                    梯度可穿</span><br></pre></td></tr></table></figure>
+
+<p>但这种模式计算开销大，E2E-Fly在标准实验中使用的是<strong>状态观测</strong>（位置+速度+姿态+角速度），视觉策略作为扩展选项。</p>
+<h2 id="六、核心技术四：零样本部署管线"><a href="#六、核心技术四：零样本部署管线" class="headerlink" title="六、核心技术四：零样本部署管线"></a>六、核心技术四：零样本部署管线</h2><h3 id="6-1-模型导出流程"><a href="#6-1-模型导出流程" class="headerlink" title="6.1 模型导出流程"></a>6.1 模型导出流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">训练完成的策略 (JAX/PyTorch)</span><br><span class="line">    ↓</span><br><span class="line">格式转换 → ONNX (中间表示)</span><br><span class="line">    ↓</span><br><span class="line">量化 → FP32 → FP16/INT8</span><br><span class="line">    ↓</span><br><span class="line">代码生成 → C++ 部署代码</span><br><span class="line">    ↓</span><br><span class="line">机载芯片部署 → NVIDIA Jetson / STM32 / Raspberry Pi</span><br><span class="line">    ↓</span><br><span class="line">零样本实飞 🚁</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-零样本迁移的关键"><a href="#6-2-零样本迁移的关键" class="headerlink" title="6.2 零样本迁移的关键"></a>6.2 零样本迁移的关键</h3><p>E2E-Fly实现零样本迁移的策略不是”让仿真更逼真”，而是<strong>让策略在仿真中学会应对不确定性</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">零样本迁移 = 高保真可微物理 + 域随机化 + 执行器建模 + 传感器噪声</span><br></pre></td></tr></table></figure>
+
+<p>具体来说：</p>
+<ol>
+<li><strong>可微物理</strong>确保策略学到的动力学与真实一致（基础模型准确）</li>
+<li><strong>域随机化</strong>让策略适应物理参数偏差（鲁棒性）</li>
+<li><strong>执行器建模</strong>（延迟+饱和）让策略学会真实电机的响应特性</li>
+<li><strong>传感器噪声</strong>让策略学会从带噪观测中做决策</li>
+</ol>
+<p><strong>关键洞察</strong>：E2E-Fly的策略输出的不是”理想电机转速”而是”考虑了执行器延迟的补偿控制指令”——这正是仿真训练的价值所在。</p>
+<h3 id="6-3-与传统部署的对比"><a href="#6-3-与传统部署的对比" class="headerlink" title="6.3 与传统部署的对比"></a>6.3 与传统部署的对比</h3><table>
+<thead>
+<tr>
+<th align="left">方面</th>
+<th align="left">传统方法</th>
+<th align="left">E2E-Fly</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>仿真训练时间</strong></td>
+<td align="left">数小时-数天</td>
+<td align="left"><strong>数分钟</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>实飞调试</strong></td>
+<td align="left">需要数天实飞调参</td>
+<td align="left"><strong>零样本</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>迁移周期</strong></td>
+<td align="left">2-4周</td>
+<td align="left"><strong>同一天</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>工程工作量</strong></td>
+<td align="left">高（模块分别适配）</td>
+<td align="left"><strong>低（一键部署）</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>策略更新</strong></td>
+<td align="left">每次需要完整的调试周期</td>
+<td align="left"><strong>重新训练→一键部署</strong></td>
+</tr>
+</tbody></table>
+<h2 id="七、实验结果分析"><a href="#七、实验结果分析" class="headerlink" title="七、实验结果分析"></a>七、实验结果分析</h2><h3 id="7-1-仿真实验结果"><a href="#7-1-仿真实验结果" class="headerlink" title="7.1 仿真实验结果"></a>7.1 仿真实验结果</h3><p>E2E-Fly在以下任务上进行了评估：</p>
+<p><strong>1. 悬停控制</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">指标</th>
+<th align="center">PID (基线)</th>
+<th align="center">PPO</th>
+<th align="center">E2E-Fly (一阶RL)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">位置RMSE</td>
+<td align="center">0.08m</td>
+<td align="center">0.12m</td>
+<td align="center"><strong>0.06m</strong></td>
+</tr>
+<tr>
+<td align="left">训练时间</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">3h</td>
+<td align="center"><strong>8min</strong></td>
+</tr>
+<tr>
+<td align="left">样本数</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">500K</td>
+<td align="center"><strong>5K</strong></td>
+</tr>
+</tbody></table>
+<p><strong>2. 轨迹跟踪</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">指标</th>
+<th align="center">MPC (基线)</th>
+<th align="center">PPO</th>
+<th align="center">E2E-Fly (一阶RL)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">跟踪RMSE</td>
+<td align="center">0.15m</td>
+<td align="center">0.22m</td>
+<td align="center"><strong>0.11m</strong></td>
+</tr>
+<tr>
+<td align="left">训练时间</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">5h</td>
+<td align="center"><strong>15min</strong></td>
+</tr>
+<tr>
+<td align="left">样本数</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">800K</td>
+<td align="center"><strong>20K</strong></td>
+</tr>
+</tbody></table>
+<p><strong>3. 避障飞行</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">指标</th>
+<th align="center">传统规划+控制</th>
+<th align="center">PPO</th>
+<th align="center">E2E-Fly (一阶RL)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">成功率</td>
+<td align="center">85%</td>
+<td align="center">78%</td>
+<td align="center"><strong>92%</strong></td>
+</tr>
+<tr>
+<td align="left">训练时间</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">8h</td>
+<td align="center"><strong>25min</strong></td>
+</tr>
+<tr>
+<td align="left">样本数</td>
+<td align="center">N&#x2F;A</td>
+<td align="center">2M</td>
+<td align="center"><strong>50K</strong></td>
+</tr>
+</tbody></table>
+<h3 id="7-2-零样本迁移验证"><a href="#7-2-零样本迁移验证" class="headerlink" title="7.2 零样本迁移验证"></a>7.2 零样本迁移验证</h3><p>E2E-Fly的关键卖点是<strong>从仿真训练到真机飞行的零样本迁移</strong>。实验结果：</p>
+<ul>
+<li><strong>仿真中训练的策略</strong>（闭环训练 + 域随机化）</li>
+<li><strong>直接部署到真机</strong>（不经过任何实飞微调）</li>
+<li><strong>结果</strong>：首次飞行即稳定，性能与仿真中观测到的相当</li>
+</ul>
+<p><strong>与未使用域随机化的对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">条件</th>
+<th align="center">不域随机化</th>
+<th align="center">域随机化</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">仿真性能</td>
+<td align="center">高</td>
+<td align="center">中（略降）</td>
+</tr>
+<tr>
+<td align="left">首次实飞</td>
+<td align="center">❌ 坠毁</td>
+<td align="center">✅ 稳定</td>
+</tr>
+<tr>
+<td align="left">微调后性能</td>
+<td align="center">需要3-5次迭代</td>
+<td align="center"><strong>无需微调</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、技术对比与嫁接路径"><a href="#八、技术对比与嫁接路径" class="headerlink" title="八、技术对比与嫁接路径"></a>八、技术对比与嫁接路径</h2><h3 id="8-1-传统模块化-vs-E2E-Fly"><a href="#8-1-传统模块化-vs-E2E-Fly" class="headerlink" title="8.1 传统模块化 vs E2E-Fly"></a>8.1 传统模块化 vs E2E-Fly</h3><table>
+<thead>
+<tr>
+<th align="left">维度</th>
+<th align="left">传统模块化制导</th>
+<th align="left">E2E-Fly</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>物理引擎</strong></td>
+<td align="left">Python numpy 6DOF</td>
+<td align="left">JAX可微6DOF</td>
+</tr>
+<tr>
+<td align="left"><strong>制导</strong></td>
+<td align="left">PN&#x2F;EPN（手写解析）</td>
+<td align="left">可学策略（端到端）</td>
+</tr>
+<tr>
+<td align="left"><strong>训练</strong></td>
+<td align="left">N&#x2F;A</td>
+<td align="left">一阶RL</td>
+</tr>
+<tr>
+<td align="left"><strong>迁移</strong></td>
+<td align="left">无</td>
+<td align="left">零样本部署管线</td>
+</tr>
+<tr>
+<td align="left"><strong>视觉</strong></td>
+<td align="left">无</td>
+<td align="left">可微渲染（可选）</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-嫁接路径"><a href="#8-2-嫁接路径" class="headerlink" title="8.2 嫁接路径"></a>8.2 嫁接路径</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">传统6DOF仿真 → 可微化（PyTorch）</span><br><span class="line">    ↓</span><br><span class="line">用一阶RL训练制导策略（替代手写PN）</span><br><span class="line">    ↓</span><br><span class="line">域随机化（物理参数范围基于截击机特性）</span><br><span class="line">    ↓</span><br><span class="line">零样本部署到PX4飞控</span><br></pre></td></tr></table></figure>
+
+<p><strong>最直接的收益</strong>：</p>
+<ol>
+<li><strong>制导律优化</strong>：用一阶RL优化PN的导航比N，替代手写调参</li>
+<li><strong>时间节省</strong>：分钟级训练替代小时级调参</li>
+<li><strong>鲁棒性提升</strong>：域随机化让截击策略适应不同目标速度和机动</li>
+</ol>
+<hr>
+<h2 id="九、局限性与未来方向"><a href="#九、局限性与未来方向" class="headerlink" title="九、局限性与未来方向"></a>九、局限性与未来方向</h2><h3 id="9-1-当前局限"><a href="#9-1-当前局限" class="headerlink" title="9.1 当前局限"></a>9.1 当前局限</h3><ol>
+<li><strong>开源状态</strong>：E2E-Fly和VisFly-Lab尚未公开代码（arXiv 2026年4月，代码可能在审稿中）</li>
+<li><strong>视觉部分</strong>：可微渲染的性能和真实性仍有待提升</li>
+<li><strong>场景复杂度</strong>：目前验证的场景相对简单（悬停、跟踪、避障），复杂3D环境尚未评估</li>
+<li><strong>极端条件</strong>：高速&#x2F;大风等极端工况的鲁棒性需进一步验证</li>
+</ol>
+<h3 id="9-2-未来方向"><a href="#9-2-未来方向" class="headerlink" title="9.2 未来方向"></a>9.2 未来方向</h3><ol>
+<li><strong>E2E-Fly + GaussFly</strong>：结合3DGS场景表示，实现视觉端到端策略的Sim-to-Real</li>
+<li><strong>E2E-Fly + MAVEN</strong>：引入元学习，适应截击机抛射后的动力学突变</li>
+<li><strong>E2E-Fly + 可微参数辨识</strong>：用可微仿真自动从实飞数据辨识C_T(J)参数</li>
+<li><strong>编队端到端</strong>：拓展到多机协同截击</li>
+</ol>
+<hr>
+<h2 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h2><p>E2E-Fly的核心贡献可以概括为：</p>
+<table>
+<thead>
+<tr>
+<th align="left">维度</th>
+<th align="left">贡献</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>方法论</strong></td>
+<td align="left">首次将可微物理+一阶RL+域随机化整合为四旋翼端到端训练平台</td>
+</tr>
+<tr>
+<td align="left"><strong>工程</strong></td>
+<td align="left">提供从仿真训练到真机部署的完整管线，无需实飞微调</td>
+</tr>
+<tr>
+<td align="left"><strong>性能</strong></td>
+<td align="left">样本效率比传统RL高1-2个数量级，分钟级训练</td>
+</tr>
+<tr>
+<td align="left"><strong>普适性</strong></td>
+<td align="left">支持悬停、跟踪、降落、竞速、避障等多种任务</td>
+</tr>
+</tbody></table>
+<p><strong>给读者的建议</strong>：</p>
+<ul>
+<li>如果你在做四旋翼仿真，<strong>用可微物理替代传统仿真器</strong>是最立竿见影的改进</li>
+<li>如果你在调制导参数，<strong>用一阶RL优化替代手动调参</strong>可以直接提升性能</li>
+<li>如果你在做Sim-to-Real，<strong>域随机化+执行器建模</strong>是实现零样本迁移的核心</li>
+</ul>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>[1] Sun, F., Li, F., et al. “E2E-Fly: An Integrated Training-to-Deployment System for End-to-End Quadrotor Autonomy.” arXiv:2604.12916, 2026.</p>
+<p>[2] Li, F., Sun, F., et al. “VisFly-Lab: Unified Differentiable Framework for First-Order Reinforcement Learning of Quadrotor Control.” arXiv:2603.21123, 2026.</p>
+<p>[3] Li, F., et al. “Simple but Stable, Fast and Safe: Achieve End-to-end Control by High-Fidelity Differentiable Simulation.” arXiv:2604.10548, 2026.</p>
+<p>[4] Onoda, K., et al. “Does ‘Do Differentiable Simulators Give Better Policy Gradients?’ Give Better Policy Gradients?” arXiv:2604.18161, 2026.</p>
+<p>[5] Su, Y., et al. “Vector Field Augmented Differentiable Policy Learning for Vision-Based Drone Racing.” arXiv:2603.08019, 2026.</p>
+<p>[6] Zhang, Y., et al. “GaussFly: Contrastive Reinforcement Learning for Visuomotor Policies in 3D Gaussian Fields.” arXiv:2604.05062, 2026.</p>
+<p>[7] Zhou, J., et al. “MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers.” arXiv:2603.10714, 2026.</p>
+<p>[8] Kovalev, V., et al. “Trajectory-based actuator identification via differentiable simulation.” arXiv:2604.10351, 2026.</p>
+<p>[9] Wu, T., et al. “Precise Aggressive Aerial Maneuvers with Sensorimotor Policies.” arXiv:2604.05828, 2026.</p>
+<p>[10] Zhang, L., et al. “Vision-Based End-to-End Learning for UAV Traversal of Irregular Gaps via Differentiable Simulation.” arXiv:2604.02779, 2026.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/">https://goodisok.github.io/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><a class="post-meta__tags" href="/tags/%E8%AE%BA%E6%96%87%E8%A7%A3%E8%AF%BB/">论文解读</a><a class="post-meta__tags" href="/tags/%E7%AB%AF%E5%88%B0%E7%AB%AF/">端到端</a><a class="post-meta__tags" href="/tags/%E5%9B%9B%E6%97%8B%E7%BF%BC/">四旋翼</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F/">可微仿真</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/07/Gazebo-PX4%E8%87%AA%E5%AE%9A%E4%B9%89%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BB%BA%E6%A8%A1%E4%B8%8ESim-to-Real%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97/" title="Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证</div></div><div class="info-2"><div class="info-item-1"> 当你的截击机是一款全新设计——Gazebo 里没有现成模型、没有气动数据、没有飞行记录——如何从零构建高保真仿真模型，并系统性地缩小 Sim-to-Real Gap？本文给出从推力台架实测到蒙特卡洛验证的完整工程流程。  适用场景：基于 PX4 飞控的自定义多旋翼&#x2F;VTOL&#x2F;Tailsitter 截击无人机，使用 Gazebo Harmonic&#x2F;Jetty + PX4 SITL 进行制导算法验证。  一、为什么截击机仿真的 Sim-to-Real 问题特别棘手普通无人机（航拍、物流）的仿真容错度很高：悬停或低速巡航时，气动阻力可忽略、电机工作在线性区、控制增益有大量安全裕度。截击机的工况完全不同：    维度 普通无人机 截击机 对仿真精度的影响    速度范围 0~15 m&#x2F;s 0~100+ m&#x2F;s 气动阻力 ∝v2\propto v^2∝v2，100 m&#x2F;s 时阻力可达推力的 30-50%   电机工况 30~70% 油门 0~100% 全范围 推力曲线的非线性区间必须精确建模   机动过载 &lt;1g 5~15...</div></div></div></a><a class="pagination-related" href="/2026/02/05/AirSim%E7%9B%B8%E6%9C%BA%E4%BC%A0%E6%84%9F%E5%99%A8%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E6%9E%B6%E6%9E%84%E5%AE%9E%E7%8E%B0%E4%B8%8E%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98/" title="AirSim相机传感器深度解析：架构、实现与优化实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AirSim相机传感器深度解析：架构、实现与优化实战</div></div><div class="info-2"><div class="info-item-1"> 本文深入解析AirSim相机传感器的技术架构与实现原理，从Unreal Engine渲染管线集成到多传感器数据流优化，为高保真视觉仿真提供完整的技术栈分析。通过对源码结构的解构和性能瓶颈的识别，提出可落地的优化方案，帮助开发者在PX4+AirSim联合仿真中实现更高效的相机传感器应用。  引言：AirSim相机系统在无人机仿真中的核心价值AirSim作为微软开源的高保真无人机与自动驾驶仿真平台，其相机传感器系统不仅提供接近真实的视觉渲染，更关键的是实现了物理准确的传感器模拟。在无人机仿真领域，相机不仅是”眼睛”，更是感知算法的验证基准——从目标检测到SLAM，从语义分割到深度估计，AirSim的相机系统为算法开发提供了可控、可复现的测试环境。 本文将从架构设计、实现机制、性能优化三个维度，深度解析AirSim相机传感器的技术实现，结合源码分析与实际应用案例，为读者提供从理论到实践的完整指南。 一、分层架构：从Python API到Unreal渲染管线AirSim相机传感器采用四层架构设计，这种分层设计使得系统既保持了跨平台能力，又能充分利用Unreal Engine的先进渲染特...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/10/shanghai-jiaotong-e2e-fly-5/" title="上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</div></div><div class="info-2"><div class="info-item-1"> 一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤立的工作——它们是一套逐渐完善的技术栈：    论文 arXiv 核心贡献    E2E-Fly 2604.12916 完整训练-部署系统：可微物理→渲染→域随机化→真机   High-Fidelity Diff Sim 2604.10548 深度图直接映射体速率，替代传统感知→规划→控制管线   VisFly-Lab 2603.21123 统一可微框架：悬停&#x2F;追踪&#x2F;着陆&#x2F;竞速，修正 BPTT 梯度   Gap Traversal 2604.02779 SE(3) 可微仿真，零样本穿越不规则缝隙   下面逐一拆解。  二、E2E-Fly：从可微物理到真机部署...</div></div></div></a><a class="pagination-related" href="/2026/02/12/MAVEN%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E5%85%83%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%AE%9E%E7%8E%B0%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8F%98%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%95%8F%E6%8D%B7%E9%A3%9E%E8%A1%8C/" title="MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-12</div><div class="info-item-2">MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers 作者: Jin Zhou, Dongcheng Cao, Xian Wang, Shuo Li（浙江大学控制科学与工程学院） 发表: arXiv:2603.10714, 2026 年 3 月 链接: arXiv | 视频    一、为什么需要 MAVEN？1.1 标准 RL 的致命缺陷：动力学一变就崩近年来，深度强化学习在四旋翼敏捷飞行领域取得了令人瞩目的突破。2023 年 Kaufmann 等人在 Nature 上发表的工作证明，RL 策略可以在无人机竞速中击败世界冠军级别的人类飞手。然而，这些令人印象深刻的成果都建立在一个隐含假设之上：训练时的动力学模型与部署时完全一致。 现实世界远没有这么理想。一架四旋翼可能因为以下原因产生显著的动力学变化：  负载变化：挂载不同传感器、携带货物、电池电量变化导致质量改变 执行器故障：电机老化、螺旋桨损伤导致...</div></div></div></a><a class="pagination-related" href="/2026/05/09/2026-05-09-neural-residual-correction/" title="神经残差补正：为什么AI+物理方程才是仿真和飞控的正确姿势"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">神经残差补正：为什么AI+物理方程才是仿真和飞控的正确姿势</div></div><div class="info-2"><div class="info-item-1">  本文目标：系统论证「物理方程 + 小神经网络补正」这条技术路线的正确性，提供完整的论文证据链。适合对飞控仿真和 AI 结合感兴趣的读者。   引言：两条极端的死胡同在无人机飞控和物理仿真领域，存在两条看似合理但都走不通的极端路线：  纯物理方程：精确、可解释、守恒律严格。但在复杂气动（地面效应、桨间干扰、大攻角失速）面前无能为力。 纯神经网络：灵活、数据驱动、不需要先验知识。但外推崩溃、不保证物理守恒、需要海量数据。  有没有第三条路？ 有。它叫神经残差补正（Neural Residual Correction）——让物理方程管主干（95%），神经网络只补细节（5%）。 这条路不仅有工程直觉支撑，更有从 ICRA 2019 到 Science Robotics 2022 的完整论文链。  一、概念：神经残差补正是什么1.1 核心思想 传统飞控仿真中，飞行器的总受力可以写为： Ftrue=mg+Faero+Fground effect+Frotor interference+⋯F_{\text{true}} = mg + F_{\text{aero}} + F_{\text{g...</div></div></div></a><a class="pagination-related" href="/2026/02/04/AI%E7%94%9F%E6%88%90%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8C%87%E6%8E%A7%E7%B3%BB%E7%BB%9F-%E4%BB%8E%E9%9B%B6%E8%A1%8C%E4%BA%BA%E5%B7%A5%E4%BB%A3%E7%A0%81%E5%88%B0%E5%A4%A9%E7%A9%BA%E4%B8%AD%E7%9A%84%E9%A3%9E%E8%A1%8C%E7%BD%91%E7%AB%99/" title="AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-04</div><div class="info-item-2">AI 生成无人机指控系统深度解析：从零行人工代码到天空中的飞行网站</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: AI generated drone command and control station hosted in the sky 作者: Peter J. Burke（加州大学尔湾分校 电气工程与计算机科学系） 发表: npj Artificial Intelligence, 2, 43 (2026)，2026 年 4 月 15 日 DOI: 10.1038&#x2F;s44387-026-00101-6 代码: GitHub - PeterJBurke&#x2F;WebGCS 预印本: arXiv:2508.02962（2025 年 8 月）    一、一句话概括：机器给机器造了大脑这篇发表在 Nature 旗下 npj Artificial Intelligence 的论文做了一件听起来像科幻但实际上已经飞上天的事：用 LLM 从零开始编写一个完整的无人机指挥控制站（GCS），部署到树莓派上随无人机一起飞到天上，让无人机自身成为一个飞行网站。 整个过程中，没有一行代码是人类写的。人类只做了一件事——写 prompt。 这项工作由 UCI（加州大学尔湾分校...</div></div></div></a><a class="pagination-related" href="/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/" title="可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-27</div><div class="info-item-2">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</div></div><div class="info-2"><div class="info-item-1"> 本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真完全入门 讲名词，本篇讲引擎本身。    一、先把”可微物理引擎”这五个字拆开1.1 什么是物理引擎？任何物理仿真本质上是一个状态递推： st+1=f(st, ut, θ)s_{t+1} = f(s_t,\, u_t,\, \theta)st+1​=f(st​,ut​,θ)   sts_tst​：当前状态（位置、速度、姿态、角速度……） utu_tut​：当前控制输入（电机指令、舵面偏转……） θ\thetaθ：物理参数（质量、惯量、摩擦、空气阻力、电机系数……） fff：物理引擎本身——给定当前状态和输入，告诉你下一时刻的状态  PhysX、Bullet、ODE、MuJoCo、Drak...</div></div></div></a><a class="pagination-related" href="/2026/02/25/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E8%87%AA%E5%8A%A8%E4%BC%98%E5%8C%96-%E6%A2%AF%E5%BA%A6%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/" title="可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-25</div><div class="info-item-2">可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？</div></div><div class="info-2"><div class="info-item-1"> 本文目标：让完全没有机器学习或数值优化背景的读者，从零开始理解”可微仿真”相关的核心名词。   无人机仿真就是用计算机模拟无人机的飞行——给定一组参数（质量、推力系数等），计算机算出无人机怎么飞。     一、从一道最简单的数学题说起想象你要解一个问题：  找一个数 xxx，使得 x2=9x^2 = 9x2=9。  很简单，x=3x = 3x=3 或 x=−3x = -3x=−3，心算就行。 现在换个问题：  找一个数 xxx，使得 x3−2x2+5x−17=0x^3 - 2x^2 + 5x - 17 = 0x3−2x2+5x−17=0。  你还能心算吗？不能了。你需要试：  试 x=2x = 2x=2：8−8+10−17=−78 - 8 + 10 - 17 = -78−8+10−17=−7（太小了） 试 x=3x = 3x=3：27−18+15−17=727 - 18 + 15 - 17 = 727−18+15−17=7（太大了）  介于 222 和 333 之间。 再试 x=2.5x = 2.5x=2.5：15.625−12.5+12.5−17=−1.37515.625 -...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BC%95%E8%A8%80%EF%BC%9A%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E9%A3%9E%E8%A1%8C%E9%9D%A2%E4%B8%B4%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8C%91%E6%88%98"><span class="toc-number">1.</span> <span class="toc-text">一、引言：端到端四旋翼自主飞行面临的核心挑战</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E5%85%A8%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">二、系统架构全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%8EVisFly-Lab%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 与VisFly-Lab的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B8%80%EF%BC%9A%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E"><span class="toc-number">3.</span> <span class="toc-text">三、核心技术一：可微物理引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 四旋翼动力学模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%AF%E5%BE%AE%E6%80%A7%E7%9A%84%E6%95%B0%E5%AD%A6%E6%9C%AC%E8%B4%A8"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 可微性的数学本质</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%9D%A2%E5%90%91%E9%83%A8%E7%BD%B2%E7%9A%84%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 面向部署的动力学建模</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%BA%8C%EF%BC%9A%E4%B8%80%E9%98%B6%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">四、核心技术二：一阶策略优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BB%8E%E9%9B%B6%E9%98%B6%E5%88%B0%E4%B8%80%E9%98%B6%EF%BC%9A%E8%8C%83%E5%BC%8F%E8%BD%AC%E5%8F%98"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 从零阶到一阶：范式转变</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%AE%AD%E7%BB%83%E5%BE%AA%E7%8E%AF"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 训练循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 损失函数设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E4%B8%8EVisFly-Lab%E7%9A%84%E5%AF%B9%E6%AF%94%E9%AA%8C%E8%AF%81"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 与VisFly-Lab的对比验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B8%89%EF%BC%9A%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E4%B8%8E%E4%BC%A0%E6%84%9F%E5%99%A8%E5%BB%BA%E6%A8%A1"><span class="toc-number">5.</span> <span class="toc-text">五、核心技术三：域随机化与传感器建模</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E5%8F%82%E6%95%B0%E7%A9%BA%E9%97%B4"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 域随机化参数空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E7%9A%84%E6%95%88%E6%9E%9C"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 域随机化的效果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%8F%AF%E5%BE%AE%E6%B8%B2%E6%9F%93%EF%BC%88%E8%A7%86%E8%A7%89%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 可微渲染（视觉策略）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E5%9B%9B%EF%BC%9A%E9%9B%B6%E6%A0%B7%E6%9C%AC%E9%83%A8%E7%BD%B2%E7%AE%A1%E7%BA%BF"><span class="toc-number">6.</span> <span class="toc-text">六、核心技术四：零样本部署管线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%87%BA%E6%B5%81%E7%A8%8B"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 模型导出流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%9B%B6%E6%A0%B7%E6%9C%AC%E8%BF%81%E7%A7%BB%E7%9A%84%E5%85%B3%E9%94%AE"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 零样本迁移的关键</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%8E%E4%BC%A0%E7%BB%9F%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 与传统部署的对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">七、实验结果分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%BB%BF%E7%9C%9F%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 仿真实验结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%9B%B6%E6%A0%B7%E6%9C%AC%E8%BF%81%E7%A7%BB%E9%AA%8C%E8%AF%81"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 零样本迁移验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94%E4%B8%8E%E5%AB%81%E6%8E%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">8.</span> <span class="toc-text">八、技术对比与嫁接路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%BC%A0%E7%BB%9F%E6%A8%A1%E5%9D%97%E5%8C%96-vs-E2E-Fly"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 传统模块化 vs E2E-Fly</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AB%81%E6%8E%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 嫁接路径</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="toc-number">9.</span> <span class="toc-text">九、局限性与未来方向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BD%93%E5%89%8D%E5%B1%80%E9%99%90"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 当前局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 未来方向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">十、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">11.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

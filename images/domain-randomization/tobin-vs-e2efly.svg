@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380">
+  <style>text{font-family:"Helvetica Neue",Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif}</style>
+  <defs><filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/></filter></defs>
+  <rect width="960" height="380" fill="#ffffff"/>
+  <text x="480" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">Sim-to-Real 方法论演进: 2017 → 2026</text>
+  <text x="480" y="55" text-anchor="middle" font-size="12" fill="#6b7280">从域随机化开山到可微物理落地 — 九年间的方法论升级</text>
+  <rect x="30" y="75" width="280" height="280" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" stroke-opacity="0.3"/>
+  <text x="170" y="102" text-anchor="middle" font-size="14" font-weight="600" fill="#2563eb">Tobin et al. 2017</text>
+  <text x="50" y="125" font-size="10" font-weight="600" fill="#6b7280">物理模型</text>
+  <text x="270" y="125" text-anchor="middle" font-size="11" fill="#111827">不可微刚体 (MuJoCo)</text>
+  <text x="50" y="155" font-size="10" font-weight="600" fill="#6b7280">渲染</text>
+  <text x="270" y="155" text-anchor="middle" font-size="11" fill="#111827">低质量, 算法纹理</text>
+  <text x="50" y="185" font-size="10" font-weight="600" fill="#6b7280">域随机化</text>
+  <text x="270" y="185" text-anchor="middle" font-size="11" fill="#111827">全部随机化</text>
+  <text x="50" y="215" font-size="10" font-weight="600" fill="#6b7280">训练目标</text>
+  <text x="270" y="215" text-anchor="middle" font-size="11" fill="#111827">监督学习 (定位)</text>
+  <text x="50" y="245" font-size="10" font-weight="600" fill="#6b7280">输出</text>
+  <text x="270" y="245" text-anchor="middle" font-size="11" fill="#111827">物体坐标 (x,y,z)</text>
+  <text x="50" y="275" font-size="10" font-weight="600" fill="#6b7280">精度</text>
+  <text x="270" y="275" text-anchor="middle" font-size="11" fill="#111827">1.5cm 定位</text>
+  <text x="50" y="305" font-size="10" font-weight="600" fill="#6b7280">真机任务</text>
+  <text x="270" y="305" text-anchor="middle" font-size="11" fill="#111827">静态抓取</text>
+  <rect x="580" y="75" width="280" height="280" rx="12" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" stroke-opacity="0.3"/>
+  <text x="720" y="102" text-anchor="middle" font-size="14" font-weight="600" fill="#059669">E2E-Fly 2026</text>
+  <text x="600" y="125" font-size="10" font-weight="600" fill="#6b7280">物理模型</text>
+  <text x="820" y="125" text-anchor="middle" font-size="11" fill="#111827">可微 6DOF + 气动</text>
+  <text x="600" y="155" font-size="10" font-weight="600" fill="#6b7280">渲染</text>
+  <text x="820" y="155" text-anchor="middle" font-size="11" fill="#111827">真实相机噪声模型</text>
+  <text x="600" y="185" font-size="10" font-weight="600" fill="#6b7280">域随机化</text>
+  <text x="820" y="185" text-anchor="middle" font-size="11" fill="#111827">先辨识再随机化</text>
+  <text x="600" y="215" font-size="10" font-weight="600" fill="#6b7280">训练目标</text>
+  <text x="820" y="215" text-anchor="middle" font-size="11" fill="#111827">端到端 RL (控制)</text>
+  <text x="600" y="245" font-size="10" font-weight="600" fill="#6b7280">输出</text>
+  <text x="820" y="245" text-anchor="middle" font-size="11" fill="#111827">体速率指令</text>
+  <text x="600" y="275" font-size="10" font-weight="600" fill="#6b7280">精度</text>
+  <text x="820" y="275" text-anchor="middle" font-size="11" fill="#111827">自主飞行全任务</text>
+  <text x="600" y="305" font-size="10" font-weight="600" fill="#6b7280">真机任务</text>
+  <text x="820" y="305" text-anchor="middle" font-size="11" fill="#111827">悬停·追踪·避障·着陆</text>
+  <text x="480" y="200" text-anchor="middle" font-size="28" fill="#9ca3af">→</text>
+  <rect x="100" y="355" width="760" height="20" rx="5" fill="#111827"/>
+  <text x="480" y="370" text-anchor="middle" font-size="11" fill="#fbbf24">升级的核心: 从"仿真当成黑盒"到"梯度穿过仿真" — 从"随机化覆盖"到"先辨识后随机"</text>
+</svg>

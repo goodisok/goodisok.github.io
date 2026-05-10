@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620">
+<style>
+text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+</style>
+<rect width="960" height="620" fill="#ffffff"/>
+<text x="480" y="34" text-anchor="middle" font-size="20" font-weight="600" fill="#111827">RL 三大范式对比</text>
+<rect x="30" y="60" width="280" height="65" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+<text x="170" y="85" text-anchor="middle" font-size="16" font-weight="600" fill="#2563eb">Value-Based</text>
+<text x="170" y="108" text-anchor="middle" font-size="12" fill="#6b7280">先评价，再决策</text>
+<text x="40" y="155" font-size="12" font-weight="600" fill="#374151">代表算法：</text>
+<rect x="45" y="165" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="55" y="183" font-size="12" fill="#374151">Q-Learning</text>
+<rect x="45" y="197" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="55" y="215" font-size="12" fill="#374151">DQN</text>
+<rect x="45" y="229" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="55" y="247" font-size="12" fill="#374151">DDQN</text>
+<rect x="45" y="261" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="55" y="279" font-size="12" fill="#374151">Rainbow</text>
+<text x="40" y="305" font-size="12" font-weight="600" fill="#15803d">✓ 优势：</text>
+<circle cx="55" cy="325" r="3" fill="#16a34a"/>
+<text x="65" y="329" font-size="12" fill="#374151">样本效率高</text>
+<circle cx="55" cy="349" r="3" fill="#16a34a"/>
+<text x="65" y="353" font-size="12" fill="#374151">理论保证收敛</text>
+<circle cx="55" cy="373" r="3" fill="#16a34a"/>
+<text x="65" y="377" font-size="12" fill="#374151">离线学习友好</text>
+<text x="40" y="412" font-size="12" font-weight="600" fill="#dc2626">✗ 劣势：</text>
+<circle cx="55" cy="432" r="3" fill="#dc2626"/>
+<text x="65" y="436" font-size="12" fill="#374151">仅限离散动作</text>
+<circle cx="55" cy="456" r="3" fill="#dc2626"/>
+<text x="65" y="460" font-size="12" fill="#374151">值函数估计有偏</text>
+<circle cx="55" cy="480" r="3" fill="#dc2626"/>
+<text x="65" y="484" font-size="12" fill="#374151">高维动作失效</text>
+<rect x="330" y="60" width="280" height="65" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2"/>
+<text x="470" y="85" text-anchor="middle" font-size="16" font-weight="600" fill="#16a34a">Policy-Based</text>
+<text x="470" y="108" text-anchor="middle" font-size="12" fill="#6b7280">直接学怎么做</text>
+<text x="340" y="155" font-size="12" font-weight="600" fill="#374151">代表算法：</text>
+<rect x="345" y="165" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="355" y="183" font-size="12" fill="#374151">REINFORCE</text>
+<rect x="345" y="197" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="355" y="215" font-size="12" fill="#374151">A2C/A3C</text>
+<rect x="345" y="229" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="355" y="247" font-size="12" fill="#374151">PPO</text>
+<rect x="345" y="261" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="355" y="279" font-size="12" fill="#374151">TRPO</text>
+<text x="340" y="305" font-size="12" font-weight="600" fill="#15803d">✓ 优势：</text>
+<circle cx="355" cy="325" r="3" fill="#16a34a"/>
+<text x="365" y="329" font-size="12" fill="#374151">连续动作空间</text>
+<circle cx="355" cy="349" r="3" fill="#16a34a"/>
+<text x="365" y="353" font-size="12" fill="#374151">随机策略自然</text>
+<circle cx="355" cy="373" r="3" fill="#16a34a"/>
+<text x="365" y="377" font-size="12" fill="#374151">直接优化目标</text>
+<text x="340" y="412" font-size="12" font-weight="600" fill="#dc2626">✗ 劣势：</text>
+<circle cx="355" cy="432" r="3" fill="#dc2626"/>
+<text x="365" y="436" font-size="12" fill="#374151">样本效率低</text>
+<circle cx="355" cy="456" r="3" fill="#dc2626"/>
+<text x="365" y="460" font-size="12" fill="#374151">高方差</text>
+<circle cx="355" cy="480" r="3" fill="#dc2626"/>
+<text x="365" y="484" font-size="12" fill="#374151">收敛慢</text>
+<rect x="630" y="60" width="280" height="65" rx="10" fill="#faf5ff" stroke="#e9d5ff" stroke-width="2"/>
+<text x="770" y="85" text-anchor="middle" font-size="16" font-weight="600" fill="#7c3aed">Model-Based</text>
+<text x="770" y="108" text-anchor="middle" font-size="12" fill="#6b7280">学世界模型再决策</text>
+<text x="640" y="155" font-size="12" font-weight="600" fill="#374151">代表算法：</text>
+<rect x="645" y="165" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="655" y="183" font-size="12" fill="#374151">DreamerV3</text>
+<rect x="645" y="197" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="655" y="215" font-size="12" fill="#374151">MuZero</text>
+<rect x="645" y="229" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="655" y="247" font-size="12" fill="#374151">PlaNet</text>
+<rect x="645" y="261" width="250" height="26" rx="5" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+<text x="655" y="279" font-size="12" fill="#374151">TD-MPC2</text>
+<text x="640" y="305" font-size="12" font-weight="600" fill="#15803d">✓ 优势：</text>
+<circle cx="655" cy="325" r="3" fill="#16a34a"/>
+<text x="665" y="329" font-size="12" fill="#374151">样本效率极高</text>
+<circle cx="655" cy="349" r="3" fill="#16a34a"/>
+<text x="665" y="353" font-size="12" fill="#374151">可"做梦"训练</text>
+<circle cx="655" cy="373" r="3" fill="#16a34a"/>
+<text x="665" y="377" font-size="12" fill="#374151">planning能力</text>
+<text x="640" y="412" font-size="12" font-weight="600" fill="#dc2626">✗ 劣势：</text>
+<circle cx="655" cy="432" r="3" fill="#dc2626"/>
+<text x="665" y="436" font-size="12" fill="#374151">模型误差累积</text>
+<circle cx="655" cy="456" r="3" fill="#dc2626"/>
+<text x="665" y="460" font-size="12" fill="#374151">学习不稳定</text>
+<circle cx="655" cy="480" r="3" fill="#dc2626"/>
+<text x="665" y="484" font-size="12" fill="#374151">工程复杂</text>
+<rect x="80" y="500" width="800" height="100" rx="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.5"/>
+<text x="480" y="525" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">2025-2026 趋势：三大范式融合</text>
+<text x="480" y="552" text-anchor="middle" font-size="13" fill="#374151">PPO + World Model（Dreamer）| Actor-Critic 统一价值与策略 | World Model 加速 RL（SkyDreamer）</text>
+<text x="480" y="578" text-anchor="middle" font-size="12" fill="#6b7280">核心趋势：用 Model-Based 的样本效率 × Policy Gradient 的灵活性 × Value Function 的稳定性</text>
+</svg>

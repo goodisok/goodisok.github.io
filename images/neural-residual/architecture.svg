@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 650">
+<style>
+text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+</style>
+<rect width="960" height="650" fill="#ffffff"/>
+<defs>
+<marker id="ab" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/></marker>
+<marker id="ag" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/></marker>
+<marker id="ao" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/></marker>
+</defs>
+<text x="480" y="34" text-anchor="middle" font-size="20" font-weight="600" fill="#111827">神经残差补正架构：物理方程 + 神经网络</text>
+<rect x="60" y="180" width="130" height="50" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="125" y="210" text-anchor="middle" font-size="14" font-weight="600" fill="#374151">状态 s</text>
+<path d="M 190 205 L 240 205" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+<path d="M 240 130 L 240 280" stroke="#6b7280" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+<path d="M 240 130 L 370 130" stroke="#6b7280" stroke-width="1.5" fill="none" marker-end="url(#ag)"/>
+<path d="M 240 280 L 370 280" stroke="#6b7280" stroke-width="1.5" fill="none" marker-end="url(#ag)"/>
+<rect x="375" y="100" width="200" height="60" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+<text x="475" y="122" text-anchor="middle" font-size="14" font-weight="600" fill="#1d4ed8">物理方程（精确）</text>
+<text x="475" y="142" text-anchor="middle" font-size="11" fill="#6b7280">F = ma, BEMT, 刚体动力学</text>
+<rect x="375" y="250" width="200" height="60" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="2"/>
+<text x="475" y="272" text-anchor="middle" font-size="14" font-weight="600" fill="#dc2626">神经网络（补正）</text>
+<text x="475" y="292" text-anchor="middle" font-size="11" fill="#6b7280">小型 MLP, ~10K-50K 参数</text>
+<path d="M 575 130 L 640 130" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#ab)"/>
+<path d="M 575 280 L 640 280" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#ao)"/>
+<rect x="580" y="115" width="60" height="30" rx="4" fill="#ffffff" opacity="0.95"/>
+<text x="610" y="135" text-anchor="middle" font-size="12" fill="#2563eb">F_phys</text>
+<rect x="580" y="265" width="60" height="30" rx="4" fill="#ffffff" opacity="0.95"/>
+<text x="610" y="285" text-anchor="middle" font-size="12" fill="#dc2626">ΔF_nn</text>
+<circle cx="700" cy="205" r="30" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+<text x="700" y="200" text-anchor="middle" font-size="16" fill="#15803d">+</text>
+<text x="700" y="218" text-anchor="middle" font-size="10" fill="#6b7280">求和</text>
+<path d="M 645 130 L 670 130 L 670 185 L 672 185" stroke="#2563eb" stroke-width="1.5" fill="none"/>
+<path d="M 645 280 L 670 280 L 670 225 L 672 225" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+<line x1="730" y1="205" x2="820" y2="205" stroke="#16a34a" stroke-width="2.5" marker-end="url(#ag)"/>
+<rect x="740" y="190" width="70" height="22" rx="4" fill="#ffffff" opacity="0.95"/>
+<text x="775" y="206" text-anchor="middle" font-size="12" fill="#16a34a">F_total</text>
+<rect x="825" y="175" width="100" height="60" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+<text x="875" y="200" text-anchor="middle" font-size="13" font-weight="600" fill="#15803d">动力学更新</text>
+<text x="875" y="220" text-anchor="middle" font-size="11" fill="#6b7280">s → s'</text>
+<rect x="80" y="370" width="800" height="80" rx="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.5"/>
+<text x="480" y="400" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">核心方程</text>
+<text x="480" y="430" text-anchor="middle" font-family="monospace" font-size="14" fill="#374151">F_total(s) = F_physics(s) + f_nn(s, θ)</text>
+<rect x="80" y="480" width="220" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" opacity="0.6"/>
+<text x="190" y="502" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">方程管 95%</text>
+<text x="190" y="526" text-anchor="middle" font-size="11" fill="#6b7280">刚体动力学 + 气动解析模型</text>
+<text x="190" y="542" text-anchor="middle" font-size="11" fill="#6b7280">严格满足动量/能量守恒</text>
+<rect x="370" y="480" width="220" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" opacity="0.6"/>
+<text x="480" y="502" text-anchor="middle" font-size="13" font-weight="600" fill="#dc2626">网络补 5%</text>
+<text x="480" y="526" text-anchor="middle" font-size="11" fill="#6b7280">地面效应、桨间干扰、湍流</text>
+<text x="480" y="542" text-anchor="middle" font-size="11" fill="#6b7280">只在训练数据覆盖范围内激活</text>
+<rect x="660" y="480" width="220" height="80" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" opacity="0.6"/>
+<text x="770" y="502" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">稳定性保证</text>
+<text x="770" y="526" text-anchor="middle" font-size="11" fill="#6b7280">谱归一化约束 Lipschitz 常数</text>
+<text x="770" y="542" text-anchor="middle" font-size="11" fill="#6b7280">DNN 输出有物理上界</text>
+<text x="480" y="595" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">关键论文链</text>
+<text x="180" y="625" text-anchor="middle" font-size="11" fill="#6b7280">Neural Lander (ICRA 2019)</text>
+<text x="480" y="625" text-anchor="middle" font-size="11" fill="#6b7280">DNN-MRAC (AIAA 2019)</text>
+<text x="780" y="625" text-anchor="middle" font-size="11" fill="#6b7280">Neural-Fly (Sci. Robotics 2022)</text>
+</svg>

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="960" height="480">
+<style>
+  text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+</style>
+<defs>
+  <marker id="arrow-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+  </marker>
+  <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+  </marker>
+</defs>
+
+<rect width="960" height="480" fill="#ffffff"/>
+<text x="480" y="30" fill="#111827" font-size="18" font-weight="600" text-anchor="middle">传统模块化 vs 端到端：两种架构路线</text>
+
+<!-- ====== 上半：传统模块化 ====== -->
+<rect x="30" y="50" width="900" height="195" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+<text x="480" y="75" fill="#dc2626" font-size="16" font-weight="600" text-anchor="middle">传统模块化架构（你现在的做法）</text>
+
+<!-- 模块1 -->
+<rect x="45" y="95" width="130" height="55" rx="6" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="110" y="115" fill="#111827" font-size="13" font-weight="600" text-anchor="middle">感知/检测</text>
+<text x="110" y="133" fill="#6b7280" font-size="10" text-anchor="middle">目标识别</text>
+<text x="110" y="145" fill="#6b7280" font-size="10" text-anchor="middle">位置估计</text>
+
+<line x1="175" y1="122" x2="205" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+<!-- 模块2 -->
+<rect x="205" y="95" width="130" height="55" rx="6" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="270" y="115" fill="#111827" font-size="13" font-weight="600" text-anchor="middle">制导律</text>
+<text x="270" y="133" fill="#6b7280" font-size="10" text-anchor="middle">PN / EPN</text>
+<text x="270" y="145" fill="#6b7280" font-size="10" text-anchor="middle">拦截方向计算</text>
+
+<line x1="335" y1="122" x2="365" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+<!-- 模块3 -->
+<rect x="365" y="95" width="130" height="55" rx="6" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="430" y="115" fill="#111827" font-size="13" font-weight="600" text-anchor="middle">姿态控制</text>
+<text x="430" y="133" fill="#6b7280" font-size="10" text-anchor="middle">PID</text>
+<text x="430" y="145" fill="#6b7280" font-size="10" text-anchor="middle">姿态角跟踪</text>
+
+<line x1="495" y1="122" x2="525" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+<!-- 模块4 -->
+<rect x="525" y="95" width="130" height="55" rx="6" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="590" y="115" fill="#111827" font-size="13" font-weight="600" text-anchor="middle">执行器</text>
+<text x="590" y="133" fill="#6b7280" font-size="10" text-anchor="middle">电机调速</text>
+<text x="590" y="145" fill="#6b7280" font-size="10" text-anchor="middle">PWM 输出</text>
+
+<line x1="655" y1="122" x2="685" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+<!-- 模块5 -->
+<rect x="685" y="95" width="130" height="55" rx="6" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="750" y="115" fill="#111827" font-size="13" font-weight="600" text-anchor="middle">机体动力学</text>
+<text x="750" y="133" fill="#6b7280" font-size="10" text-anchor="middle">6DOF 运动</text>
+<text x="750" y="145" fill="#6b7280" font-size="10" text-anchor="middle">气动效应</text>
+
+<!-- 问题区域 -->
+<rect x="45" y="165" width="770" height="65" rx="6" fill="#fee2e2" stroke="#fecaca" stroke-width="1"/>
+<text x="430" y="183" fill="#dc2626" font-size="13" font-weight="600" text-anchor="middle">⚠️ 每个模块之间的接口存在信息损失</text>
+<text x="55" y="200" fill="#b91c1c" font-size="11">• 目标坐标 → 制导指令 → 姿态角 → PWM → 实际飞行，每步都在"压缩"信息</text>
+<text x="55" y="218" fill="#b91c1c" font-size="11">• 前一个模块的误差会层层放大（感知偏 1° → 终点可能偏 10 米）</text>
+<text x="55" y="236" fill="#b91c1c" font-size="11">• 每个模块需要独立调参，开发成本高</text>
+
+<!-- 右侧：可微仿真在这个架构中的位置 -->
+<rect x="825" y="95" width="90" height="55" rx="6" fill="#fef3c7" stroke="#fde68a" stroke-width="1.5"/>
+<text x="870" y="117" fill="#92400e" font-size="11" font-weight="600" text-anchor="middle">🔧</text>
+<text x="870" y="135" fill="#92400e" font-size="10" text-anchor="middle">可微仿真</text>
+<text x="870" y="147" fill="#92400e" font-size="9" text-anchor="middle">帮各模块找参数</text>
+
+<path d="M 110 150 L 110 240 L 870 240 L 870 155" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="490" y="260" fill="#f59e0b" font-size="11" text-anchor="middle">🔑 可微仿真在模块化架构中不替换模块，而是帮每个模块找到更好的参数</text>
+
+<!-- ====== 下半：端到端 ====== -->
+<rect x="30" y="275" width="900" height="190" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+<text x="480" y="300" fill="#16a34a" font-size="16" font-weight="600" text-anchor="middle">端到端架构（E2E-Fly 的做法）</text>
+
+<!-- 大框 -->
+<rect x="45" y="315" width="870" height="65" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
+<text x="480" y="340" fill="#166534" font-size="14" font-weight="600" text-anchor="middle">🧠 单一神经网络（端到端）</text>
+<text x="480" y="360" fill="#16a34a" font-size="12" text-anchor="middle">输入：RGB 图像 + IMU 数据 → 直接输出：4 个电机的转速指令</text>
+<text x="480" y="375" fill="#6b7280" font-size="10" text-anchor="middle">感知、规划、控制全部融合在一个可微模型中</text>
+
+<!-- 对比 -->
+<rect x="45" y="390" width="870" height="60" rx="6" fill="#ffedd5" stroke="#fed7aa" stroke-width="1"/>
+<text x="480" y="410" fill="#c2410c" font-size="13" font-weight="600" text-anchor="middle">两种方案各有适用场景</text>
+<text x="55" y="430" fill="#c2410c" font-size="11">• 端到端适合：感知很复杂、传统模块搞不定的场景（视觉避障、未知环境飞行）</text>
+<text x="55" y="445" fill="#c2410c" font-size="11">• 传统模块化适合：你的拦截机场景（目标位置已知，制导有成熟公式，安全和可解释性要求高）</text>
+
+</svg>

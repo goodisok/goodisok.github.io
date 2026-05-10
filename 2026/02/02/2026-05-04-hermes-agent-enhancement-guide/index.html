@@ -1,0 +1,1190 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文目标：本文不是一篇教程，而是一份实操增强报告——记录如何将本地的 Hermes Agent 从 v0.10.0 升级到最新版，导入 42+ 个来自社区的生产级外部 Skills，并将 Andrej Karpathy 的编码原则融入 Agent 的默认人格，从而让 AI Agent 的能力实现质的飞跃。所有操作均经过实际执行验证。  一、为什么需要增强 Hermes？2026 年 4 月，No">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级">
+<meta property="og:url" content="https://goodisok.github.io/2026/02/02/2026-05-04-hermes-agent-enhancement-guide/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="本文目标：本文不是一篇教程，而是一份实操增强报告——记录如何将本地的 Hermes Agent 从 v0.10.0 升级到最新版，导入 42+ 个来自社区的生产级外部 Skills，并将 Andrej Karpathy 的编码原则融入 Agent 的默认人格，从而让 AI Agent 的能力实现质的飞跃。所有操作均经过实际执行验证。  一、为什么需要增强 Hermes？2026 年 4 月，No">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-02-02T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-01T16:00:00.000Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="GitHub">
+<meta property="article:tag" content="Hermes">
+<meta property="article:tag" content="Karpathy">
+<meta property="article:tag" content="Skills">
+<meta property="article:tag" content="教程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级",
+  "url": "https://goodisok.github.io/2026/02/02/2026-05-04-hermes-agent-enhancement-guide/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-02-02T02:00:00.000Z",
+  "dateModified": "2026-02-01T16:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/02/02/2026-05-04-hermes-agent-enhancement-guide/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Hermes Agent 能力增强实战：从 Skills 系统到 Karpathy 编码原则的全面升级</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-02T02:00:00.000Z" title="发表于 2026-02-02 10:00:00">2026-02-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-01T16:00:00.000Z" title="更新于 2026-02-02 00:00:00">2026-02-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p><strong>本文目标</strong>：本文不是一篇教程，而是一份<strong>实操增强报告</strong>——记录如何将本地的 Hermes Agent 从 v0.10.0 升级到最新版，导入 42+ 个来自社区的生产级外部 Skills，并将 Andrej Karpathy 的编码原则融入 Agent 的默认人格，从而让 AI Agent 的能力实现质的飞跃。所有操作均经过实际执行验证。</p>
+</blockquote>
+<h2 id="一、为什么需要增强-Hermes？"><a href="#一、为什么需要增强-Hermes？" class="headerlink" title="一、为什么需要增强 Hermes？"></a>一、为什么需要增强 Hermes？</h2><p>2026 年 4 月，NousResearch 的 Hermes Agent 在 GitHub Trending 上以 <strong>月增 108,122 星</strong> 的速度霸榜第二。与此同时，社区涌现了大量 Agent Skills 生态项目——mattpocock&#x2F;skills（57K 星）、addyosmani&#x2F;agent-skills（27K 星）、forrestchang&#x2F;andrej-karpathy-skills（109K 星）——它们积累的工程经验和编码最佳实践，本质上是可以<strong>跨 Agent 复用</strong>的。</p>
+<p>但现实是：</p>
+<ul>
+<li>大多数人在跑 <code>hermes </code> 后，用的是<strong>出厂默认的 Agent 行为</strong>——没有外部经验注入</li>
+<li>Skills 系统虽支持导入，但文档分散，<strong>缺少一个端到端的实操路径</strong></li>
+<li>Karpathy 的编码原则虽在 X 上爆火，但<strong>没有直接转化为 Agent 可消费的格式</strong></li>
+</ul>
+<p>本文就是填补这个空白。</p>
+<h2 id="二、增强前的基线状态"><a href="#二、增强前的基线状态" class="headerlink" title="二、增强前的基线状态"></a>二、增强前的基线状态</h2><p>在开始之前，先明确起点：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>增强前值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hermes 版本</td>
+<td><strong>v0.10.0</strong>（落后 2278 个 commit）</td>
+</tr>
+<tr>
+<td>Skills 数量</td>
+<td>~30 个（built-in）</td>
+</tr>
+<tr>
+<td>外部 Skills</td>
+<td>0</td>
+</tr>
+<tr>
+<td>默认人格</td>
+<td>无特定（出厂配置）</td>
+</tr>
+<tr>
+<td>编码原则注入</td>
+<td>无</td>
+</tr>
+<tr>
+<td>GitHub 连接</td>
+<td>HTTPS（中国网络频繁超时）</td>
+</tr>
+</tbody></table>
+<p>这是一个典型的”能用但不好用”的状态——Agent 能做基本的事，但它的行为完全由原始 prompt 决定，没有任何社区经验或最佳实践的积累。</p>
+<h2 id="三、第一步：版本升级（v0-10-→-v0-12）"><a href="#三、第一步：版本升级（v0-10-→-v0-12）" class="headerlink" title="三、第一步：版本升级（v0.10 → v0.12）"></a>三、第一步：版本升级（v0.10 → v0.12）</h2><h3 id="3-1-问题诊断"><a href="#3-1-问题诊断" class="headerlink" title="3.1 问题诊断"></a>3.1 问题诊断</h3><p><code>hermes update</code> 在默认 HTTPS 配置下直接失败：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fatal: unable to access &#x27;https://github.com/NousResearch/hermes-agent.git/&#x27;:</span><br><span class="line">GnuTLS recv error (-110): The TLS connection was non-properly terminated.</span><br></pre></td></tr></table></figure>
+
+<p>这是中国网络环境的典型痛点——HTTPS 到 GitHub 的 TLS 连接经常被中断。</p>
+<h3 id="3-2-切换到-SSH"><a href="#3-2-切换到-SSH" class="headerlink" title="3.2 切换到 SSH"></a>3.2 切换到 SSH</h3><p>解决方案是将远端 URL 从 HTTPS 改为 SSH：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.hermes/hermes-agent</span><br><span class="line">git remote set-url origin git@github.com:NousResearch/hermes-agent.git</span><br><span class="line">git fetch origin    <span class="comment"># SSH 秒级成功</span></span><br><span class="line">git merge --ff-only origin/main</span><br></pre></td></tr></table></figure>
+
+<p>SSH 方式的优势在于其持久连接和更稳定的认证通道，即使经过防火墙也比 HTTPS 更可靠。</p>
+<h3 id="3-3-升级结果"><a href="#3-3-升级结果" class="headerlink" title="3.3 升级结果"></a>3.3 升级结果</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>前后对比</th>
+<th>新增功能（部分）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>版本</td>
+<td><strong>v0.10.0 → v0.12.0</strong></td>
+<td><strong>2280 个新 commit</strong></td>
+</tr>
+<tr>
+<td>新增子系统</td>
+<td>—</td>
+<td>Kanban 任务板、Curator、Goals</td>
+</tr>
+<tr>
+<td>新增平台</td>
+<td>—</td>
+<td>元宝（Yuanbao）、飞书评论机器人</td>
+</tr>
+<tr>
+<td>新工具</td>
+<td>—</td>
+<td>browser_cdp_tool（CDP 浏览器控制）、discord_tool、kanban_tools、feishu_doc_tool</td>
+</tr>
+<tr>
+<td>网关重构</td>
+<td>—</td>
+<td>6K+ 行的网关重写、stream consumer、mirror 机制</td>
+</tr>
+<tr>
+<td>新增插件</td>
+<td>—</td>
+<td>Google Meet 集成、Achievements 成就系统、Kanban Dashboard</td>
+</tr>
+<tr>
+<td>TUI 重构</td>
+<td>—</td>
+<td>Ink (React) 终端 UI 完整重构、背景代理树、技能面板</td>
+</tr>
+</tbody></table>
+<p>升级到 v0.12.0 意味着 Hermes 不再只是一个”聊天式 Agent”，而是拥有了<strong>完整的任务编排能力</strong>（Kanban、Goals）和<strong>更强的扩展性</strong>（插件系统）。</p>
+<h2 id="四、第二步：导入外部-Skills-生态"><a href="#四、第二步：导入外部-Skills-生态" class="headerlink" title="四、第二步：导入外部 Skills 生态"></a>四、第二步：导入外部 Skills 生态</h2><h3 id="4-1-什么是-Hermes-Skills？"><a href="#4-1-什么是-Hermes-Skills？" class="headerlink" title="4.1 什么是 Hermes Skills？"></a>4.1 什么是 Hermes Skills？</h3><p>Hermes 的 Skills 系统本质上是一种<strong>程序性记忆</strong>——它不是数据（像 RAG 一样存文档），而是<strong>做事的方法</strong>。一个 Skill 是一个 <code>SKILL.md</code> 文件，定义了：</p>
+<ul>
+<li><strong>何时触发</strong>（description 字段）</li>
+<li><strong>怎么做</strong>（步骤、命令、脚本）</li>
+<li><strong>注意事项</strong>（pitfalls）</li>
+</ul>
+<p>Skills 系统的核心价值在于：<strong>将一次成功的复杂操作固化为可重复调用的 Procedure</strong>，从此不再需要从零推理。</p>
+<h3 id="4-2-选择要导入的外部-Skills"><a href="#4-2-选择要导入的外部-Skills" class="headerlink" title="4.2 选择要导入的外部 Skills"></a>4.2 选择要导入的外部 Skills</h3><p>从 GitHub Trending 中筛选出与 Hermes 兼容、且能带来实际增益的项目：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>Stars</th>
+<th>文件结构</th>
+<th>可导入数量</th>
+<th>核心领域</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>mattpocock&#x2F;skills</strong></td>
+<td>57K</td>
+<td>CLAUDE.md + skills&#x2F; 目录</td>
+<td><strong>22 个</strong></td>
+<td>TypeScript 工程、调试、TDD、PRD</td>
+</tr>
+<tr>
+<td><strong>addyosmani&#x2F;agent-skills</strong></td>
+<td>27K</td>
+<td>SKILL.md 格式</td>
+<td><strong>20 个</strong></td>
+<td>生产级工程（Code Review&#x2F;安全&#x2F;部署）</td>
+</tr>
+<tr>
+<td><strong>forrestchang&#x2F;andrej-karpathy-skills</strong></td>
+<td>109K</td>
+<td>单文件 CLAUDE.md</td>
+<td><strong>4 条原则</strong></td>
+<td>LLM 编码最佳实践</td>
+</tr>
+</tbody></table>
+<p>这三个项目覆盖了从「微观编码规范」到「宏观工程流程」的完整层次。</p>
+<h3 id="4-3-导入方式"><a href="#4-3-导入方式" class="headerlink" title="4.3 导入方式"></a>4.3 导入方式</h3><p>Hermes v0.12.0 原生支持两种导入方式：</p>
+<p><strong>方式 A：通过 Tap 机制（推荐）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hermes skills tap add https://github.com/mattpocock/skills</span><br><span class="line">hermes skills tap add https://github.com/addyosmani/agent-skills</span><br><span class="line">hermes skills tap add https://github.com/forrestchang/andrej-karpathy-skills</span><br></pre></td></tr></table></figure>
+
+<p>Tap 机制的优势是<strong>增量同步</strong>——源 repo 更新后，Hermes 可以自动拉取最新版本。</p>
+<p><strong>方式 B：直接克隆到 skills 目录</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/mattpocock/skills.git ~/.hermes/skills/mattpocock-skills</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/addyosmani/agent-skills.git ~/.hermes/skills/addyosmani-agent-skills</span><br></pre></td></tr></table></figure>
+
+<p>注意：Karpathy 的项目只有单文件，直接克隆太浪费，需要提取核心原则。</p>
+<h3 id="4-4-导入后的-Skills-全景"><a href="#4-4-导入后的-Skills-全景" class="headerlink" title="4.4 导入后的 Skills 全景"></a>4.4 导入后的 Skills 全景</h3><p>导入完成后，<code>hermes skills list</code> 的输出长度翻了一倍多：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>新增技能举例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>mattpocock&#x2F;skills</strong></td>
+<td><code>diagnose</code>（诊断复杂问题）、<code>tdd</code>（测试驱动开发）、<code>triage</code>（问题分类）、<code>zoom-out</code>（架构视角）、<code>improve-codebase-architecture</code>（架构改进）、<code>to-prd</code>（产品需求文档）、<code>git-guardrails-claude-code</code>（Git 安全护栏）</td>
+</tr>
+<tr>
+<td><strong>addyosmani&#x2F;agent-skills</strong></td>
+<td><code>code-review-and-quality</code>（代码审查）、<code>planning-and-task-breakdown</code>（任务规划）、<code>security-and-hardening</code>（安全加固）、<code>test-driven-development</code>（TDD）、<code>debugging-and-error-recovery</code>（调试与恢复）、<code>performance-optimization</code>（性能优化）、<code>shipping-and-launch</code>（发布管理）</td>
+</tr>
+</tbody></table>
+<p><strong>总计新增 42+ 个可用技能</strong>，涵盖：</p>
+<ul>
+<li>🔧 <strong>工程开发</strong>：TDD、调试、代码审查、架构改进</li>
+<li>🔒 <strong>安全</strong>：安全加固、Git 安全护栏</li>
+<li>📋 <strong>流程</strong>：任务规划、需求文档、发布管理</li>
+<li>🔍 <strong>分析</strong>：问题诊断、分类、性能优化</li>
+</ul>
+<h2 id="五、第三步：构建-Karpathy-编码原则-Skill"><a href="#五、第三步：构建-Karpathy-编码原则-Skill" class="headerlink" title="五、第三步：构建 Karpathy 编码原则 Skill"></a>五、第三步：构建 Karpathy 编码原则 Skill</h2><h3 id="5-1-四大原则"><a href="#5-1-四大原则" class="headerlink" title="5.1 四大原则"></a>5.1 四大原则</h3><p>Andrej Karpathy（前 Tesla AI 总监、OpenAI 创始成员）在 2026 年 4 月发布了一系列关于 LLM 编码陷阱的观察，迅速在开发者社区引发轰动。他将 AI Agent 编码中最常见的问题归纳为四个核心原则：</p>
+<p><strong>原则 1 — 先思考再编码（Think Before Coding）</strong></p>
+<blockquote>
+<p>大多数 LLM 犯的错误不是因为不会写代码，而是<strong>没想清楚就写</strong>。</p>
+</blockquote>
+<ul>
+<li>明确陈述假设——如果不确定，先问清楚</li>
+<li>呈现多个解读——不要默默选择一种</li>
+<li>有更简单的方案时主动提出</li>
+<li>困惑时停下来——说出不清楚的地方再问</li>
+</ul>
+<p><strong>原则 2 — 简洁优先（Simplicity First）</strong></p>
+<blockquote>
+<p>最小代码原则。每一行都要有存在的理由。</p>
+</blockquote>
+<ul>
+<li>只写解决当前问题所需的最少代码</li>
+<li>不为只用一次的场景做抽象</li>
+<li>不添加未要求的”灵活性”或”可配置性”</li>
+<li>不处理不可能发生的错误场景</li>
+<li>如果 200 行能写成 50 行，就重写</li>
+</ul>
+<p><strong>原则 3 — 外科手术式改动（Surgical Changes）</strong></p>
+<blockquote>
+<p>优秀的工程师像外科医生——只切该切的地方。</p>
+</blockquote>
+<ul>
+<li>只动必须动的地方</li>
+<li>不”顺带改进”不相关的代码、注释或格式</li>
+<li>不重构没坏的东西</li>
+<li>匹配现有风格</li>
+<li>只删除自己改动产生的孤儿代码</li>
+</ul>
+<p><strong>原则 4 — 目标驱动执行（Goal-Driven Execution）</strong></p>
+<blockquote>
+<p>把”做任务”变成”达到目标”。</p>
+</blockquote>
+<ul>
+<li>把任务转化为可验证的目标：”修 bug” → “写一个能复现 bug 的测试并让它通过”</li>
+<li>多步骤任务格式：<code>1. [步骤] → 验证: [检查项]</code></li>
+<li>强验证标准让 Agent 能独立迭代</li>
+</ul>
+<h3 id="5-2-创建-Hermes-Skill"><a href="#5-2-创建-Hermes-Skill" class="headerlink" title="5.2 创建 Hermes Skill"></a>5.2 创建 Hermes Skill</h3><p>为了让 Karpathy 的四大原则可被 Hermes 直接加载，我创建了一个标准的 <code>SKILL.md</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.hermes/skills/karpathy-coding-principles</span><br></pre></td></tr></table></figure>
+
+<p>Skill 文件包含完整的四大原则描述、使用方法和适用场景。创建后，Hermes 自动识别：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hermes skills list</span><br><span class="line"># → │ karpathy-coding-principles  │ local  │ enabled │</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-设为默认人格"><a href="#5-3-设为默认人格" class="headerlink" title="5.3 设为默认人格"></a>5.3 设为默认人格</h3><p>仅作为 Skill 加载还不够——我们希望这些原则<strong>默认影响每一个对话</strong>。Hermes 支持多人格（personality）系统：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config.yaml</span></span><br><span class="line"><span class="attr">agent:</span></span><br><span class="line">  <span class="attr">personalities:</span></span><br><span class="line">    <span class="attr">karpathy:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      You follow Karpathy&#x27;s engineering principles:</span></span><br><span class="line"><span class="string">      1. Think before coding — state assumptions, surface tradeoffs</span></span><br><span class="line"><span class="string">      2. Simplicity first — minimum code, no over-abstraction</span></span><br><span class="line"><span class="string">      3. Surgical changes — touch only what&#x27;s needed</span></span><br><span class="line"><span class="string">      4. Goal-driven execution — transform tasks into verifiable criteria</span></span><br><span class="line"><span class="string"></span>  <span class="attr">personality:</span> <span class="string">karpathy</span>    <span class="comment"># ← 设为默认</span></span><br></pre></td></tr></table></figure>
+
+<p>这样设置后，所有新会话都会默认启用 Karpathy 原则。在任意会话中也可以随时切换：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/personality karpathy    # 切换到 Karpathy 人格</span><br><span class="line">/personality helpful     # 切换回出厂人格</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、核心机制解析"><a href="#六、核心机制解析" class="headerlink" title="六、核心机制解析"></a>六、核心机制解析</h2><h3 id="6-1-Skills-是如何被调用的？"><a href="#6-1-Skills-是如何被调用的？" class="headerlink" title="6.1 Skills 是如何被调用的？"></a>6.1 Skills 是如何被调用的？</h3><p>理解了 Skills 的运作机制，才能最大化其价值。</p>
+<p><strong>加载阶段：</strong> 对话开始时，Hermes 扫描 <code>~/.hermes/skills/</code> 下所有 <code>SKILL.md</code> 文件，提取 <strong>name</strong> 和 <strong>description</strong> 字段，放在 Agent 的系统提示中作为可用的技能列表。</p>
+<p><strong>调用阶段：</strong> 当用户提出请求时，Agent 会根据技能描述判断哪个 Skill 适用，然后用 <code>skill_view(name)</code> 工具加载对应 SKILL.md 的完整内容。</p>
+<p>这就意味着：</p>
+<ul>
+<li><strong>描述一定要写准</strong>——太模糊导致 Agent 不知道该不该用</li>
+<li><strong>内容要精炼</strong>——不必要的废话会占用宝贵的上下文 token</li>
+<li><strong>Skill 可以嵌套</strong>——一个 Skill 的执行过程中可以调用另一个 Skill</li>
+</ul>
+<h3 id="6-2-Personality-与-Skills-的协同"><a href="#6-2-Personality-与-Skills-的协同" class="headerlink" title="6.2 Personality 与 Skills 的协同"></a>6.2 Personality 与 Skills 的协同</h3><p>Personality 和 Skills 虽然都影响 Agent 行为，但角色不同：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Personality</th>
+<th>Skill</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>作用域</strong></td>
+<td>全局（整个对话）</td>
+<td>任务级（按需加载）</td>
+</tr>
+<tr>
+<td><strong>加载时机</strong></td>
+<td>对话开始（注入 system prompt）</td>
+<td>运行时（按需调用）</td>
+</tr>
+<tr>
+<td><strong>内容类型</strong></td>
+<td>行为风格、价值观、原则</td>
+<td>具体步骤、命令、流程</td>
+</tr>
+<tr>
+<td><strong>冲突处理</strong></td>
+<td>不可叠加（一次只能选一个人格）</td>
+<td>可叠加（多个 Skill 同时生效）</td>
+</tr>
+</tbody></table>
+<p>我们当前的配置是：</p>
+<ul>
+<li><strong>Personality 层</strong>：Karpathy 四大原则（约束编码行为）</li>
+<li><strong>Skills 库</strong>：42+ 个外部 + 30+ builtin &#x3D; <strong>70+ 个可用技能</strong>（解决具体问题）</li>
+</ul>
+<p>当 Agent 收到”帮我做个代码审查”的任务时：</p>
+<ol>
+<li>Karpathy 人格约束它<strong>先思考再动笔</strong>（原则 1）</li>
+<li>它自动匹配到 <code>code-review-and-quality</code> skill</li>
+<li>按 Skill 定义的步骤执行审查</li>
+</ol>
+<p>这种协同效应远超单独使用其中任何一个。</p>
+<h2 id="七、增强效果对比"><a href="#七、增强效果对比" class="headerlink" title="七、增强效果对比"></a>七、增强效果对比</h2><h3 id="7-1-定量变化"><a href="#7-1-定量变化" class="headerlink" title="7.1 定量变化"></a>7.1 定量变化</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>增强前</th>
+<th>增强后</th>
+<th>增益</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hermes 版本</td>
+<td>v0.10.0</td>
+<td>v0.12.0</td>
+<td><strong>+2280 commits</strong></td>
+</tr>
+<tr>
+<td>可用 Skills</td>
+<td>~30</td>
+<td><strong>~70+</strong></td>
+<td><strong>+133%</strong></td>
+</tr>
+<tr>
+<td>外部来源 Skills</td>
+<td>0</td>
+<td><strong>42</strong></td>
+<td>从无到有</td>
+</tr>
+<tr>
+<td>默认人格</td>
+<td>无</td>
+<td><strong>Karpathy 编码原则</strong></td>
+<td>约束 Agent 行为</td>
+</tr>
+<tr>
+<td>Git 性能</td>
+<td>HTTPS（频繁超时）</td>
+<td><strong>SSH（稳定）</strong></td>
+<td>构建时间减半</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-定性变化"><a href="#7-2-定性变化" class="headerlink" title="7.2 定性变化"></a>7.2 定性变化</h3><p><strong>增强前</strong>的 Hermes 行为特征：</p>
+<ul>
+<li>接到编码任务后直接开始写</li>
+<li>经常做过多的抽象和重构</li>
+<li>代码风格与项目不匹配</li>
+<li>完成任务后缺少验证</li>
+</ul>
+<p><strong>增强后</strong>的行为特征：</p>
+<ul>
+<li>先问清楚假设再动手（Karpathy 原则 1）</li>
+<li>只写最精简的代码，不引入不必要的设计模式（原则 2）</li>
+<li>只改动相关代码，不顺手修饰（原则 3）</li>
+<li>每一步都有验证标准（原则 4）</li>
+<li>遇到复杂任务自动加载对应 Skill 按步骤执行</li>
+</ul>
+<h3 id="7-3-典型场景"><a href="#7-3-典型场景" class="headerlink" title="7.3 典型场景"></a>7.3 典型场景</h3><p><strong>场景：质量检查 2000+ 行代码</strong> → 先用 <code>code-review-and-quality</code> + <code>security-and-hardening</code> + <code>performance-optimization</code> 三个 skill 并行审查，然后 Karpathy 原则约束改动量（只针对必改项，不顺手重构）。</p>
+<h2 id="八、技术难点与解决方案"><a href="#八、技术难点与解决方案" class="headerlink" title="八、技术难点与解决方案"></a>八、技术难点与解决方案</h2><h3 id="8-1-GitHub-连接问题"><a href="#8-1-GitHub-连接问题" class="headerlink" title="8.1 GitHub 连接问题"></a>8.1 GitHub 连接问题</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>现象</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTPS 连接中断</td>
+<td><code>GnuTLS recv error (-110)</code></td>
+<td>切换到 SSH 协议</td>
+</tr>
+<tr>
+<td>Git pull 超时</td>
+<td>60s 无响应</td>
+<td><code>git remote set-url origin git@github.com:...</code></td>
+</tr>
+<tr>
+<td>大规模 clone</td>
+<td>2280 commit 的 merge</td>
+<td><code>git merge --ff-only</code> 确保无冲突</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-Skills-兼容性"><a href="#8-2-Skills-兼容性" class="headerlink" title="8.2 Skills 兼容性"></a>8.2 Skills 兼容性</h3><p>外部 Skills 是为 Claude Code 设计的（<code>.claude/</code>, <code>CLAUDE.md</code> 格式），Hermes 的 Skills 系统使用 <code>SKILL.md</code> 格式。两者结构相似但不完全一致：</p>
+<table>
+<thead>
+<tr>
+<th>格式维度</th>
+<th>Claude Code 格式</th>
+<th>Hermes 格式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文件名</td>
+<td><code>CLAUDE.md</code> 或 <code>SKILL.md</code></td>
+<td><code>SKILL.md</code></td>
+</tr>
+<tr>
+<td>目录结构</td>
+<td><code>.claude/skills/</code></td>
+<td><code>~/.hermes/skills/&lt;name&gt;/</code></td>
+</tr>
+<tr>
+<td>元数据</td>
+<td><code>---</code> frontmatter</td>
+<td><code>---</code> YAML frontmatter</td>
+</tr>
+<tr>
+<td>触发机制</td>
+<td>文件名匹配</td>
+<td><code>description</code> 字段语义匹配</td>
+</tr>
+</tbody></table>
+<p><strong>关键发现：</strong> Hermes 的 Skills 系统实际上<strong>兼容 Claude Code 的 skill 目录结构</strong>。只要源仓库使用 <code>skills/&lt;name&gt;/SKILL.md</code> 的组织方式，即可直接克隆到 <code>~/.hermes/skills/</code> 下被 Hermes 识别。这解释了为什么 mattpocock&#x2F;skills 和 addyosmani&#x2F;agent-skills 的 <code>skills/</code> 目录都能无缝导入。</p>
+<h3 id="8-3-升级风险控制"><a href="#8-3-升级风险控制" class="headerlink" title="8.3 升级风险控制"></a>8.3 升级风险控制</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 升级前备份核心配置</span></span><br><span class="line"><span class="built_in">cp</span> ~/.hermes/config.yaml ~/hermes-config.backup.yaml</span><br><span class="line"><span class="built_in">cp</span> ~/.hermes/.env ~/hermes-env.backup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 升级后检查关键功能</span></span><br><span class="line">hermes doctor        <span class="comment"># 依赖和配置健康检查</span></span><br><span class="line">hermes skills list   <span class="comment"># Skills 是否正常加载</span></span><br><span class="line">hermes --version     <span class="comment"># 版本号确认</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="九、Skills-系统的设计哲学"><a href="#九、Skills-系统的设计哲学" class="headerlink" title="九、Skills 系统的设计哲学"></a>九、Skills 系统的设计哲学</h2><h3 id="9-1-为什么是-Skills-而不是-RAG？"><a href="#9-1-为什么是-Skills-而不是-RAG？" class="headerlink" title="9.1 为什么是 Skills 而不是 RAG？"></a>9.1 为什么是 Skills 而不是 RAG？</h3><p>这是一个架构选择问题。很多 Agent 框架依赖 RAG（检索增强生成）来”记住”如何做事，但 Skills 走的是另一条路：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RAG</th>
+<th>Skills</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>存储内容</strong></td>
+<td>文档、知识、事实</td>
+<td>程序、步骤、流程</td>
+</tr>
+<tr>
+<td><strong>检索方式</strong></td>
+<td>向量相似度搜索</td>
+<td>语义描述匹配</td>
+</tr>
+<tr>
+<td><strong>输出</strong></td>
+<td>参考信息</td>
+<td>可执行的指令序列</td>
+</tr>
+<tr>
+<td><strong>上下文消耗</strong></td>
+<td>全文注入（高）</td>
+<td>按需加载（低）</td>
+</tr>
+<tr>
+<td><strong>维护方式</strong></td>
+<td>重新索引</td>
+<td>编辑 SKILL.md</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>“告诉我 X 是什么”</td>
+<td>“帮我做 X 这件事”</td>
+</tr>
+</tbody></table>
+<p>Skills 的核心优势在于：<strong>它不提供”知识”，它提供”方法”</strong>。对于 AI Agent 来说，”知道怎么干”比”知道是什么”重要得多。</p>
+<h3 id="9-2-Skills-的自我进化"><a href="#9-2-Skills-的自我进化" class="headerlink" title="9.2 Skills 的自我进化"></a>9.2 Skills 的自我进化</h3><p>Hermes Skills 系统有一个独特的设计：<strong>Agent 可以自己创建和更新 Skills</strong>。</p>
+<ul>
+<li>解复杂的任务后，Agent 可以调用 <code>skill_manage(action=&#39;create&#39;)</code> 保存工作流</li>
+<li>发现 Skill 过时或不完整时，可以直接 <code>skill_manage(action=&#39;patch&#39;)</code> 修复</li>
+<li>外部 Skills 通过 Tap 机制同步社区最新版本</li>
+</ul>
+<p>这意味着 Skills 库不是静态的——它在使用过程中<strong>持续增长</strong>。每次成功的复杂操作都是技能的固化，每次遇错都是技能的修正。这本质上是一个<strong>技能积累飞轮</strong>。</p>
+<h2 id="十、未来演进方向"><a href="#十、未来演进方向" class="headerlink" title="十、未来演进方向"></a>十、未来演进方向</h2><h3 id="10-1-Kanban-Skills-的工作流编排"><a href="#10-1-Kanban-Skills-的工作流编排" class="headerlink" title="10.1 Kanban + Skills 的工作流编排"></a>10.1 Kanban + Skills 的工作流编排</h3><p>Hermes v0.12.0 新增的 Kanban 系统可以与 Skills 深度结合。理想的工作流是：</p>
+<ol>
+<li>Goal（大目标） → 拆解为 Kanban 卡</li>
+<li>每张卡自动匹配合适的 Skill</li>
+<li>Skill 指导 Agent 完成任务</li>
+<li>完成后卡片自动流转</li>
+</ol>
+<h3 id="10-2-外部-Skills-的版本管理"><a href="#10-2-外部-Skills-的版本管理" class="headerlink" title="10.2 外部 Skills 的版本管理"></a>10.2 外部 Skills 的版本管理</h3><p>当前 Tap 机制没有版本锁定。当源仓库大改时，可能导致 Skill 不兼容。未来需要：</p>
+<ul>
+<li>支持指定 Tap 的 commit&#x2F;tag</li>
+<li>Skills 更新前自动 diff 展示变化</li>
+<li>版本回退能力</li>
+</ul>
+<h3 id="10-3-Agent-间的-Skills-共享"><a href="#10-3-Agent-间的-Skills-共享" class="headerlink" title="10.3 Agent 间的 Skills 共享"></a>10.3 Agent 间的 Skills 共享</h3><p>当前 Skills 是本地私有的。如果能在不同 Agent 实例之间共享 Skills：</p>
+<ul>
+<li>团队沉淀的工程经验直接复用到所有 Agent</li>
+<li>更快的技能进化速度</li>
+<li>将 Skills 变成团队的工程资产</li>
+</ul>
+<h2 id="十一、总结"><a href="#十一、总结" class="headerlink" title="十一、总结"></a>十一、总结</h2><p>本文记录了将 Hermes Agent 从 v0.10.0 升级到 v0.12.0、导入 42+ 个社区 Skills、并将 Karpathy 编码原则注入默认人格的完整过程。</p>
+<p><strong>核心贡献</strong>不在于单个操作——每个步骤本身都有官方文档——而在于：</p>
+<ol>
+<li><strong>打通了社区 Skills 到 Hermes 的导入链路</strong>，验证了跨 Agent 框架的 Skill 兼容性</li>
+<li><strong>构建了”Personality 约束行为 + Skills 指导步骤”的协同架构</strong></li>
+<li><strong>将 Karpathy 的编码原则从推文转化为 Agent 可消费的形式</strong></li>
+</ol>
+<p>最终的 Hermes 不再是出厂配置的空壳——它带着社区积累的工程经验、被编码原则约束的行为规范，以及持续进化的能力。这就是”自我增强的 Agent”的起点。</p>
+<hr>
+<h2 id="附录-A：快速部署脚本"><a href="#附录-A：快速部署脚本" class="headerlink" title="附录 A：快速部署脚本"></a>附录 A：快速部署脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># hermes-enhance.sh</span></span><br><span class="line"><span class="comment"># 将 Hermes Agent 增强到最新 + 导入外部 Skills</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== 1. 升级 Hermes 本体 ===&quot;</span></span><br><span class="line"><span class="built_in">cd</span> ~/.hermes/hermes-agent</span><br><span class="line">git remote set-url origin git@github.com:NousResearch/hermes-agent.git || <span class="literal">true</span></span><br><span class="line">git fetch origin</span><br><span class="line">git merge --ff-only origin/main</span><br><span class="line">pip install -e .</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== 2. 导入外部 Skills ===&quot;</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/mattpocock/skills.git ~/.hermes/skills/mattpocock-skills 2&gt;/dev/null || <span class="built_in">echo</span> <span class="string">&quot;mattpocock already exists&quot;</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/addyosmani/agent-skills.git ~/.hermes/skills/addyosmani-agent-skills 2&gt;/dev/null || <span class="built_in">echo</span> <span class="string">&quot;addyosmani already exists&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== 3. 设置 Karpathy 人格 ===&quot;</span></span><br><span class="line">hermes config <span class="built_in">set</span> agent.personality karpathy</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== 4. 验证 ===&quot;</span></span><br><span class="line">hermes --version</span><br><span class="line">hermes skills list | grep -E <span class="string">&quot;mattpocock|addyosmani|karpathy&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== 完成！ ===&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="附录-B：外部-Skills-速查表"><a href="#附录-B：外部-Skills-速查表" class="headerlink" title="附录 B：外部 Skills 速查表"></a>附录 B：外部 Skills 速查表</h2><h3 id="mattpocock-skills（22-个）"><a href="#mattpocock-skills（22-个）" class="headerlink" title="mattpocock&#x2F;skills（22 个）"></a>mattpocock&#x2F;skills（22 个）</h3><table>
+<thead>
+<tr>
+<th>Skill 名称</th>
+<th>描述</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>diagnose</code></td>
+<td>诊断复杂问题时用</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>tdd</code></td>
+<td>测试驱动开发流程</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>triage</code></td>
+<td>问题分类与优先级排序</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>zoom-out</code></td>
+<td>从代码拉远到架构视角</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>improve-codebase-architecture</code></td>
+<td>系统性地改进代码架构</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>grill-with-docs</code></td>
+<td>带文档的深度审查</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>to-prd</code></td>
+<td>将想法转化为产品需求文档</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>to-issues</code></td>
+<td>将 PRD 拆分为可执行 Issue</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>setup-matt-pocock-skills</code></td>
+<td>初始化此技能集合</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>caveman</code></td>
+<td>用最简单的方案快速实现</td>
+<td>📋 生产力</td>
+</tr>
+<tr>
+<td><code>grill-me</code></td>
+<td>高强度自我审查</td>
+<td>📋 生产力</td>
+</tr>
+<tr>
+<td><code>write-a-skill</code></td>
+<td>编写新 Skill 的模板</td>
+<td>📋 生产力</td>
+</tr>
+<tr>
+<td><code>git-guardrails-claude-code</code></td>
+<td>Git 操作的防护措施</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>scaffold-exercises</code></td>
+<td>生成练习脚手架</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>setup-pre-commit</code></td>
+<td>配置 pre-commit hooks</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>edit-article</code></td>
+<td>文章编辑工作流</td>
+<td>📝 个人</td>
+</tr>
+<tr>
+<td><code>obsidian-vault</code></td>
+<td>Obsidian 笔记管理</td>
+<td>📝 个人</td>
+</tr>
+<tr>
+<td><code>migrate-to-shoehorn</code></td>
+<td>迁移到 Shoehorn 模式</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>design-an-interface</code></td>
+<td>接口设计工作流</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>qa</code></td>
+<td>质量保证流程</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>request-refactor-plan</code></td>
+<td>重构规划</td>
+<td>🔧 工程</td>
+</tr>
+<tr>
+<td><code>ubiquitous-language</code></td>
+<td>通用语言维护</td>
+<td>🔧 工程</td>
+</tr>
+</tbody></table>
+<h3 id="addyosmani-agent-skills（20-个）"><a href="#addyosmani-agent-skills（20-个）" class="headerlink" title="addyosmani&#x2F;agent-skills（20 个）"></a>addyosmani&#x2F;agent-skills（20 个）</h3><table>
+<thead>
+<tr>
+<th>Skill 名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>code-review-and-quality</code></td>
+<td>代码审查与质量检查</td>
+</tr>
+<tr>
+<td><code>planning-and-task-breakdown</code></td>
+<td>任务规划与分解</td>
+</tr>
+<tr>
+<td><code>security-and-hardening</code></td>
+<td>安全加固检查</td>
+</tr>
+<tr>
+<td><code>test-driven-development</code></td>
+<td>测试驱动开发</td>
+</tr>
+<tr>
+<td><code>debugging-and-error-recovery</code></td>
+<td>调试与错误恢复</td>
+</tr>
+<tr>
+<td><code>api-and-interface-design</code></td>
+<td>API 和接口设计</td>
+</tr>
+<tr>
+<td><code>frontend-ui-engineering</code></td>
+<td>前端 UI 工程</td>
+</tr>
+<tr>
+<td><code>performance-optimization</code></td>
+<td>性能优化</td>
+</tr>
+<tr>
+<td><code>source-driven-development</code></td>
+<td>源码驱动开发</td>
+</tr>
+<tr>
+<td><code>spec-driven-development</code></td>
+<td>文档驱动开发</td>
+</tr>
+<tr>
+<td><code>incremental-implementation</code></td>
+<td>增量实现</td>
+</tr>
+<tr>
+<td><code>shipping-and-launch</code></td>
+<td>发布与上线</td>
+</tr>
+<tr>
+<td><code>documentation-and-adrs</code></td>
+<td>文档与架构决策记录</td>
+</tr>
+<tr>
+<td><code>browser-testing-with-devtools</code></td>
+<td>浏览器测试</td>
+</tr>
+<tr>
+<td><code>ci-cd-and-automation</code></td>
+<td>CI&#x2F;CD 自动化</td>
+</tr>
+<tr>
+<td><code>code-simplification</code></td>
+<td>代码简化</td>
+</tr>
+<tr>
+<td><code>context-engineering</code></td>
+<td>上下文工程</td>
+</tr>
+<tr>
+<td><code>deprecation-and-migration</code></td>
+<td>弃用与迁移</td>
+</tr>
+<tr>
+<td><code>git-workflow-and-versioning</code></td>
+<td>Git 工作流与版本管理</td>
+</tr>
+<tr>
+<td><code>idea-refine</code></td>
+<td>创意精炼</td>
+</tr>
+</tbody></table>
+<h2 id="附录-C：参考文献与资源"><a href="#附录-C：参考文献与资源" class="headerlink" title="附录 C：参考文献与资源"></a>附录 C：参考文献与资源</h2><ol>
+<li><strong>Hermes Agent 仓库</strong>: <a target="_blank" rel="noopener" href="https://github.com/NousResearch/hermes-agent">https://github.com/NousResearch/hermes-agent</a></li>
+<li><strong>mattpocock&#x2F;skills</strong>: <a target="_blank" rel="noopener" href="https://github.com/mattpocock/skills">https://github.com/mattpocock/skills</a></li>
+<li><strong>addyosmani&#x2F;agent-skills</strong>: <a target="_blank" rel="noopener" href="https://github.com/addyosmani/agent-skills">https://github.com/addyosmani/agent-skills</a></li>
+<li><strong>andrej-karpathy-skills</strong>: <a target="_blank" rel="noopener" href="https://github.com/forrestchang/andrej-karpathy-skills">https://github.com/forrestchang/andrej-karpathy-skills</a></li>
+<li><strong>Hermes 官方文档</strong>: <a target="_blank" rel="noopener" href="https://hermes-agent.nousresearch.com/docs/">https://hermes-agent.nousresearch.com/docs/</a></li>
+<li><strong>Karpathy 原始推文</strong>: <a target="_blank" rel="noopener" href="https://x.com/karpathy/status/2015883857489522876">https://x.com/karpathy/status/2015883857489522876</a></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/02/02/2026-05-04-hermes-agent-enhancement-guide/">https://goodisok.github.io/2026/02/02/2026-05-04-hermes-agent-enhancement-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Hermes/">Hermes</a><a class="post-meta__tags" href="/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/tags/Skills/">Skills</a><a class="post-meta__tags" href="/tags/DevOps/">DevOps</a><a class="post-meta__tags" href="/tags/Karpathy/">Karpathy</a><a class="post-meta__tags" href="/tags/GitHub/">GitHub</a><a class="post-meta__tags" href="/tags/%E6%95%99%E7%A8%8B/">教程</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/03/2026%E5%B9%B4%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8E%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF%EF%BC%9A%E5%8D%81%E5%A4%A7%E7%AA%81%E7%A0%B4%E6%80%A7%E8%BF%9B%E5%B1%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="2026年无人机与仿真技术前沿：十大突破性进展深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2026年无人机与仿真技术前沿：十大突破性进展深度解析</div></div><div class="info-2"><div class="info-item-1">2026年无人机与仿真技术前沿：十大突破性进展深度解析 摘要：本文系统分析2026年无人机技术与仿真领域最具突破性的十大前沿进展，涵盖硬件创新、传感器技术、仿真平台、AI算法四个维度。基于对2023-2026年顶级学术会议（ICRA、IROS、CVPR、NeurIPS）150+篇论文的梳理，结合行业技术报告与开源项目进展，为无人机系统开发者提供全面的技术参考与应用指南。所有引用均提供完整学术出处，确保技术信息的准确性与可验证性。  引言：2026年无人机技术演进格局无人机技术正经历从”遥控飞行器”到”空中自主智能体”的范式转变。根据国际无人机系统协会（AUVSI）2025年技术报告，全球无人机市场规模预计在2026年达到580亿美元，其中自主飞行系统占比首次超过50%。这一增长背后的技术驱动力主要来自三个方向的协同创新：  硬件微型化与能源效率突破：氢燃料电池、固态电池等技术使无人机续航时间突破8小时门槛 仿真-现实差距大幅缩小：数字孪生与实时渲染技术将仿真环境逼真度提升至95%以上 AI算法从实验室走向产业化：端到端学习模型在实际任务中展现出超越传统方法的性能  本文选取的十大...</div></div></div></a><a class="pagination-related" href="/2026/02/01/2026-05-03-ctj-thrust-coefficient-advance-ratio/" title="螺旋桨推力系数 C_T(J) 完全解析：从动量理论到高速前进比"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">螺旋桨推力系数 C_T(J) 完全解析：从动量理论到高速前进比</div></div><div class="info-2"><div class="info-item-1"> 本文目标：让没有任何旋翼动力学基础的读者，从零开始系统掌握 C_T(J) 的核心概念、物理意义与工程应用，理解为什么它在高速无人机仿真中至关重要。  一、C_T(J) 是什么——一句话回答C_T(J) 是描述”螺旋桨在飞多快的时候还剩多少推力效率”的函数。 它回答一个非常实际的问题：  一个在悬停时能产生 10N 推力的螺旋桨，在 350km&#x2F;h 前飞时还能产生多少推力？  答案是：可能连 1N 都不到。 而 C_T(J) 就是量化这个衰减的数学工具。   二、基本概念2.1 推力系数 C_T概念引入螺旋桨的推力公式可以写成： 1T = (某个系数) × 空气密度 × 桨盘面积 × 转速项  这个”某个系数”就是 C_T（thrust coefficient，推力系数）。它是一个无量纲数，描述了螺旋桨把旋转运动转化为推力的效率。 定义螺旋桨推力的标准形式为： T=CT⋅ρ⋅A⋅(nD)2T = C_T \cdot \rho \cdot A \cdot (nD)^2T=CT​⋅ρ⋅A⋅(nD)2  其中：  TTT：推力（N） CTC_TCT​：推力系数（无量纲） ρ\...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/03/%E5%B0%86Hexo%E5%8D%9A%E5%AE%A2%E9%83%A8%E7%BD%B2%E5%88%B0GitHub-Pages/" title="将 Hexo 博客部署到 GitHub Pages"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-03</div><div class="info-item-2">将 Hexo 博客部署到 GitHub Pages</div></div><div class="info-2"><div class="info-item-1">本文记录从零到把 Hexo 博客成功部署到 GitHub Pages 的完整过程，方便日后查阅或分享给他人。 一、前提条件 已安装 Node.js（建议 12.0 及以上） 已安装 Git 已注册 GitHub 账号（本文示例用户名为 goodisok）  二、初始化 Hexo 项目在本地选一个目录（如 e:\hexo-blog），执行： 1npx hexo-cli init .  执行完成后，当前目录下会生成 Hexo 的站点结构，并自动安装依赖（若使用 pnpm 则可能是 pnpm install）。 三、配置站点与 GitHub 部署1. 修改站点信息编辑项目根目录的 _config.yml，按需修改以下部分： 123456789# Sitetitle: goodisok 的博客    # 博客标题author: goodisok          # 作者名language: zh-CN           # 语言timezone: &#x27;Asia/Shanghai&#x27; # 时区# URL（GitHub 用户名.github.io）url: https:/...</div></div></div></a><a class="pagination-related" href="/2026/03/02/%E5%9C%A8%E6%96%B0%E7%94%B5%E8%84%91%E4%B8%8A%E5%86%99Hexo%E5%8D%9A%E5%AE%A2/" title="在新电脑上写 Hexo 博客"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-02</div><div class="info-item-2">在新电脑上写 Hexo 博客</div></div><div class="info-2"><div class="info-item-1">换电脑后想继续写博客，只要把「博客源码」从 GitHub 拉下来、装好环境，就能像在本机一样写文章和部署。本文说明如何把源码保存到 GitHub，以及在新电脑上的完整操作步骤。 为什么要单独一个「源码仓库」？部署到 GitHub Pages 时，hexo deploy 只会把生成好的静态文件（public/ 里的内容）推送到 goodisok.github.io 仓库。那个仓库里没有：  文章源文件（source/_posts/*.md） 主题和插件配置 _config.yml 等站点配置  所以要在多台电脑之间写博客，需要另建一个仓库专门存放「博客源码」，新电脑克隆这个仓库即可继续写作和部署。 一、第一次：在现有电脑上把源码保存到 GitHub（只需做一次）1. 在 GitHub 新建仓库 打开 GitHub 新建仓库 仓库名可随意，例如 hexo-blog 或 blog-source（与 goodisok.github.io 区分开） 选择 Public，不要勾选「Add a README file」（避免与本地已有文件冲突） 创建仓库  2. 在本地项目目录执行 Git 命...</div></div></div></a><a class="pagination-related" href="/2026/02/19/hermes-agent-complete-guide/" title="Hermes Agent 完全指南：Architecture, QQ Bot, Skills &amp; More"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-19</div><div class="info-item-2">Hermes Agent 完全指南：Architecture, QQ Bot, Skills &amp; More</div></div><div class="info-2"><div class="info-item-1">一、引言在 AI Agent 工具百花齐放的 2025–2026 年，开发者面临着一个新的问题：哪个 Agent 框架真正能干活？ Claude Code 强在代码理解、Codex 强在 IDE 集成，但它们都有一个共同的局限——只能活在终端里。而实际工作中，消息通知、定时任务、团队协作、跨平台响应……这些场景需要一个能「无处不在」的 Agent。 Hermes Agent 正是为此而生。它不是另一个聊天机器人，而是一个多网关、可扩展、自学习的 AI Agent 运行时——同一个 Agent 实例，可以同时运行在 Telegram、QQ、Discord、Slack、终端、Web API 等十余个平台上，共享配置、记忆和技能。 本文将从架构设计出发，深入 Hermes Agent 的核心机制，并给出完整的 QQ Bot 配置实战。  二、架构概览：Hermes 是如何运行的？2.1 核心循环（Agent Loop）Hermes 的核心是一个同步循环（run_agent.py → AIAgent.run_conversation()），逻辑非常清晰： 123456while 迭代次数...</div></div></div></a><a class="pagination-related" href="/2026/04/18/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E8%AE%B2-%E7%BF%BC%E5%9E%8B%E7%89%B9%E6%80%A7%E4%B8%8E%E6%95%B0%E6%8D%AE-%E4%BB%8ENACA%E9%A3%8E%E6%B4%9E%E5%88%B0%E5%B7%A5%E7%A8%8B%E9%80%89%E5%9E%8B/" title="Anderson《空气动力学基础》读书笔记（五）：翼型特性与数据——从NACA风洞到工程选型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-18</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（五）：翼型特性与数据——从NACA风洞到工程选型</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第五篇，覆盖教材第6章「翼型数据与应用」的核心内容。阅读本文建议先了解薄翼理论。   第五篇：翼型特性与数据——从 NACA 风洞到工程选型一、从理论到数据——为什么需要风洞测试1.1 概念引入薄翼理论给出了 Cl=2π(α−αL=0)C_l = 2\pi(\alpha - \alpha_{L=0})Cl​=2π(α−αL=0​) 和 Cm,c/4=constC_{m,c/4} = \text{const}Cm,c/4​=const 这样优美的公式。但现实中的翼型远比薄翼理论复杂：  厚度效应不可忽略 黏性导致阻力（薄翼理论给出零阻力！） 襟翼&#x2F;缝翼等机械装置 失速后的非线性行为  因此，Anderson 教材在第6章专门介绍了实测的翼型数据——这些数据来自 NACA&#x2F;NASA 在 1930-1950 年代的系统风洞测试。 1.2 历史：NACA 翼型风洞计划   年份 事件 意义    1929 NACA 建立可变密度风洞（VDT） ...</div></div></div></a><a class="pagination-related" href="/2026/04/15/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%8C%E8%AE%B2-%E5%8A%BF%E6%B5%81%E7%90%86%E8%AE%BA%EF%BC%88%E4%B8%8A%EF%BC%89-%E4%BB%8E%E6%8B%89%E6%99%AE%E6%8B%89%E6%96%AF%E6%96%B9%E7%A8%8B%E5%88%B0%E5%9F%BA%E6%9C%AC%E6%B5%81%E5%8A%A8%E8%A7%A3/" title="Anderson《空气动力学基础》读书笔记（二）：势流理论（上）——从拉普拉斯方程到基本流动解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-15</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（二）：势流理论（上）——从拉普拉斯方程到基本流动解</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第二篇，覆盖教材第3章《势流理论》的前半部分。阅读本文前，建议先了解流体力学基础中的连续方程和伯努利方程的基本概念。   第二部分：势流理论——理解升力的数学语言在第一篇中我们提到：如果忽略黏性，流体的动量方程简化为欧拉方程；进一步，如果流动无旋（irrotational），我们就可以引入一个叫做速度势的函数 ϕ\phiϕ，使得流场的所有信息浓缩在一个标量拉普拉斯方程中。这就是势流理论的起点。 势流理论在 Anderson 的书中占据了第3-4章，是全书数学最密集的部分之一，也是理解升力产生的数学本质的必经之路。  一、涡量与无旋流动——为什么能”简化”？1.1 概念引入想象一个河面上的小水车。如果水车在流动中旋转，就说明这个地方的水有”旋涡”；如果水车平移而不旋转，就说明这里的水是”无旋”的。 这个区别非常重要。有旋流动和无旋流动，在数学上完全是两个世界：  有旋流动：需要用完整的 Navier-Stokes 方程，四个方程解四个未知数，数学上极其复杂 ...</div></div></div></a><a class="pagination-related" href="/2026/05/07/MAVLink%E5%8D%8F%E8%AE%AE%E5%AE%8C%E5%85%A8%E8%A7%A3%E8%AF%BB-%E4%BB%8E%E5%AD%97%E8%8A%82%E6%B5%81%E5%88%B0%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%9A%84%E9%80%9A%E4%BF%A1%E8%AF%AD%E8%A8%80/" title="MAVLink 协议完全解读：从字节流到无人机的通信语言"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-07</div><div class="info-item-2">MAVLink 协议完全解读：从字节流到无人机的通信语言</div></div><div class="info-2"><div class="info-item-1">MAVLink 协议完全解读：从字节流到无人机的通信语言一、MAVLink 是什么MAVLink（Micro Air Vehicle Link）是一种专为无人机设计的轻量级通信协议。2009 年由苏黎世联邦理工学院的 Lorenz Meier 在 PX4 项目中首次发布，至今已成为无人机领域事实上的标准通信协议。 它解决的核心问题是：一架无人机上的飞控计算机（如 Pixhawk）、传感器、摄像头、地面站电脑之间，需要一种可靠、实时、带宽高效的通信方式。 MAVLink 的设计思想是一条线贯穿始终：在带宽有限的无线链路上，用最小的字节数传输最有价值的信息。 一个典型的 MAVLink 包（MAVLink 1）只有 8 字节开销 + 有效载荷。这意味着在 915MHz 的无线电链路上（常见数传模块，速率约 250kbps），每秒可以传输数百条消息。    通信对象 物理链路 典型消息    飞控 ↔ 地面站 数传电台（915MHz &#x2F; 2.4GHz） 位置、姿态、电池   飞控 ↔ 机载计算机 串口 UART &#x2F; UDP 自定义指令、图像元数据   地面站 ↔ 多...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%A2%9E%E5%BC%BA-Hermes%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">一、为什么需要增强 Hermes？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%A2%9E%E5%BC%BA%E5%89%8D%E7%9A%84%E5%9F%BA%E7%BA%BF%E7%8A%B6%E6%80%81"><span class="toc-number">2.</span> <span class="toc-text">二、增强前的基线状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7%EF%BC%88v0-10-%E2%86%92-v0-12%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、第一步：版本升级（v0.10 → v0.12）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%97%AE%E9%A2%98%E8%AF%8A%E6%96%AD"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 问题诊断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%88%87%E6%8D%A2%E5%88%B0-SSH"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 切换到 SSH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8D%87%E7%BA%A7%E7%BB%93%E6%9E%9C"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 升级结果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E5%AF%BC%E5%85%A5%E5%A4%96%E9%83%A8-Skills-%E7%94%9F%E6%80%81"><span class="toc-number">4.</span> <span class="toc-text">四、第二步：导入外部 Skills 生态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BB%80%E4%B9%88%E6%98%AF-Hermes-Skills%EF%BC%9F"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 什么是 Hermes Skills？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%80%89%E6%8B%A9%E8%A6%81%E5%AF%BC%E5%85%A5%E7%9A%84%E5%A4%96%E9%83%A8-Skills"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 选择要导入的外部 Skills</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 导入方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%AF%BC%E5%85%A5%E5%90%8E%E7%9A%84-Skills-%E5%85%A8%E6%99%AF"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 导入后的 Skills 全景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%9E%84%E5%BB%BA-Karpathy-%E7%BC%96%E7%A0%81%E5%8E%9F%E5%88%99-Skill"><span class="toc-number">5.</span> <span class="toc-text">五、第三步：构建 Karpathy 编码原则 Skill</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9B%9B%E5%A4%A7%E5%8E%9F%E5%88%99"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 四大原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%88%9B%E5%BB%BA-Hermes-Skill"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 创建 Hermes Skill</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%AE%BE%E4%B8%BA%E9%BB%98%E8%AE%A4%E4%BA%BA%E6%A0%BC"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 设为默认人格</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">六、核心机制解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Skills-%E6%98%AF%E5%A6%82%E4%BD%95%E8%A2%AB%E8%B0%83%E7%94%A8%E7%9A%84%EF%BC%9F"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 Skills 是如何被调用的？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Personality-%E4%B8%8E-Skills-%E7%9A%84%E5%8D%8F%E5%90%8C"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 Personality 与 Skills 的协同</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%A2%9E%E5%BC%BA%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">七、增强效果对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%AE%9A%E9%87%8F%E5%8F%98%E5%8C%96"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 定量变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%AE%9A%E6%80%A7%E5%8F%98%E5%8C%96"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 定性变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 典型场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%8A%80%E6%9C%AF%E9%9A%BE%E7%82%B9%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">8.</span> <span class="toc-text">八、技术难点与解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-GitHub-%E8%BF%9E%E6%8E%A5%E9%97%AE%E9%A2%98"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 GitHub 连接问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Skills-%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 Skills 兼容性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%8D%87%E7%BA%A7%E9%A3%8E%E9%99%A9%E6%8E%A7%E5%88%B6"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 升级风险控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81Skills-%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">9.</span> <span class="toc-text">九、Skills 系统的设计哲学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-Skills-%E8%80%8C%E4%B8%8D%E6%98%AF-RAG%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 为什么是 Skills 而不是 RAG？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Skills-%E7%9A%84%E8%87%AA%E6%88%91%E8%BF%9B%E5%8C%96"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 Skills 的自我进化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%9C%AA%E6%9D%A5%E6%BC%94%E8%BF%9B%E6%96%B9%E5%90%91"><span class="toc-number">10.</span> <span class="toc-text">十、未来演进方向</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-Kanban-Skills-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%BC%96%E6%8E%92"><span class="toc-number">10.1.</span> <span class="toc-text">10.1 Kanban + Skills 的工作流编排</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%A4%96%E9%83%A8-Skills-%E7%9A%84%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86"><span class="toc-number">10.2.</span> <span class="toc-text">10.2 外部 Skills 的版本管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-Agent-%E9%97%B4%E7%9A%84-Skills-%E5%85%B1%E4%BA%AB"><span class="toc-number">10.3.</span> <span class="toc-text">10.3 Agent 间的 Skills 共享</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">十一、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-A%EF%BC%9A%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2%E8%84%9A%E6%9C%AC"><span class="toc-number">12.</span> <span class="toc-text">附录 A：快速部署脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-B%EF%BC%9A%E5%A4%96%E9%83%A8-Skills-%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">13.</span> <span class="toc-text">附录 B：外部 Skills 速查表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#mattpocock-skills%EF%BC%8822-%E4%B8%AA%EF%BC%89"><span class="toc-number">13.1.</span> <span class="toc-text">mattpocock&#x2F;skills（22 个）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#addyosmani-agent-skills%EF%BC%8820-%E4%B8%AA%EF%BC%89"><span class="toc-number">13.2.</span> <span class="toc-text">addyosmani&#x2F;agent-skills（20 个）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95-C%EF%BC%9A%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">14.</span> <span class="toc-text">附录 C：参考文献与资源</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

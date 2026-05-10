@@ -1,0 +1,1192 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革一、单目标跟踪的十年困局单目标跟踪（Single Object Tracking, SOT）的任务定义很简单：给定第一帧的目标边界框，在后续所有帧中持续定位同一个目标。过去十年，这条赛道被一个范式垄断： 123456789┌──────────┐     ┌──────────┐     ┌───────">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/09/OSTrack-%E5%8D%95%E6%B5%81Transformer%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革一、单目标跟踪的十年困局单目标跟踪（Single Object Tracking, SOT）的任务定义很简单：给定第一帧的目标边界框，在后续所有帧中持续定位同一个目标。过去十年，这条赛道被一个范式垄断： 123456789┌──────────┐     ┌──────────┐     ┌───────">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-09T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-08T13:50:13.429Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="CVPR">
+<meta property="article:tag" content="ECCV">
+<meta property="article:tag" content="OSTrack">
+<meta property="article:tag" content="Transformer">
+<meta property="article:tag" content="ViT">
+<meta property="article:tag" content="单流架构">
+<meta property="article:tag" content="目标跟踪">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革",
+  "url": "https://goodisok.github.io/2026/05/09/OSTrack-%E5%8D%95%E6%B5%81Transformer%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-09T02:00:00.000Z",
+  "dateModified": "2026-05-08T13:50:13.429Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/09/OSTrack-%E5%8D%95%E6%B5%81Transformer%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-09T02:00:00.000Z" title="发表于 2026-05-09 10:00:00">2026-05-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-08T13:50:13.429Z" title="更新于 2026-05-08 21:50:13">2026-05-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革"><a href="#OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革" class="headerlink" title="OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革"></a>OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革</h1><h2 id="一、单目标跟踪的十年困局"><a href="#一、单目标跟踪的十年困局" class="headerlink" title="一、单目标跟踪的十年困局"></a>一、单目标跟踪的十年困局</h2><p>单目标跟踪（Single Object Tracking, SOT）的任务定义很简单：给定第一帧的目标边界框，在后续所有帧中持续定位同一个目标。过去十年，这条赛道被一个范式垄断：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──────────┐     ┌──────────┐     ┌──────────────┐</span><br><span class="line">│ Template │ →   │ Template │ →   │  Cross-       │ →  BBox</span><br><span class="line">│  (第一帧) │     │ Encoder  │     │  Correlation  │</span><br><span class="line">├──────────┤     ├──────────┤     │  或 Cross-     │</span><br><span class="line">│  Search  │ →   │  Search  │ →   │  Attention    │</span><br><span class="line">│  (当前帧) │     │ Encoder  │     └──────────────┘</span><br><span class="line">└──────────┘     └──────────┘</span><br><span class="line">                     ↑</span><br><span class="line">              这就是&quot;双流&quot;架构</span><br></pre></td></tr></table></figure>
+
+<p>从 SiamFC（2016）到 SiamRPN++（2019），再到 STARK（2021），几乎所有顶级跟踪器都遵循这个范式：<strong>模板和搜索区域各自独立编码，然后在最后一两层做交叉匹配</strong>。</p>
+<p>这个范式的核心问题是：<strong>信息交互太晚了</strong>。模板编码器不知道搜索区域有什么干扰物，搜索编码器不知道模板的目标长什么样。两者各自”盲编”，最后才碰头——就像两个人分别看完电影再讨论剧情，而不是边看边交流。</p>
+<p>2022 年，OSTrack 打破了这个范式。</p>
+<p><img src="/images/ostrack/dual-vs-one-stream.png" alt="OSTrack 双流vs单流对比"></p>
+<h2 id="二、核心创新：一刀切掉双流"><a href="#二、核心创新：一刀切掉双流" class="headerlink" title="二、核心创新：一刀切掉双流"></a>二、核心创新：一刀切掉双流</h2><h3 id="2-1-双流-vs-单流"><a href="#2-1-双流-vs-单流" class="headerlink" title="2.1 双流 vs 单流"></a>2.1 双流 vs 单流</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统双流（SiamRPN++&#x2F;STARK）</th>
+<th>OSTrack 单流</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入方式</td>
+<td>模板和搜索各自独立输入</td>
+<td>模板和搜索拼成一个序列输入</td>
+</tr>
+<tr>
+<td>特征交互层</td>
+<td>最后 1-2 层才交叉</td>
+<td>从第 1 层开始，全局 self-attention</td>
+</tr>
+<tr>
+<td>模板感知</td>
+<td>模板编码器不知道搜索画面</td>
+<td>每一层都同时”看见”模板和搜索</td>
+</tr>
+<tr>
+<td>计算路径</td>
+<td>两个独立前传</td>
+<td>一个联合前传</td>
+</tr>
+<tr>
+<td>模型参数量</td>
+<td>两部分编码器</td>
+<td>一个共享 ViT</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-为什么单流更有优势"><a href="#2-2-为什么单流更有优势" class="headerlink" title="2.2 为什么单流更有优势"></a>2.2 为什么单流更有优势</h3><p>用一个直觉类比：</p>
+<blockquote>
+<p><strong>双流</strong>：先分别给两个人看两张照片（目标照片和搜索画面），然后让两人对答案，找出目标在哪里。</p>
+<p><strong>单流</strong>：把两张照片拼成一张大图，同时看，一眼就能判断”这个区域和目标照片里的东西是同一个”。</p>
+</blockquote>
+<p>在数学上，Transformer 的 self-attention 机制让每个 token 都对其他所有 token 做注意力加权。当模板 token 和搜索 token 放在同一个序列中时：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Attention</mtext><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>K</mi><mo separator="true">,</mo><mi>V</mi><mo stretchy="false">)</mo><mo>=</mo><mtext>softmax</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mi>Q</mi><msup><mi>K</mi><mi>T</mi></msup></mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mfrac><mo fence="true">)</mo></mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Attention</span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4684em;vertical-align:-0.95em;"></span><span class="mord text"><span class="mord">softmax</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5183em;"><span style="top:-2.2528em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8572em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.8172em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1828em;"><span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">Q</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.93em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span></span></span></span></span>
+
+<p>其中的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><msup><mi>K</mi><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">QK^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0358em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span></span></span></span> 矩阵包含四类交互：</p>
+<ul>
+<li>模板→模板（目标自身结构）</li>
+<li>搜索→搜索（背景上下文）</li>
+<li><strong>模板→搜索</strong>（目标在搜索区域中的定位——这是关键）</li>
+<li>搜索→模板（搜索区域反向校准模板特征）</li>
+</ul>
+<p>双流架构缺失了后两种交互，直到最后几层才引入交叉注意力。</p>
+<h2 id="三、OSTrack-架构详解"><a href="#三、OSTrack-架构详解" class="headerlink" title="三、OSTrack 架构详解"></a>三、OSTrack 架构详解</h2><h3 id="3-1-整体流程"><a href="#3-1-整体流程" class="headerlink" title="3.1 整体流程"></a>3.1 整体流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">输入帧对：(Template 128×128, Search 256×256)</span><br><span class="line">              │</span><br><span class="line">              ▼</span><br><span class="line">┌─────────────────────────────┐</span><br><span class="line">│  Patch Embedding             │</span><br><span class="line">│  → 模板: 64 patches          │</span><br><span class="line">│  → 搜索: 256 patches         │</span><br><span class="line">│  → 拼接: [T₁...T₆₄, S₁...S₂₅₆]</span><br><span class="line">│  → 共 320 tokens             │</span><br><span class="line">└─────────────┬───────────────┘</span><br><span class="line">              │</span><br><span class="line">              ▼</span><br><span class="line">┌─────────────────────────────┐</span><br><span class="line">│  ViT Encoder × 12 层          │</span><br><span class="line">│  ┌───────────────────────┐   │</span><br><span class="line">│  │ Multi-Head Self-Attn  │   │  ← 全局交互</span><br><span class="line">│  │        + MLP           │   │</span><br><span class="line">│  └───────────────────────┘   │</span><br><span class="line">│  第2层：Candidate Elimination │  ← 逐步丢弃不重要的搜索token</span><br><span class="line">│  第4层：Candidate Elimination │</span><br><span class="line">│  第6层：Candidate Elimination │</span><br><span class="line">│  ...                         │</span><br><span class="line">└─────────────┬───────────────┘</span><br><span class="line">              │</span><br><span class="line">              ▼</span><br><span class="line">┌─────────────────────────────┐</span><br><span class="line">│  搜索区域 Token 切出          │</span><br><span class="line">│  取 Search token: [S₁...S₂₅₆] │</span><br><span class="line">│  每个 token 保留 encoder      │</span><br><span class="line">│  输出的特征向量               │</span><br><span class="line">└─────────────┬───────────────┘</span><br><span class="line">              │</span><br><span class="line">              ▼</span><br><span class="line">┌─────────────────────────────┐</span><br><span class="line">│  CNN 预测头                   │</span><br><span class="line">│  ┌───────────┐ ┌───────────┐ │</span><br><span class="line">│  │ 分类分支   │ │ 回归分支   │ │</span><br><span class="line">│  │ (目标/背景)│ │ (x,y,w,h) │ │</span><br><span class="line">│  └─────┬─────┘ └─────┬─────┘ │</span><br><span class="line">│        └──────┬──────┘       │</span><br><span class="line">│               ▼              │</span><br><span class="line">│       BBox + Confidence      │</span><br><span class="line">└──────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-Patch-Embedding"><a href="#3-2-Patch-Embedding" class="headerlink" title="3.2 Patch Embedding"></a>3.2 Patch Embedding</h3><p>OSTrack 使用 ViT 的标准 patch embedding，但有两个关键设计：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PatchEmbed</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, img_size=<span class="number">256</span>, patch_size=<span class="number">16</span>, in_chans=<span class="number">3</span>, embed_dim=<span class="number">768</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="comment"># 搜索区域：256×256 → 16×16 pixels/patch → 256 patches</span></span><br><span class="line">        <span class="comment"># 模板区域：128×128 → 16×16 pixels/patch → 64 patches</span></span><br><span class="line">        <span class="variable language_">self</span>.proj = nn.Conv2d(in_chans, embed_dim, </span><br><span class="line">                              kernel_size=patch_size, stride=patch_size)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, template, search</span>):</span><br><span class="line">        <span class="comment"># template: (B, 3, 128, 128)</span></span><br><span class="line">        <span class="comment"># search:   (B, 3, 256, 256)</span></span><br><span class="line">        t = <span class="variable language_">self</span>.proj(template)  <span class="comment"># (B, 768, 8, 8) → 64 patches</span></span><br><span class="line">        s = <span class="variable language_">self</span>.proj(search)    <span class="comment"># (B, 768, 16, 16) → 256 patches</span></span><br><span class="line">        t = t.flatten(<span class="number">2</span>).transpose(<span class="number">1</span>, <span class="number">2</span>)  <span class="comment"># (B, 64, 768)</span></span><br><span class="line">        s = s.flatten(<span class="number">2</span>).transpose(<span class="number">1</span>, <span class="number">2</span>)  <span class="comment"># (B, 256, 768)</span></span><br><span class="line">        <span class="keyword">return</span> torch.cat([t, s], dim=<span class="number">1</span>)   <span class="comment"># (B, 320, 768)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-位置编码：区分模板和搜索"><a href="#3-3-位置编码：区分模板和搜索" class="headerlink" title="3.3 位置编码：区分模板和搜索"></a>3.3 位置编码：区分模板和搜索</h3><p><strong>关键细节</strong>：模板和搜索使用独立的可学习位置编码，而非共享。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 模板位置编码：(1, 64, 768) — 覆盖 8×8 网格</span></span><br><span class="line"><span class="comment"># 搜索位置编码：(1, 256, 768) — 覆盖 16×16 网格</span></span><br><span class="line"><span class="comment"># 拼接后：(1, 320, 768)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 为什么要独立？</span></span><br><span class="line"><span class="comment"># 如果共享位置编码，模板左上角(0,0)和搜索左上角(0,0)会被编码为相同位置，</span></span><br><span class="line"><span class="comment"># 但它们在图像中的意义完全不同。独立编码让模型知道哪些 token 来自模板、</span></span><br><span class="line"><span class="comment"># 哪些来自搜索区域。</span></span><br></pre></td></tr></table></figure>
+
+<p>这套独立位置编码是单流架构能工作的<strong>隐性前提</strong>——没有它，self-attention 无法区分模板 token 和搜索 token。</p>
+<h3 id="3-4-ViT-Encoder：全局-Self-Attention"><a href="#3-4-ViT-Encoder：全局-Self-Attention" class="headerlink" title="3.4 ViT Encoder：全局 Self-Attention"></a>3.4 ViT Encoder：全局 Self-Attention</h3><p>12 层标准 ViT encoder，每层结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LayerNorm → Multi-Head Self-Attention → +残差 → LayerNorm → MLP → +残差</span><br></pre></td></tr></table></figure>
+
+<p>attention 矩阵形状为 <code>(320, 320)</code>，包含上述四类交互。由于早期就开始交互，模板特征在浅层就已经被搜索区域的上下文信息”污染”——但这正是优势所在：模板不再是固定的抽象表示，而是针对当前搜索画面动态调制的。</p>
+<h3 id="3-5-候选消除（Candidate-Elimination）"><a href="#3-5-候选消除（Candidate-Elimination）" class="headerlink" title="3.5 候选消除（Candidate Elimination）"></a>3.5 候选消除（Candidate Elimination）</h3><p>这是 OSTrack 的另一个重要贡献：<strong>在 encoder 中逐步丢弃不重要的搜索 token</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">320 tokens（输入）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 1-2</span><br><span class="line">312 tokens（丢弃 8 个搜索 token）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 3-4</span><br><span class="line">296 tokens（丢弃 16 个）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 5-6</span><br><span class="line">264 tokens（丢弃 32 个）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 7-8</span><br><span class="line">232 tokens（丢弃 32 个）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 9-10</span><br><span class="line">200 tokens（丢弃 32 个）</span><br><span class="line">  │</span><br><span class="line">  ▼ Layer 11-12</span><br><span class="line">168 tokens（剩余：64 模板 + 104 搜索）</span><br></pre></td></tr></table></figure>
+
+<p><strong>如何选择丢弃哪些 token？</strong> 用 attention 分数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">eliminate_candidates</span>(<span class="params">attention_weights, search_tokens, keep_ratio</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    attention_weights: (B, num_heads, 320, 320)</span></span><br><span class="line"><span class="string">    取模板 token 对搜索 token 的注意力分数均值，</span></span><br><span class="line"><span class="string">    得分最低的 token 被认为与目标无关，优先丢弃。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 只取模板 → 搜索的 attention（忽略模板→模板和搜索→搜索）</span></span><br><span class="line">    template_to_search_attn = attention_weights[:, :, :<span class="number">64</span>, <span class="number">64</span>:]  <span class="comment"># (B, H, 64, N_search)</span></span><br><span class="line">    scores = template_to_search_attn.mean(dim=(<span class="number">1</span>, <span class="number">2</span>))  <span class="comment"># (B, N_search)</span></span><br><span class="line">    </span><br><span class="line">    num_keep = <span class="built_in">int</span>(<span class="built_in">len</span>(search_tokens) * keep_ratio)</span><br><span class="line">    _, indices = torch.topk(scores, num_keep, dim=<span class="number">1</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 保留高分 token，丢弃低分 token</span></span><br><span class="line">    <span class="keyword">return</span> search_tokens.gather(<span class="number">1</span>, indices.unsqueeze(-<span class="number">1</span>).expand(-<span class="number">1</span>, -<span class="number">1</span>, <span class="number">768</span>))</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么有效？</strong></p>
+<ul>
+<li>背景区域（天空、地面）与目标的 attention 分数天然低</li>
+<li>干扰物区域可能在中层被保留（因为它们与目标有相似性），但经过更深层的辨识后会被淘汰</li>
+<li>模板 token 永不丢弃</li>
+</ul>
+<p>候选消除带来两个好处：</p>
+<ol>
+<li><strong>推理加速</strong>：浅层 token 多、计算量大；深层 token 少、计算量递减——总计算量比固定 320 token 降低约 30%</li>
+<li><strong>精度提升</strong>：强制模型在每一层做”注意力聚焦”，相当于多阶段的 coarse-to-fine 策略</li>
+</ol>
+<h3 id="3-6-预测头"><a href="#3-6-预测头" class="headerlink" title="3.6 预测头"></a>3.6 预测头</h3><p>编码器输出中，取出搜索区域的 256 个 token（最后一个消除阶段后约 104 个），每个 token 对应原搜索图像的一个 16×16 区域。CNN 预测头对每个 token 做：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PredictionHead</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_dim=<span class="number">768</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="comment"># 三个并行的 1×1 卷积</span></span><br><span class="line">        <span class="variable language_">self</span>.cls_head = nn.Sequential(</span><br><span class="line">            nn.Conv2d(in_dim, <span class="number">256</span>, <span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">256</span>, <span class="number">1</span>, <span class="number">1</span>)  <span class="comment"># → 目标/背景分类</span></span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.reg_head = nn.Sequential(</span><br><span class="line">            nn.Conv2d(in_dim, <span class="number">256</span>, <span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">256</span>, <span class="number">4</span>, <span class="number">1</span>)  <span class="comment"># → (x, y, w, h) 偏移</span></span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.score_head = nn.Sequential(</span><br><span class="line">            nn.Conv2d(in_dim, <span class="number">256</span>, <span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">256</span>, <span class="number">1</span>, <span class="number">1</span>)  <span class="comment"># → 置信度分数</span></span><br><span class="line">        )</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, search_features</span>):</span><br><span class="line">        <span class="comment"># search_features: (B, N_search, 768)</span></span><br><span class="line">        <span class="comment"># 重塑为 2D 特征图</span></span><br><span class="line">        H = W = <span class="built_in">int</span>(math.sqrt(search_features.shape[<span class="number">1</span>]))</span><br><span class="line">        feat = search_features.transpose(<span class="number">1</span>, <span class="number">2</span>).view(-<span class="number">1</span>, <span class="number">768</span>, H, W)</span><br><span class="line">        </span><br><span class="line">        cls = <span class="variable language_">self</span>.cls_head(feat)      <span class="comment"># (B, 1, H, W)</span></span><br><span class="line">        reg = <span class="variable language_">self</span>.reg_head(feat)      <span class="comment"># (B, 4, H, W)</span></span><br><span class="line">        score = <span class="variable language_">self</span>.score_head(feat)  <span class="comment"># (B, 1, H, W)</span></span><br><span class="line">        <span class="keyword">return</span> cls, reg, score</span><br></pre></td></tr></table></figure>
+
+<p><strong>分数预测头（Score Head）的意义</strong>：输出一个额外的置信度分数，用于：</p>
+<ul>
+<li>判断当前帧跟踪质量（分数低 → 可能跟丢 → 触发重检测）</li>
+<li>在长时跟踪中筛选可靠帧用于模板更新</li>
+<li>在线推理时不需要额外计算（与 BBox 同步输出）</li>
+</ul>
+<h2 id="四、训练策略"><a href="#四、训练策略" class="headerlink" title="四、训练策略"></a>四、训练策略</h2><h3 id="4-1-训练数据集"><a href="#4-1-训练数据集" class="headerlink" title="4.1 训练数据集"></a>4.1 训练数据集</h3><p>OSTrack 在四个数据集上联合训练：</p>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>视频数</th>
+<th>平均帧数</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>LaSOT</strong></td>
+<td>1,400</td>
+<td>2,500+</td>
+<td>长时跟踪基准，野外场景</td>
+</tr>
+<tr>
+<td><strong>GOT-10k</strong></td>
+<td>10,000+</td>
+<td>150</td>
+<td>零样本泛化训练</td>
+</tr>
+<tr>
+<td><strong>TrackingNet</strong></td>
+<td>30,000+</td>
+<td>470</td>
+<td>大规模 YouTube 视频</td>
+</tr>
+<tr>
+<td><strong>COCO</strong></td>
+<td>—</td>
+<td>静态图</td>
+<td>通过裁剪生成伪跟踪数据</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-采样策略"><a href="#4-2-采样策略" class="headerlink" title="4.2 采样策略"></a>4.2 采样策略</h3><p>每轮迭代的采样逻辑：</p>
+<ol>
+<li>随机选一个视频序列</li>
+<li>随机选一帧作为搜索帧（当前帧）</li>
+<li>在前 <code>max_gap=200</code> 帧范围内随机选一帧作为模板帧</li>
+<li>以模板帧的 GT BBox 为中心，2 倍上下文扩展，裁剪 128×128</li>
+<li>以搜索帧的 GT BBox 为中心，2 倍上下文扩展，裁剪 256×256</li>
+</ol>
+<p>关键参数：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">TEMPLATE_SIZE:</span> <span class="number">128</span></span><br><span class="line"><span class="attr">SEARCH_SIZE:</span> <span class="number">256</span></span><br><span class="line"><span class="attr">CONTEXT_FACTOR:</span> <span class="number">2.0</span></span><br><span class="line"><span class="attr">MAX_FRAME_GAP:</span> <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-损失函数"><a href="#4-3-损失函数" class="headerlink" title="4.3 损失函数"></a>4.3 损失函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 分类分支：Focal Loss（处理正负样本不平衡）</span></span><br><span class="line">L_cls = focal_loss(pred_cls, gt_cls, alpha=<span class="number">0.25</span>, gamma=<span class="number">2.0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 回归分支：L1 Loss + GIoU Loss</span></span><br><span class="line">L_reg = L1_loss(pred_bbox, gt_bbox) + <span class="number">2.0</span> * giou_loss(pred_bbox, gt_bbox)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 分数预测：MSE Loss（回归置信度与 IoU 之间的误差）</span></span><br><span class="line">L_score = MSE(pred_score, gt_iou)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 总损失</span></span><br><span class="line">L_total = L_cls + <span class="number">5.0</span> * L_reg + <span class="number">2.0</span> * L_score</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-训练配置"><a href="#4-4-训练配置" class="headerlink" title="4.4 训练配置"></a>4.4 训练配置</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Optimizer</td>
+<td>AdamW</td>
+</tr>
+<tr>
+<td>Learning Rate</td>
+<td>4e-4（预训练 ViT）、4e-5（预测头）</td>
+</tr>
+<tr>
+<td>Weight Decay</td>
+<td>1e-4</td>
+</tr>
+<tr>
+<td>Batch Size</td>
+<td>32（8 × GPU × 4 张卡）</td>
+</tr>
+<tr>
+<td>Epochs</td>
+<td>300</td>
+</tr>
+<tr>
+<td>LR Schedule</td>
+<td>Cosine Annealing</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>4 × NVIDIA V100 (32GB)</td>
+</tr>
+</tbody></table>
+<h2 id="五、代码实现（PyTorch-核心版）"><a href="#五、代码实现（PyTorch-核心版）" class="headerlink" title="五、代码实现（PyTorch 核心版）"></a>五、代码实现（PyTorch 核心版）</h2><p>以下是一个简化的 OSTrack 前传实现，展示核心逻辑：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"><span class="keyword">import</span> timm  <span class="comment"># for ViT</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">OSTrack</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;OSTrack 单流跟踪器的核心实现&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, embed_dim=<span class="number">768</span>, depth=<span class="number">12</span>, num_heads=<span class="number">12</span>, </span></span><br><span class="line"><span class="params">                 template_size=<span class="number">128</span>, search_size=<span class="number">256</span>, patch_size=<span class="number">16</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">self</span>.template_size = template_size</span><br><span class="line">        <span class="variable language_">self</span>.search_size = search_size</span><br><span class="line">        <span class="variable language_">self</span>.patch_size = patch_size</span><br><span class="line">        <span class="variable language_">self</span>.num_template_patches = (template_size // patch_size) ** <span class="number">2</span>  <span class="comment"># 64</span></span><br><span class="line">        <span class="variable language_">self</span>.num_search_patches = (search_size // patch_size) ** <span class="number">2</span>      <span class="comment"># 256</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># ── Patch Embedding ──</span></span><br><span class="line">        <span class="variable language_">self</span>.patch_embed = nn.Conv2d(</span><br><span class="line">            <span class="number">3</span>, embed_dim, kernel_size=patch_size, stride=patch_size)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ── 位置编码 ──</span></span><br><span class="line">        <span class="comment"># 模板和搜索使用独立的位置编码（关键！）</span></span><br><span class="line">        <span class="variable language_">self</span>.pos_embed_template = nn.Parameter(</span><br><span class="line">            torch.zeros(<span class="number">1</span>, <span class="variable language_">self</span>.num_template_patches, embed_dim))</span><br><span class="line">        <span class="variable language_">self</span>.pos_embed_search = nn.Parameter(</span><br><span class="line">            torch.zeros(<span class="number">1</span>, <span class="variable language_">self</span>.num_search_patches, embed_dim))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ── ViT Encoder ──</span></span><br><span class="line">        <span class="variable language_">self</span>.encoder = timm.models.vision_transformer.Block</span><br><span class="line">        <span class="variable language_">self</span>.blocks = nn.ModuleList([</span><br><span class="line">            <span class="variable language_">self</span>.encoder(dim=embed_dim, num_heads=num_heads)</span><br><span class="line">            <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(depth)</span><br><span class="line">        ])</span><br><span class="line">        <span class="variable language_">self</span>.norm = nn.LayerNorm(embed_dim)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ── Candidate Elimination（每隔一层） ──</span></span><br><span class="line">        <span class="variable language_">self</span>.elimination_layers = [<span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>, <span class="number">11</span>]</span><br><span class="line">        <span class="variable language_">self</span>.keep_ratios = [<span class="number">0.95</span>, <span class="number">0.90</span>, <span class="number">0.85</span>, <span class="number">0.80</span>, <span class="number">0.70</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># ── 预测头 ──</span></span><br><span class="line">        head_dim = <span class="number">256</span></span><br><span class="line">        <span class="variable language_">self</span>.cls_head = nn.Sequential(</span><br><span class="line">            nn.Linear(embed_dim, head_dim), nn.ReLU(), </span><br><span class="line">            nn.Linear(head_dim, <span class="number">1</span>))     <span class="comment"># 目标/背景</span></span><br><span class="line">        <span class="variable language_">self</span>.reg_head = nn.Sequential(</span><br><span class="line">            nn.Linear(embed_dim, head_dim), nn.ReLU(),</span><br><span class="line">            nn.Linear(head_dim, <span class="number">4</span>))     <span class="comment"># (cx, cy, w, h)</span></span><br><span class="line">        <span class="variable language_">self</span>.score_head = nn.Sequential(</span><br><span class="line">            nn.Linear(embed_dim, head_dim), nn.ReLU(),</span><br><span class="line">            nn.Linear(head_dim, <span class="number">1</span>))     <span class="comment"># 置信度</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, template, search</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        template: (B, 3, 128, 128) — 第一帧裁剪的目标区域</span></span><br><span class="line"><span class="string">        search:   (B, 3, 256, 256) — 当前帧裁剪的搜索区域</span></span><br><span class="line"><span class="string">        return:   BBox (B, 4), Confidence (B,)</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        B = template.shape[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 1. Patch Embedding</span></span><br><span class="line">        t = <span class="variable language_">self</span>.patch_embed(template)  <span class="comment"># (B, 768, 8, 8)</span></span><br><span class="line">        s = <span class="variable language_">self</span>.patch_embed(search)    <span class="comment"># (B, 768, 16, 16)</span></span><br><span class="line">        t = t.flatten(<span class="number">2</span>).transpose(<span class="number">1</span>, <span class="number">2</span>)  <span class="comment"># (B, 64, 768)</span></span><br><span class="line">        s = s.flatten(<span class="number">2</span>).transpose(<span class="number">1</span>, <span class="number">2</span>)  <span class="comment"># (B, 256, 768)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 2. 添加独立的模板/搜索位置编码</span></span><br><span class="line">        t = t + <span class="variable language_">self</span>.pos_embed_template</span><br><span class="line">        s = s + <span class="variable language_">self</span>.pos_embed_search</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 3. 拼接 → 单流</span></span><br><span class="line">        x = torch.cat([t, s], dim=<span class="number">1</span>)  <span class="comment"># (B, 320, 768)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 4. ViT Encoder + 候选消除</span></span><br><span class="line">        num_search = <span class="variable language_">self</span>.num_search_patches</span><br><span class="line">        <span class="keyword">for</span> i, block <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.blocks):</span><br><span class="line">            x = block(x)</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 候选消除：只丢弃搜索 token</span></span><br><span class="line">            <span class="keyword">if</span> i <span class="keyword">in</span> <span class="variable language_">self</span>.elimination_layers:</span><br><span class="line">                keep_ratio = <span class="variable language_">self</span>.keep_ratios[</span><br><span class="line">                    <span class="variable language_">self</span>.elimination_layers.index(i)]</span><br><span class="line">                </span><br><span class="line">                <span class="comment"># 取模板 token 对搜索 token 的注意力</span></span><br><span class="line">                t_tokens = x[:, :<span class="variable language_">self</span>.num_template_patches, :]  <span class="comment"># 模板部分，永不丢弃</span></span><br><span class="line">                s_tokens = x[:, <span class="variable language_">self</span>.num_template_patches:, :]   <span class="comment"># 搜索部分</span></span><br><span class="line"></span><br><span class="line">                <span class="comment"># 用模板 token 的均值作为评分基准</span></span><br><span class="line">                t_mean = t_tokens.mean(dim=<span class="number">1</span>, keepdim=<span class="literal">True</span>)  <span class="comment"># (B, 1, 768)</span></span><br><span class="line">                s_scores = (s_tokens * t_mean).<span class="built_in">sum</span>(dim=-<span class="number">1</span>)   <span class="comment"># (B, N_search)</span></span><br><span class="line"></span><br><span class="line">                num_keep = <span class="built_in">int</span>(s_tokens.shape[<span class="number">1</span>] * keep_ratio)</span><br><span class="line">                _, indices = torch.topk(s_scores, num_keep, dim=<span class="number">1</span>)</span><br><span class="line">                s_tokens = torch.gather(</span><br><span class="line">                    s_tokens, <span class="number">1</span>, </span><br><span class="line">                    indices.unsqueeze(-<span class="number">1</span>).expand(-<span class="number">1</span>, -<span class="number">1</span>, <span class="number">768</span>))</span><br><span class="line"></span><br><span class="line">                x = torch.cat([t_tokens, s_tokens], dim=<span class="number">1</span>)</span><br><span class="line">                num_search = s_tokens.shape[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">        x = <span class="variable language_">self</span>.norm(x)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 5. 取出搜索区域 token</span></span><br><span class="line">        search_feat = x[:, <span class="variable language_">self</span>.num_template_patches:, :]  <span class="comment"># (B, N_kept, 768)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 6. 预测头</span></span><br><span class="line">        cls = <span class="variable language_">self</span>.cls_head(search_feat)       <span class="comment"># (B, N_kept, 1)</span></span><br><span class="line">        reg = <span class="variable language_">self</span>.reg_head(search_feat)       <span class="comment"># (B, N_kept, 4)</span></span><br><span class="line">        score = <span class="variable language_">self</span>.score_head(search_feat)   <span class="comment"># (B, N_kept, 1)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 7. 取分类分数最高的 token 对应的回归框</span></span><br><span class="line">        cls_scores = cls.squeeze(-<span class="number">1</span>)   <span class="comment"># (B, N_kept)</span></span><br><span class="line">        best_idx = cls_scores.argmax(dim=<span class="number">1</span>)  <span class="comment"># (B,)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 获取每个样本的最佳 BBox 和置信度</span></span><br><span class="line">        best_reg = reg[torch.arange(B), best_idx]    <span class="comment"># (B, 4)</span></span><br><span class="line">        best_score = score[torch.arange(B), best_idx].squeeze(-<span class="number">1</span>)  <span class="comment"># (B,)</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> best_reg, best_score</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="六、性能与对比"><a href="#六、性能与对比" class="headerlink" title="六、性能与对比"></a>六、性能与对比</h2><h3 id="6-1-主要基准"><a href="#6-1-主要基准" class="headerlink" title="6.1 主要基准"></a>6.1 主要基准</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>年份</th>
+<th>LaSOT AUC</th>
+<th>TrackingNet AUC</th>
+<th>GOT-10k AO</th>
+<th>速度 (FPS)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SiamRPN++</td>
+<td>CVPR 2019</td>
+<td>49.6</td>
+<td>73.3</td>
+<td>51.7</td>
+<td>35</td>
+</tr>
+<tr>
+<td>DiMP</td>
+<td>ICCV 2019</td>
+<td>56.9</td>
+<td>74.0</td>
+<td>61.1</td>
+<td>43</td>
+</tr>
+<tr>
+<td>TransT</td>
+<td>CVPR 2021</td>
+<td>64.9</td>
+<td>81.4</td>
+<td>—</td>
+<td>50</td>
+</tr>
+<tr>
+<td>STARK</td>
+<td>ICCV 2021</td>
+<td>67.1</td>
+<td>82.0</td>
+<td>68.8</td>
+<td>42</td>
+</tr>
+<tr>
+<td>KeepTrack</td>
+<td>ICCV 2021</td>
+<td>67.1</td>
+<td>—</td>
+<td>—</td>
+<td>18</td>
+</tr>
+<tr>
+<td>ToMP</td>
+<td>CVPR 2022</td>
+<td>68.5</td>
+<td>81.5</td>
+<td>—</td>
+<td>25</td>
+</tr>
+<tr>
+<td><strong>OSTrack</strong></td>
+<td><strong>ECCV 2022</strong></td>
+<td><strong>71.1</strong></td>
+<td><strong>83.9</strong></td>
+<td><strong>73.7</strong></td>
+<td><strong>105</strong></td>
+</tr>
+</tbody></table>
+<h3 id="6-2-关键洞察"><a href="#6-2-关键洞察" class="headerlink" title="6.2 关键洞察"></a>6.2 关键洞察</h3><ol>
+<li><p><strong>LaSOT 71.1% AUC</strong>：LaSOT 是长时跟踪（平均 2500 帧）最难的数据集。OSTrack 在这里大幅领先，说明早期联合学习对长时鲁棒性很重要。</p>
+</li>
+<li><p><strong>速度 105 FPS</strong>：单流架构使推理速度比 STARK 快 2.5 倍。不需要两个 encoder 各自前传，一次 joint forward 就够了。候选消除进一步加速。</p>
+</li>
+<li><p><strong>GOT-10k AO 73.7%</strong>：这是零样本泛化测试（训练集和测试集的物体类别不重叠），OSTrack 在这里最好，说明单流学到的”跟踪”能力比双流更通用。</p>
+</li>
+</ol>
+<h3 id="6-3-消融实验的关键结论"><a href="#6-3-消融实验的关键结论" class="headerlink" title="6.3 消融实验的关键结论"></a>6.3 消融实验的关键结论</h3><table>
+<thead>
+<tr>
+<th>实验</th>
+<th>LaSOT AUC</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>双流（模板+搜索各自 6 层 encoder）</td>
+<td>67.8</td>
+<td>基准</td>
+</tr>
+<tr>
+<td>单流（12 层 joint encoder）</td>
+<td><strong>69.5</strong></td>
+<td>+1.7%</td>
+</tr>
+<tr>
+<td>单流 + 候选消除</td>
+<td><strong>71.1</strong></td>
+<td>再 +1.6%</td>
+</tr>
+<tr>
+<td>单流 + 分数预测头</td>
+<td><strong>71.4</strong></td>
+<td>再 +0.3%（原论文微调后）</td>
+</tr>
+</tbody></table>
+<p>候选消除贡献了单流最大收益之外的额外提升——说明在 ViT 中途强制聚焦能有效提升跟踪精度，而不仅仅是加速。</p>
+<h2 id="七、OSTrack-的局限与后续工作"><a href="#七、OSTrack-的局限与后续工作" class="headerlink" title="七、OSTrack 的局限与后续工作"></a>七、OSTrack 的局限与后续工作</h2><h3 id="7-1-已知局限"><a href="#7-1-已知局限" class="headerlink" title="7.1 已知局限"></a>7.1 已知局限</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>尺度剧变</td>
+<td>128→256 的固定模板&#x2F;搜索尺寸，目标放大超 2 倍会超出搜索框</td>
+</tr>
+<tr>
+<td>相似物干扰</td>
+<td>单流能感知干扰物，但如果两个相同物体距离很近，仍可能串扰</td>
+</tr>
+<tr>
+<td>极端遮挡</td>
+<td>没有显式的遮挡检测，全遮挡后重新出现时可能无法恢复</td>
+</tr>
+<tr>
+<td>模板退化</td>
+<td>固定使用第一帧模板，目标外观若发生剧烈变化（如转身 180°），模板会失效</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-后续改进方向"><a href="#7-2-后续改进方向" class="headerlink" title="7.2 后续改进方向"></a>7.2 后续改进方向</h3><ul>
+<li><strong>OSTrack++ &#x2F; SeqTrack</strong>：将跟踪建模为序列生成问题（”坐标序列→下一帧坐标”），进一步利用 Transformer 的序列特性</li>
+<li><strong>ROMTrack</strong>：引入鲁棒的在线模板更新，解决外观退化</li>
+<li><strong>ARTrack</strong>：自回归序列预测框架，显式建模帧间运动连续性</li>
+</ul>
+<h3 id="7-3-与更大范式的融汇"><a href="#7-3-与更大范式的融汇" class="headerlink" title="7.3 与更大范式的融汇"></a>7.3 与更大范式的融汇</h3><p>OSTrack 的”拼在一起做 self-attention”思想已经溢出跟踪领域：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">OSTrack (2022) → 单流跟踪</span><br><span class="line">     ↓</span><br><span class="line">OneTracker (2024) → 全任务单流（跟踪+分割+检测统一架构）</span><br><span class="line">     ↓</span><br><span class="line">UniTrack / SAMTrack → 结合 SAM 做开放词汇跟踪</span><br></pre></td></tr></table></figure>
+
+<p>“把所有信息拼成一个大序列扔进 Transformer”正成为视觉任务的主流范式。</p>
+<h2 id="八、无人机-飞行器视觉跟踪：OSTrack-的空中战场"><a href="#八、无人机-飞行器视觉跟踪：OSTrack-的空中战场" class="headerlink" title="八、无人机&#x2F;飞行器视觉跟踪：OSTrack 的空中战场"></a>八、无人机&#x2F;飞行器视觉跟踪：OSTrack 的空中战场</h2><h3 id="8-1-飞行器跟踪的独特挑战"><a href="#8-1-飞行器跟踪的独特挑战" class="headerlink" title="8.1 飞行器跟踪的独特挑战"></a>8.1 飞行器跟踪的独特挑战</h3><p>地面跟踪（行人、车辆）与空中跟踪（无人机对地&#x2F;对空）有本质差异：</p>
+<table>
+<thead>
+<tr>
+<th>挑战</th>
+<th>地面跟踪</th>
+<th>空中跟踪</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>运动模糊</strong></td>
+<td>偶尔（高速车辆）</td>
+<td>持续（平台振动 + 高速飞行）</td>
+<td>特征退化 30-50%</td>
+</tr>
+<tr>
+<td><strong>尺度变化率</strong></td>
+<td>慢（人走近 1m&#x2F;s）</td>
+<td>快（无人机俯冲 20m&#x2F;s）</td>
+<td>128px 模板 2 帧内失效</td>
+</tr>
+<tr>
+<td><strong>视角变化</strong></td>
+<td>水平为主</td>
+<td>俯仰±90° 连续变化</td>
+<td>目标外观剧烈翻转</td>
+</tr>
+<tr>
+<td><strong>背景复杂性</strong></td>
+<td>结构化（街道&#x2F;室内）</td>
+<td>无结构（天空&#x2F;云&#x2F;地面纹理）</td>
+<td>相似物干扰模式不同</td>
+</tr>
+<tr>
+<td><strong>实时性约束</strong></td>
+<td>Jetson Nano 可跑 30FPS</td>
+<td>Jetson Orin 需要同时跑跟踪+飞控+图传</td>
+<td>跟踪器可用算力 &lt; 30%</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-空中跟踪基准"><a href="#8-2-空中跟踪基准" class="headerlink" title="8.2 空中跟踪基准"></a>8.2 空中跟踪基准</h3><p>UAV123（2016，123 个航拍序列）和 UAVDT（2018，10 万帧航拍车辆）是两个核心基准：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>UAV123 AUC</th>
+<th>UAV123 Precision</th>
+<th>UAVDT AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SiamRPN++</td>
+<td>61.3</td>
+<td>80.7</td>
+<td>53.2</td>
+</tr>
+<tr>
+<td>DiMP</td>
+<td>65.4</td>
+<td>83.9</td>
+<td>56.8</td>
+</tr>
+<tr>
+<td>STARK</td>
+<td>68.2</td>
+<td>86.5</td>
+<td>59.1</td>
+</tr>
+<tr>
+<td><strong>OSTrack</strong></td>
+<td><strong>70.1</strong></td>
+<td><strong>88.9</strong></td>
+<td><strong>61.5</strong></td>
+</tr>
+<tr>
+<td>ARTrack</td>
+<td>72.8</td>
+<td>90.3</td>
+<td>63.7</td>
+</tr>
+</tbody></table>
+<p>OSTrack 在 2022 年拿到了当时最高的 UAV123 分数。单流架构在航拍场景中天然占优——航拍画面通常包含大片天空、云层等”无结构”背景，双流 Siamese 的模板编码器在缺乏结构化特征时容易漂移，而单流能利用搜索区域的全局上下文来”找不同”。</p>
+<h3 id="8-3-边缘部署：Jetson-Orin-上的-OSTrack"><a href="#8-3-边缘部署：Jetson-Orin-上的-OSTrack" class="headerlink" title="8.3 边缘部署：Jetson Orin 上的 OSTrack"></a>8.3 边缘部署：Jetson Orin 上的 OSTrack</h3><p>OSTrack 官方的 105 FPS 是在 V100 上测的。在嵌入式平台上的实测（TensorRT FP16）：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>FPS</th>
+<th>功耗</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>V100 (32GB)</td>
+<td>105</td>
+<td>250W</td>
+<td>官方数据</td>
+</tr>
+<tr>
+<td>RTX 4090</td>
+<td>185</td>
+<td>350W</td>
+<td>社区实测</td>
+</tr>
+<tr>
+<td>Jetson Orin AGX</td>
+<td>32</td>
+<td>40W</td>
+<td>可用作机载</td>
+</tr>
+<tr>
+<td>Jetson Orin NX</td>
+<td>18</td>
+<td>15W</td>
+<td>勉强实时</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>—</td>
+<td>—</td>
+<td>无法运行（ViT 内存超限）</td>
+</tr>
+</tbody></table>
+<p>对于截击机场景（同时运行跟踪 + 飞控 + 图传），18-32 FPS 足够——跟踪器以 15-20Hz 运行，飞控以 100Hz 异步运行，不阻塞。</p>
+<p><strong>关键优化</strong>：</p>
+<ol>
+<li>候选消除的 token 丢弃率从 70% 提到 85%，FPS 从 32 提到 41，UAV123 AUC 从 70.1 降到 67.8（-2.3%）</li>
+<li>ViT depth 从 12 层剪到 8 层，FPS 从 32 提到 48，AUC 降到 66.2（-3.9%）</li>
+<li><strong>推荐组合</strong>：depth&#x3D;10 + keep_ratio&#x3D;0.75 → 38 FPS, AUC&#x3D;68.5%（-1.6%，可接受）</li>
+</ol>
+<h3 id="8-4-多机跟踪：一架跟踪器追多个目标"><a href="#8-4-多机跟踪：一架跟踪器追多个目标" class="headerlink" title="8.4 多机跟踪：一架跟踪器追多个目标"></a>8.4 多机跟踪：一架跟踪器追多个目标</h3><p>OSTrack 原生是单目标跟踪。要同时跟踪多个无人机（截击机需要跟踪一架靶机 + 监控周围空域），需做改造：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">方案 A：多实例 OSTrack（每个目标一个模型实例）</span><br><span class="line">  优点：精度不变 | 缺点：FPS / N（N=目标数）</span><br><span class="line"></span><br><span class="line">方案 B：共享 Backbone + 多预测头</span><br><span class="line">  ViT 编码一次 → 复制 N 份 search token → N 个预测头</span><br><span class="line">  优点：FPS 仅降 15-20% | 缺点：需要改架构</span><br><span class="line"></span><br><span class="line">方案 C：检测式跟踪（YOLO + OSTrack）</span><br><span class="line">  YOLO 做粗检测（每秒 2-3 次）→ OSTrack 做精跟踪（每帧）</span><br><span class="line">  优点：最实用 | 缺点：两阶段延迟</span><br></pre></td></tr></table></figure>
+
+<p><strong>工程推荐</strong>：方案 C——YOLOv8-Nano（2ms&#x2F;帧）在 Orin 上做粗检测，OSTrack 做持续跟踪。多出来的 2ms 换来”检测失败时跟踪兜底”和”跟踪漂移时检测纠正”的双重保障。</p>
+<h2 id="九、仿真集成：让-OSTrack-在模拟器中训练和验证"><a href="#九、仿真集成：让-OSTrack-在模拟器中训练和验证" class="headerlink" title="九、仿真集成：让 OSTrack 在模拟器中训练和验证"></a>九、仿真集成：让 OSTrack 在模拟器中训练和验证</h2><h3 id="9-1-为什么需要仿真"><a href="#9-1-为什么需要仿真" class="headerlink" title="9.1 为什么需要仿真"></a>9.1 为什么需要仿真</h3><p>OSTrack 训练需要大量标注好的视频序列（LaSOT 1400 个、TrackingNet 3 万个）。但如果你做的是特定场景（如截击机对靶机、无人机对无人机），公开数据集不包含你的场景分布。</p>
+<p>仿真可以生成<strong>无限量的精准标注数据</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AirSim / UE5 / Gazebo</span><br><span class="line">      │</span><br><span class="line">      ├→ 渲染 RGB 视频流（任意光照/天气/相机参数）</span><br><span class="line">      ├→ 同时输出每帧的目标 BBox（无标注成本）</span><br><span class="line">      ├→ 输出深度图/分割图（可用于辅助训练）</span><br><span class="line">      └→ 输出相机位姿/GPS（用于与飞控联调）</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-AirSim-OSTrack-的数据生成-pipeline"><a href="#9-2-AirSim-OSTrack-的数据生成-pipeline" class="headerlink" title="9.2 AirSim + OSTrack 的数据生成 pipeline"></a>9.2 AirSim + OSTrack 的数据生成 pipeline</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> airsim</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"></span><br><span class="line">client = airsim.MultirotorClient()</span><br><span class="line">client.confirmConnection()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 设置靶机航线（直线飞行，截击机在后面追）</span></span><br><span class="line">target_waypoints = [(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">20</span>), (<span class="number">100</span>, <span class="number">50</span>, -<span class="number">30</span>), (<span class="number">200</span>, <span class="number">120</span>, -<span class="number">25</span>)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 主循环：逐帧渲染 + 记录标注</span></span><br><span class="line">annotations = []</span><br><span class="line"><span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    <span class="comment"># 获取截击机视角的 RGB 图像</span></span><br><span class="line">    responses = client.simGetImages([</span><br><span class="line">        airsim.ImageRequest(<span class="string">&quot;front_center&quot;</span>, airsim.ImageType.Scene, <span class="literal">False</span>, <span class="literal">False</span>)</span><br><span class="line">    ])</span><br><span class="line">    img = np.frombuffer(responses[<span class="number">0</span>].image_data_uint8, dtype=np.uint8)</span><br><span class="line">    img = img.reshape(responses[<span class="number">0</span>].height, responses[<span class="number">0</span>].width, <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 获取靶机在截击机相机坐标系下的 3D 位置</span></span><br><span class="line">    target_pose = client.simGetObjectPose(<span class="string">&quot;TargetDrone&quot;</span>)</span><br><span class="line">    cam_pose = client.simGetVehiclePose()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 投影到 2D → 得到 BBox（精确标注，零人工成本）</span></span><br><span class="line">    bbox_2d = project_3d_to_2d(target_pose, cam_pose, camera_intrinsics)</span><br><span class="line"></span><br><span class="line">    annotations.append(&#123;</span><br><span class="line">        <span class="string">&#x27;frame&#x27;</span>: t,</span><br><span class="line">        <span class="string">&#x27;bbox&#x27;</span>: bbox_2d,  <span class="comment"># (x, y, w, h)  —— 完美标注</span></span><br><span class="line">        <span class="string">&#x27;img&#x27;</span>: <span class="string">f&#x27;frame_<span class="subst">&#123;t:08d&#125;</span>.png&#x27;</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    cv2.imwrite(<span class="string">f&#x27;frames/frame_<span class="subst">&#123;t:08d&#125;</span>.png&#x27;</span>, img)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 生成 groundtruth.txt（OSTrack 训练格式）</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;frames/groundtruth.txt&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    <span class="keyword">for</span> ann <span class="keyword">in</span> annotations:</span><br><span class="line">        x, y, w, h = ann[<span class="string">&#x27;bbox&#x27;</span>]</span><br><span class="line">        f.write(<span class="string">f&#x27;<span class="subst">&#123;x&#125;</span>,<span class="subst">&#123;y&#125;</span>,<span class="subst">&#123;w&#125;</span>,<span class="subst">&#123;h&#125;</span>\n&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键优势</strong>：仿真生成的 BBox 是<strong>像素级精度的 3D→2D 投影</strong>，比人工标注更精确（人工标注的 BBox 通常有 3-5px 偏差），而且标注成本为零。</p>
+<h3 id="9-3-域随机化：从仿真到真实的桥梁"><a href="#9-3-域随机化：从仿真到真实的桥梁" class="headerlink" title="9.3 域随机化：从仿真到真实的桥梁"></a>9.3 域随机化：从仿真到真实的桥梁</h3><p>纯仿真训练的跟踪器放到真实无人机上通常会退化 30-50%。域随机化（Domain Randomization）是标准解法：</p>
+<table>
+<thead>
+<tr>
+<th>随机化参数</th>
+<th>范围</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>光照强度</td>
+<td>0.3-2.0×</td>
+<td>适应晴天&#x2F;阴天&#x2F;黄昏</td>
+</tr>
+<tr>
+<td>色温</td>
+<td>3000K-8000K</td>
+<td>适应不同相机白平衡</td>
+</tr>
+<tr>
+<td>背景纹理</td>
+<td>10 种天空&#x2F;地面</td>
+<td>适应不同地貌</td>
+</tr>
+<tr>
+<td>相机噪声</td>
+<td>Gaussian σ&#x3D;0-5px</td>
+<td>适应真实传感器噪声</td>
+</tr>
+<tr>
+<td>运动模糊</td>
+<td>kernel&#x3D;3-11px</td>
+<td>适应高速飞行</td>
+</tr>
+<tr>
+<td>靶机姿态</td>
+<td>全姿态随机</td>
+<td>目标外观泛化</td>
+</tr>
+<tr>
+<td>天气粒子</td>
+<td>雾&#x2F;雨&#x2F;雪</td>
+<td>恶劣天气鲁棒性</td>
+</tr>
+</tbody></table>
+<p>在 AirSim 中配置域随机化（通过 settings.json）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;CameraDefaults&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;CaptureSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;ImageType&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;Width&quot;</span><span class="punctuation">:</span> <span class="number">256</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;Height&quot;</span><span class="punctuation">:</span> <span class="number">256</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;MotionBlurAmount&quot;</span><span class="punctuation">:</span> <span class="number">0.3</span>  <span class="comment">// 动态模糊</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;Weather&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;Rain&quot;</span><span class="punctuation">:</span> <span class="number">0.2</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;Fog&quot;</span><span class="punctuation">:</span> <span class="number">0.1</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>每帧随机抽取参数组合，生成”千人千面”的训练数据。</p>
+<h3 id="9-4-Sim-to-Real-验证闭环"><a href="#9-4-Sim-to-Real-验证闭环" class="headerlink" title="9.4 Sim-to-Real 验证闭环"></a>9.4 Sim-to-Real 验证闭环</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">仿真训练 OSTrack</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">真实无人机采集少量视频（50-100 条）</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">人工标注这 50-100 条（成本可控）</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">微调 2-3 epochs（防过拟合）</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">在真实无人机上评估 AUC</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">如果退化 &gt; 5% → 增加域随机化参数范围 → 重新训练</span><br><span class="line">如果退化 &lt; 5% → 部署</span><br></pre></td></tr></table></figure>
+
+<p>在无人机跟踪任务上，经过域随机化的仿真训练 + 少量真实数据微调，通常可以达到纯真实数据训练 90-95% 的性能，而标注成本降低 95% 以上。</p>
+<h2 id="十、前沿技术：OSTrack-之后的跟踪技术演进"><a href="#十、前沿技术：OSTrack-之后的跟踪技术演进" class="headerlink" title="十、前沿技术：OSTrack 之后的跟踪技术演进"></a>十、前沿技术：OSTrack 之后的跟踪技术演进</h2><h3 id="10-1-SeqTrack（CVPR-2023）：跟踪-序列生成"><a href="#10-1-SeqTrack（CVPR-2023）：跟踪-序列生成" class="headerlink" title="10.1 SeqTrack（CVPR 2023）：跟踪 &#x3D; 序列生成"></a>10.1 SeqTrack（CVPR 2023）：跟踪 &#x3D; 序列生成</h3><p>SeqTrack 将目标跟踪重新定义为<strong>序列生成问题</strong>——不是预测 BBox 坐标，而是逐 token 生成”BBox 坐标的文本表示”：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">输入：模板帧 + 搜索帧（图像 tokens）</span><br><span class="line">输出：&quot;x=245,y=189,w=56,h=78&quot;（文本 token 序列）</span><br><span class="line"></span><br><span class="line">优势：</span><br><span class="line">1. 不需要独立的预测头——复用 LLM 的 LM head</span><br><span class="line">2. 可以自然处理任意格式的输出（BBox、Mask、描述文本）</span><br><span class="line">3. 统一的序列建模框架</span><br><span class="line"></span><br><span class="line">代价：推理速度比 OSTrack 慢 3-5 倍（需要自回归解码）</span><br></pre></td></tr></table></figure>
+
+<p>SeqTrack 在 LaSOT 上达到 72.5% AUC（超过 OSTrack 的 71.1%），但 FPS 仅 25。</p>
+<h3 id="10-2-ARTrack（CVPR-2024）：逐帧自回归"><a href="#10-2-ARTrack（CVPR-2024）：逐帧自回归" class="headerlink" title="10.2 ARTrack（CVPR 2024）：逐帧自回归"></a>10.2 ARTrack（CVPR 2024）：逐帧自回归</h3><p>ARTrack 将跟踪建模为<strong>时序自回归</strong>——不是每帧独立预测，而是用上一帧的跟踪结果作为当前帧的额外输入：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><msub><mi>b</mi><mi>t</mi></msub><mo>∣</mo><msub><mi>o</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>b</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>h</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">p(b_t \mid o_t, b_{t-1}, h_{t-1})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">h_{t-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9028em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span> 是上一帧的隐状态。这带来了两个好处：</p>
+<ol>
+<li><strong>运动先验</strong>：模型知道目标上一帧在哪，当前帧只需在附近找——像 Kalman 滤波的深度版</li>
+<li><strong>轨迹平滑</strong>：自回归约束让预测的 BBox 轨迹更连续，减少了相邻帧之间的抖动</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>LaSOT AUC</th>
+<th>UAV123 AUC</th>
+<th>FPS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OSTrack</td>
+<td>71.1</td>
+<td>70.1</td>
+<td>105</td>
+</tr>
+<tr>
+<td>SeqTrack</td>
+<td>72.5</td>
+<td>71.8</td>
+<td>25</td>
+</tr>
+<tr>
+<td><strong>ARTrack</strong></td>
+<td><strong>73.8</strong></td>
+<td><strong>72.8</strong></td>
+<td><strong>52</strong></td>
+</tr>
+</tbody></table>
+<h3 id="10-3-基础模型跟踪器：从单任务到通用视觉"><a href="#10-3-基础模型跟踪器：从单任务到通用视觉" class="headerlink" title="10.3 基础模型跟踪器：从单任务到通用视觉"></a>10.3 基础模型跟踪器：从单任务到通用视觉</h3><p>2024-2025 年，最显著的趋势是”跟踪不再是一个独立任务”——它正在被更大的视觉基础模型吸收：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>核心思路</th>
+<th>关键能力</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SAMTrack</strong></td>
+<td>SAM + 跟踪头</td>
+<td>开放词汇：跟踪任意用户指定的物体（”跟踪穿红衣服的人”）</td>
+</tr>
+<tr>
+<td><strong>UVOTrack</strong>（CVPR 2025）</td>
+<td>统一视觉跟踪框架</td>
+<td>一个模型处理 RGB&#x2F;深度&#x2F;红外&#x2F;事件相机四种模态</td>
+</tr>
+<tr>
+<td><strong>Track-Anything</strong></td>
+<td>SAM + XMem</td>
+<td>交互式：用户点一下 → 自动跟踪该物体直到出画面</td>
+</tr>
+<tr>
+<td><strong>InternTrack</strong></td>
+<td>InternVL + 跟踪</td>
+<td>可利用多模态大模型的语言理解辅助跟踪</td>
+</tr>
+</tbody></table>
+<p><strong>对工程的影响</strong>：未来可能不需要专门训练 OSTrack——直接调 SAMTrack API 就能跟踪靶机。但代价是推理延迟会从 10ms 变成 500ms+。</p>
+<h3 id="10-4-多模态跟踪：夜间飞行的解决方案"><a href="#10-4-多模态跟踪：夜间飞行的解决方案" class="headerlink" title="10.4 多模态跟踪：夜间飞行的解决方案"></a>10.4 多模态跟踪：夜间飞行的解决方案</h3><p>可见光（RGB）跟踪在夜间&#x2F;低光照下完全失效。多模态方案使用红外热成像（TIR）作为补充：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">OSTrack 多模态改造：</span><br><span class="line"></span><br><span class="line">方案 A：早期融合</span><br><span class="line">  RGB 图像 + TIR 图像 → 双通道输入 → 共享 ViT</span><br><span class="line">  挑战：RGB 和 TIR 的像素分布完全不同，直接拼接效果差</span><br><span class="line"></span><br><span class="line">方案 B：中期融合（推荐）</span><br><span class="line">  RGB → ViT-RGB（6层）  ─┐</span><br><span class="line">  TIR → ViT-TIR（6层）  ─┤→ 拼接 → 联合ViT（6层）→ 预测头</span><br><span class="line">  优点：早期各自提取模态特征，中期统一推理</span><br><span class="line"></span><br><span class="line">方案 C：晚期融合</span><br><span class="line">  两个独立 OSTrack → 结果加权平均</span><br><span class="line">  缺点：2 倍计算量</span><br></pre></td></tr></table></figure>
+
+<p>UAVDark135 基准（135 个夜间航拍序列）上的对比：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>RGB-Only AUC</th>
+<th>RGB+TIR AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OSTrack（单模态）</td>
+<td>38.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>OSTrack（双模态中期融合）</td>
+<td>—</td>
+<td><strong>54.7</strong></td>
+</tr>
+</tbody></table>
+<p>TIR 带来的 +16.5% 提升在夜间场景是刚需——特别是对军用&#x2F;安防截击机。</p>
+<h3 id="10-5-Quantization：从-FP16-到-INT8"><a href="#10-5-Quantization：从-FP16-到-INT8" class="headerlink" title="10.5 Quantization：从 FP16 到 INT8"></a>10.5 Quantization：从 FP16 到 INT8</h3><p>边缘部署的关键瓶颈是内存带宽。OSTrack-384（384 维 embedding）的模型大小：</p>
+<table>
+<thead>
+<tr>
+<th>精度</th>
+<th>模型大小</th>
+<th>Jetson Orin FPS</th>
+<th>UAV123 AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FP32</td>
+<td>380 MB</td>
+<td>18</td>
+<td>70.1</td>
+</tr>
+<tr>
+<td>FP16</td>
+<td>190 MB</td>
+<td>32</td>
+<td>70.0</td>
+</tr>
+<tr>
+<td>INT8（PTQ）</td>
+<td>95 MB</td>
+<td>52</td>
+<td>68.4</td>
+</tr>
+<tr>
+<td>INT8（QAT）</td>
+<td>95 MB</td>
+<td>52</td>
+<td><strong>69.3</strong></td>
+</tr>
+</tbody></table>
+<p>QAT（量化感知训练）在训练时模拟 INT8 精度，比 PTQ（后训练量化）多保留 0.9% AUC。对于需要 30+ FPS 实时跟踪的机载平台，QAT-INT8 是当前最佳方案。</p>
+<h2 id="十一、总结"><a href="#十一、总结" class="headerlink" title="十一、总结"></a>十一、总结</h2><p>OSTrack 做了一件在 2022 年看来很简单的事：<strong>把跟踪从双流变成单流</strong>。</p>
+<p>但这件事需要三个关键设计支撑：</p>
+<ol>
+<li><strong>独立的模板&#x2F;搜索位置编码</strong>——让模型能区分两个来源的 token</li>
+<li><strong>候选消除</strong>——让模型在深层逐渐聚焦目标区域</li>
+<li><strong>分数预测头</strong>——输出置信度，解决跟踪失败检测</li>
+</ol>
+<p>三者缺一，单流的优势就发挥不出来。</p>
+<p>OSTrack 的 LaSOT AUC 71.1% 保持了约一年的 SoTA，直到 2023 年被后续的单流改进方案超越。它的核心范式——早期联合学习——已经被 ROMTrack、ARTrack、SeqTrack 等后续工作吸收，成为目标跟踪领域的设计常识。</p>
+<p>从方法论上看，OSTrack 的意义不在于具体数字，而在于它证明了：<strong>在视觉跟踪中，信息的早交互比编码器的深度更重要</strong>。这是一个影响深远的洞察。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li><p>Ye, B., Chang, H., Ma, B., Shan, S., &amp; Chen, X. (2022). Joint Feature Learning and Relation Modeling for Tracking: A One-Stream Framework. <em>ECCV 2022</em>. arXiv: 2203.11991</p>
+</li>
+<li><p>Bertinetto, L., Valmadre, J., Henriques, J. F., Vedaldi, A., &amp; Torr, P. H. S. (2016). Fully-Convolutional Siamese Networks for Object Tracking. <em>ECCV 2016 Workshops</em>.</p>
+</li>
+<li><p>Li, B., Wu, W., Wang, Q., Zhang, F., Xing, J., &amp; Yan, J. (2019). SiamRPN++: Evolution of Siamese Visual Tracking with Very Deep Networks. <em>CVPR 2019</em>.</p>
+</li>
+<li><p>Yan, B., Peng, H., Fu, J., Wang, D., &amp; Lu, H. (2021). Learning Spatio-Temporal Transformer for Visual Tracking. <em>ICCV 2021</em>.</p>
+</li>
+<li><p>Chen, X., Yan, B., Zhu, J., Wang, D., Yang, X., &amp; Lu, H. (2021). Transformer Tracking. <em>CVPR 2021</em>.</p>
+</li>
+<li><p>Fan, H., Lin, L., Yang, F., Chu, P., Deng, G., Yu, S., Bai, H., Xu, Y., Liao, C., &amp; Ling, H. (2019). LaSOT: A High-Quality Benchmark for Large-Scale Single Object Tracking. <em>CVPR 2019</em>.</p>
+</li>
+<li><p>OSTrack 官方代码仓库. <a target="_blank" rel="noopener" href="https://github.com/botaoye/OSTrack">https://github.com/botaoye/OSTrack</a></p>
+</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/09/OSTrack-%E5%8D%95%E6%B5%81Transformer%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/">https://goodisok.github.io/2026/05/09/OSTrack-%E5%8D%95%E6%B5%81Transformer%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA/">目标跟踪</a><a class="post-meta__tags" href="/tags/Transformer/">Transformer</a><a class="post-meta__tags" href="/tags/CVPR/">CVPR</a><a class="post-meta__tags" href="/tags/ECCV/">ECCV</a><a class="post-meta__tags" href="/tags/OSTrack/">OSTrack</a><a class="post-meta__tags" href="/tags/ViT/">ViT</a><a class="post-meta__tags" href="/tags/%E5%8D%95%E6%B5%81%E6%9E%B6%E6%9E%84/">单流架构</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/09/2026-05-09-reinforcement-learning-complete-guide/" title="强化学习(RL)完全入门：从零基础到理解无人机智能飞控"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">强化学习(RL)完全入门：从零基础到理解无人机智能飞控</div></div><div class="info-2"><div class="info-item-1">  本文目标：让没有任何强化学习基础的读者，理解 RL 的核心原理、数学公式、三大范式，以及为什么它正在改变无人机飞控和自动驾驶。阅读本文大约需要 30 分钟。   引言：为什么 RL 值得学？2025-2026 年，强化学习（Reinforcement Learning, RL）正在经历一个「第二次爆发」：  无人机竞速：TU Delft 的 SkyDreamer 用 RL 实现了 21 m&#x2F;s 的自主高速飞行，完成倒飞筋斗和 Split-S 机动 自动驾驶：小鹏 VLA 2.0、理想 MindVLA-o1 纷纷将 RL 嵌入端到端驾驶系统 世界模型：DreamerV3 让飞行器「先做梦再飞」，真机交互量降低 10000 倍 大模型对齐：ChatGPT 的 RLHF 本质就是 RL——人类反馈作为奖励信号  但 RL 的入门门槛确实高——Bellman 方程、策略梯度、TD 误差……术语密集、数学抽象。 本文用一个方法解决：概念→定义→性质→表示→例子→应用，每一步都不跳。  一、概念：强化学习的直觉理解1.1 核心比喻：训狗想象你在训一只狗：  你发出指令「坐下」 ...</div></div></div></a><a class="pagination-related" href="/2026/05/08/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="四旋翼飞行动力学建模：AirSim 源码深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">四旋翼飞行动力学建模：AirSim 源码深度解析</div></div><div class="info-2"><div class="info-item-1">四旋翼飞行动力学建模：AirSim 源码深度解析一、为什么要读 AirSim 的动力学代码Microsoft AirSim 是无人机仿真领域最知名的开源项目之一。它发布于 2017 年，核心动力学代码（AirLib 库）约 15 万行 C++，定位在 Unreal Engine&#x2F;Unity 之上，为多旋翼提供高保真物理仿真。 虽然 AirSim 已于 2022 年进入维护模式（不再新增功能），但其多旋翼飞行动力学实现——特别是转子推力模型、气动阻力和传感器噪声建模——至今仍是 C++ 开源仿真中相当完整的参考，值得逐行阅读。 本文聚焦 AirSim 动力学内核（AirLib），不涉及 Unreal Engine 渲染层、Python API 和 ROS 桥接，只看 AirLib/include/ 下的物理建模代码。 分析范围：    模块 所在文件 代码行数    物理引擎主循环 FastPhysicsEngine.hpp ~465 行   多旋翼动力学体 MultiRotorPhysicsBody.hpp ~230 行   螺旋桨参数 RotorParams.hpp ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/04/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/" title="截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）</div></div><div class="info-2"><div class="info-item-1"> 一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。   一、算法全景：截击无人机的软件架构一次完整的无人机拦截任务可以分解为五个算法层次，从感知到执行依次递进： 1234567891011┌─────────────────────────────────────────────────────────┐│  第五层：蜂群协同        任务分配 / 多机编队 / 目标优先级  │├─────────────────────────────────────────────────────────┤│  第四层：自主导航        VIO / SLAM / 无GPS定位           │├───────────────────────────────────────────────────...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#OSTrack%EF%BC%9A%E5%8D%95%E6%B5%81Transformer%E9%A2%A0%E8%A6%86%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA%E2%80%94%E2%80%94%E4%BB%8E%E5%8F%8C%E6%B5%81%E7%93%B6%E9%A2%88%E5%88%B0%E6%97%A9%E6%9C%9F%E8%81%94%E5%90%88%E5%AD%A6%E4%B9%A0%E7%9A%84%E8%8C%83%E5%BC%8F%E5%8F%98%E9%9D%A9"><span class="toc-number">1.</span> <span class="toc-text">OSTrack：单流Transformer颠覆单目标跟踪——从双流瓶颈到早期联合学习的范式变革</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8D%95%E7%9B%AE%E6%A0%87%E8%B7%9F%E8%B8%AA%E7%9A%84%E5%8D%81%E5%B9%B4%E5%9B%B0%E5%B1%80"><span class="toc-number">1.1.</span> <span class="toc-text">一、单目标跟踪的十年困局</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E5%88%9B%E6%96%B0%EF%BC%9A%E4%B8%80%E5%88%80%E5%88%87%E6%8E%89%E5%8F%8C%E6%B5%81"><span class="toc-number">1.2.</span> <span class="toc-text">二、核心创新：一刀切掉双流</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8F%8C%E6%B5%81-vs-%E5%8D%95%E6%B5%81"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 双流 vs 单流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E6%B5%81%E6%9B%B4%E6%9C%89%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 为什么单流更有优势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81OSTrack-%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">三、OSTrack 架构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 整体流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Patch-Embedding"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 Patch Embedding</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81%EF%BC%9A%E5%8C%BA%E5%88%86%E6%A8%A1%E6%9D%BF%E5%92%8C%E6%90%9C%E7%B4%A2"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 位置编码：区分模板和搜索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-ViT-Encoder%EF%BC%9A%E5%85%A8%E5%B1%80-Self-Attention"><span class="toc-number">1.3.4.</span> <span class="toc-text">3.4 ViT Encoder：全局 Self-Attention</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%80%99%E9%80%89%E6%B6%88%E9%99%A4%EF%BC%88Candidate-Elimination%EF%BC%89"><span class="toc-number">1.3.5.</span> <span class="toc-text">3.5 候选消除（Candidate Elimination）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E9%A2%84%E6%B5%8B%E5%A4%B4"><span class="toc-number">1.3.6.</span> <span class="toc-text">3.6 预测头</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5"><span class="toc-number">1.4.</span> <span class="toc-text">四、训练策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%AE%AD%E7%BB%83%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 训练数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 采样策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 损失函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E8%AE%AD%E7%BB%83%E9%85%8D%E7%BD%AE"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 训练配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0%EF%BC%88PyTorch-%E6%A0%B8%E5%BF%83%E7%89%88%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">五、代码实现（PyTorch 核心版）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%A7%E8%83%BD%E4%B8%8E%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.</span> <span class="toc-text">六、性能与对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BB%E8%A6%81%E5%9F%BA%E5%87%86"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 主要基准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%85%B3%E9%94%AE%E6%B4%9E%E5%AF%9F"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 关键洞察</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%E7%9A%84%E5%85%B3%E9%94%AE%E7%BB%93%E8%AE%BA"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 消融实验的关键结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81OSTrack-%E7%9A%84%E5%B1%80%E9%99%90%E4%B8%8E%E5%90%8E%E7%BB%AD%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.7.</span> <span class="toc-text">七、OSTrack 的局限与后续工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%B7%B2%E7%9F%A5%E5%B1%80%E9%99%90"><span class="toc-number">1.7.1.</span> <span class="toc-text">7.1 已知局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%90%8E%E7%BB%AD%E6%94%B9%E8%BF%9B%E6%96%B9%E5%90%91"><span class="toc-number">1.7.2.</span> <span class="toc-text">7.2 后续改进方向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%B8%8E%E6%9B%B4%E5%A4%A7%E8%8C%83%E5%BC%8F%E7%9A%84%E8%9E%8D%E6%B1%87"><span class="toc-number">1.7.3.</span> <span class="toc-text">7.3 与更大范式的融汇</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%97%A0%E4%BA%BA%E6%9C%BA-%E9%A3%9E%E8%A1%8C%E5%99%A8%E8%A7%86%E8%A7%89%E8%B7%9F%E8%B8%AA%EF%BC%9AOSTrack-%E7%9A%84%E7%A9%BA%E4%B8%AD%E6%88%98%E5%9C%BA"><span class="toc-number">1.8.</span> <span class="toc-text">八、无人机&#x2F;飞行器视觉跟踪：OSTrack 的空中战场</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E9%A3%9E%E8%A1%8C%E5%99%A8%E8%B7%9F%E8%B8%AA%E7%9A%84%E7%8B%AC%E7%89%B9%E6%8C%91%E6%88%98"><span class="toc-number">1.8.1.</span> <span class="toc-text">8.1 飞行器跟踪的独特挑战</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E7%A9%BA%E4%B8%AD%E8%B7%9F%E8%B8%AA%E5%9F%BA%E5%87%86"><span class="toc-number">1.8.2.</span> <span class="toc-text">8.2 空中跟踪基准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%BE%B9%E7%BC%98%E9%83%A8%E7%BD%B2%EF%BC%9AJetson-Orin-%E4%B8%8A%E7%9A%84-OSTrack"><span class="toc-number">1.8.3.</span> <span class="toc-text">8.3 边缘部署：Jetson Orin 上的 OSTrack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E5%A4%9A%E6%9C%BA%E8%B7%9F%E8%B8%AA%EF%BC%9A%E4%B8%80%E6%9E%B6%E8%B7%9F%E8%B8%AA%E5%99%A8%E8%BF%BD%E5%A4%9A%E4%B8%AA%E7%9B%AE%E6%A0%87"><span class="toc-number">1.8.4.</span> <span class="toc-text">8.4 多机跟踪：一架跟踪器追多个目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%BB%BF%E7%9C%9F%E9%9B%86%E6%88%90%EF%BC%9A%E8%AE%A9-OSTrack-%E5%9C%A8%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%AD%E8%AE%AD%E7%BB%83%E5%92%8C%E9%AA%8C%E8%AF%81"><span class="toc-number">1.9.</span> <span class="toc-text">九、仿真集成：让 OSTrack 在模拟器中训练和验证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%BF%E7%9C%9F"><span class="toc-number">1.9.1.</span> <span class="toc-text">9.1 为什么需要仿真</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-AirSim-OSTrack-%E7%9A%84%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90-pipeline"><span class="toc-number">1.9.2.</span> <span class="toc-text">9.2 AirSim + OSTrack 的数据生成 pipeline</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%EF%BC%9A%E4%BB%8E%E4%BB%BF%E7%9C%9F%E5%88%B0%E7%9C%9F%E5%AE%9E%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="toc-number">1.9.3.</span> <span class="toc-text">9.3 域随机化：从仿真到真实的桥梁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-Sim-to-Real-%E9%AA%8C%E8%AF%81%E9%97%AD%E7%8E%AF"><span class="toc-number">1.9.4.</span> <span class="toc-text">9.4 Sim-to-Real 验证闭环</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%EF%BC%9AOSTrack-%E4%B9%8B%E5%90%8E%E7%9A%84%E8%B7%9F%E8%B8%AA%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B"><span class="toc-number">1.10.</span> <span class="toc-text">十、前沿技术：OSTrack 之后的跟踪技术演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-SeqTrack%EF%BC%88CVPR-2023%EF%BC%89%EF%BC%9A%E8%B7%9F%E8%B8%AA-%E5%BA%8F%E5%88%97%E7%94%9F%E6%88%90"><span class="toc-number">1.10.1.</span> <span class="toc-text">10.1 SeqTrack（CVPR 2023）：跟踪 &#x3D; 序列生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-ARTrack%EF%BC%88CVPR-2024%EF%BC%89%EF%BC%9A%E9%80%90%E5%B8%A7%E8%87%AA%E5%9B%9E%E5%BD%92"><span class="toc-number">1.10.2.</span> <span class="toc-text">10.2 ARTrack（CVPR 2024）：逐帧自回归</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E8%B7%9F%E8%B8%AA%E5%99%A8%EF%BC%9A%E4%BB%8E%E5%8D%95%E4%BB%BB%E5%8A%A1%E5%88%B0%E9%80%9A%E7%94%A8%E8%A7%86%E8%A7%89"><span class="toc-number">1.10.3.</span> <span class="toc-text">10.3 基础模型跟踪器：从单任务到通用视觉</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E5%A4%9A%E6%A8%A1%E6%80%81%E8%B7%9F%E8%B8%AA%EF%BC%9A%E5%A4%9C%E9%97%B4%E9%A3%9E%E8%A1%8C%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">1.10.4.</span> <span class="toc-text">10.4 多模态跟踪：夜间飞行的解决方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-Quantization%EF%BC%9A%E4%BB%8E-FP16-%E5%88%B0-INT8"><span class="toc-number">1.10.5.</span> <span class="toc-text">10.5 Quantization：从 FP16 到 INT8</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">1.11.</span> <span class="toc-text">十一、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.12.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

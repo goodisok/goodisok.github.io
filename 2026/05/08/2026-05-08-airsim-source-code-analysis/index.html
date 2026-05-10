@@ -1,0 +1,898 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="引言Microsoft AirSim 是无人机仿真领域最成熟的开源平台之一。虽然微软已于2023年将其归档，但 AirSim 的架构设计和工程实现仍然是仿真系统开发的重要参考。本文通过逐文件阅读 AirSim 核心源码（AirLib 部分），从物理引擎、传感器噪声建模到飞行控制器，完整剖析其技术架构。  分析方法：本文所有结论均基于对 AirSim 源码（main 分支）的直接阅读，涉及约 20">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/08/2026-05-08-airsim-source-code-analysis/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="引言Microsoft AirSim 是无人机仿真领域最成熟的开源平台之一。虽然微软已于2023年将其归档，但 AirSim 的架构设计和工程实现仍然是仿真系统开发的重要参考。本文通过逐文件阅读 AirSim 核心源码（AirLib 部分），从物理引擎、传感器噪声建模到飞行控制器，完整剖析其技术架构。  分析方法：本文所有结论均基于对 AirSim 源码（main 分支）的直接阅读，涉及约 20">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-07T16:01:00.000Z">
+<meta property="article:modified_time" content="2026-05-07T15:35:59.026Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="AirSim">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="PID控制">
+<meta property="article:tag" content="传感器建模">
+<meta property="article:tag" content="无人机仿真">
+<meta property="article:tag" content="源码分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析",
+  "url": "https://goodisok.github.io/2026/05/08/2026-05-08-airsim-source-code-analysis/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-07T16:01:00.000Z",
+  "dateModified": "2026-05-07T15:35:59.026Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/08/2026-05-08-airsim-source-code-analysis/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-07T16:01:00.000Z" title="发表于 2026-05-08 00:01:00">2026-05-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-07T15:35:59.026Z" title="更新于 2026-05-07 23:35:59">2026-05-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8A%80%E6%9C%AF/">无人机技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>Microsoft AirSim 是无人机仿真领域最成熟的开源平台之一。虽然微软已于2023年将其归档，但 AirSim 的架构设计和工程实现仍然是仿真系统开发的重要参考。本文通过逐文件阅读 AirSim 核心源码（AirLib 部分），从物理引擎、传感器噪声建模到飞行控制器，完整剖析其技术架构。</p>
+<blockquote>
+<p><strong>分析方法</strong>：本文所有结论均基于对 AirSim 源码（main 分支）的直接阅读，涉及约 20 个头文件和实现文件，涵盖 AirLib 的物理层、传感器层、API 层和固件层。</p>
+</blockquote>
+<hr>
+<h2 id="一、总体架构：五层分层设计"><a href="#一、总体架构：五层分层设计" class="headerlink" title="一、总体架构：五层分层设计"></a>一、总体架构：五层分层设计</h2><p>AirSim 采用清晰的分层架构，每层职责单一，通过接口解耦：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────┐</span><br><span class="line">│           Python Client (RPC API)                │</span><br><span class="line">│       moveByVelocity / moveToPosition / ...      │</span><br><span class="line">└────────────────────┬────────────────────────────┘</span><br><span class="line">                     │ RPC (TCP/IP)</span><br><span class="line">┌────────────────────▼────────────────────────────┐</span><br><span class="line">│         MultirotorApiBase (C++ API 层)           │</span><br><span class="line">│     takeoff / land / moveOnPath / 安全管理       │</span><br><span class="line">└────────────────────┬────────────────────────────┘</span><br><span class="line">                     │</span><br><span class="line">┌────────────────────▼────────────────────────────┐</span><br><span class="line">│         SimpleFlightApi (控制器适配层)           │</span><br><span class="line">│     Board + CommLink + Estimator + Firmware      │</span><br><span class="line">│     commandVelocity → setGoalAndMode()           │</span><br><span class="line">└────────────────────┬────────────────────────────┘</span><br><span class="line">                     │</span><br><span class="line">┌────────────────────▼────────────────────────────┐</span><br><span class="line">│            Firmware (固件层)                      │</span><br><span class="line">│     OffboardApi → CascadeController → Mixer      │</span><br><span class="line">└────────────────────┬────────────────────────────┘</span><br><span class="line">                     │ motor PWM [0~1]</span><br><span class="line">┌────────────────────▼────────────────────────────┐</span><br><span class="line">│         FastPhysicsEngine (物理引擎)              │</span><br><span class="line">│     RotorActuator + DragFaces → Verlet 积分      │</span><br><span class="line">│     状态写回 Kinematics::State                   │</span><br><span class="line">└────────────────────┬────────────────────────────┘</span><br><span class="line">                     │ ground truth</span><br><span class="line">┌────────────────────▼────────────────────────────┐</span><br><span class="line">│            SensorCollection (传感器层)            │</span><br><span class="line">│     IMU / GPS / 气压计 / 磁力计                  │</span><br><span class="line">│     读 ground truth → 加噪声/延迟 → 输出          │</span><br><span class="line">└─────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>五层之间的数据流向</strong>：</p>
+<ol>
+<li><strong>物理引擎</strong> 每帧更新动力学状态，将 <code>Kinematics::State</code>（位置、速度、加速度、姿态）和 <code>Environment::State</code>（气压、密度、重力）写入 ground truth</li>
+<li><strong>传感器层</strong> 读取 ground truth，叠加噪声模型后输出带噪声的传感器数据</li>
+<li><strong>固件层</strong> 的 <code>StateEstimator</code> 读取传感器数据，<code>CascadeController</code> 根据目标模式计算控制输出</li>
+<li><strong>Mixer</strong> 将四轴控制量（roll&#x2F;pitch&#x2F;yaw&#x2F;throttle）转换为四个电机的 PWM 值</li>
+<li><strong>物理引擎</strong> 的 <code>RotorActuator</code> 将 PWM 转为推力和扭矩，施加到动力学模型</li>
+</ol>
+<hr>
+<h2 id="二、物理引擎层：Verlet-积分与-box-阻力模型"><a href="#二、物理引擎层：Verlet-积分与-box-阻力模型" class="headerlink" title="二、物理引擎层：Verlet 积分与 box 阻力模型"></a>二、物理引擎层：Verlet 积分与 box 阻力模型</h2><h3 id="2-1-核心架构"><a href="#2-1-核心架构" class="headerlink" title="2.1 核心架构"></a>2.1 核心架构</h3><p>物理引擎的核心是 <code>FastPhysicsEngine</code>（<code>AirLib/include/physics/FastPhysicsEngine.hpp</code>），实现了一个基于 Verlet 积分的多体物理仿真器。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FastPhysicsEngine 核心接口（简化）</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FastPhysicsEngine</span> : <span class="keyword">public</span> PhysicsEngineBase &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">update</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">        <span class="built_in">updatePhysics</span>(world_, dt);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">updatePhysics</span><span class="params">(TTimePoint time, TTimeDelta dt)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; body : bodies_) &#123;</span><br><span class="line">            <span class="comment">// 1. 重置力和力矩</span></span><br><span class="line">            body-&gt;<span class="built_in">resetWrench</span>();</span><br><span class="line">            <span class="comment">// 2. 施加外力（旋翼推力 + 重力）</span></span><br><span class="line">            body-&gt;<span class="built_in">updateKinematics</span>(dt);</span><br><span class="line">            <span class="comment">// 3. 碰撞检测与响应</span></span><br><span class="line">            <span class="comment">// 4. Verlet 积分步进</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-旋翼执行器：常数-C-T-模型"><a href="#2-2-旋翼执行器：常数-C-T-模型" class="headerlink" title="2.2 旋翼执行器：常数 C_T 模型"></a>2.2 旋翼执行器：常数 C_T 模型</h3><p><code>RotorActuator</code>（<code>AirLib/include/vehicles/multirotor/RotorActuator.hpp</code>）是旋翼动力学模型的核心实现：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RotorActuator::update() 核心逻辑（简化）</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">RotorActuator::update</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 一阶低通滤波平滑控制信号</span></span><br><span class="line">    control_signal_filtered_ = control_signal_filtered_ </span><br><span class="line">        + (control_signal_ - control_signal_filtered_) </span><br><span class="line">        * (dt / (dt + params_.filter_time_constant));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算推力和扭矩（使用常数系数）</span></span><br><span class="line">    <span class="keyword">auto</span> thrust = control_signal_filtered_ * params_.max_thrust;</span><br><span class="line">    <span class="keyword">auto</span> torque = control_signal_filtered_ * params_.max_torque </span><br><span class="line">                * params_.turning_direction;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 空气密度校正</span></span><br><span class="line">    thrust *= air_density_ratio;</span><br><span class="line">    torque *= air_density_ratio;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>默认使用的螺旋桨参数来自 UIUC 数据库（<code>RotorParams.hpp</code>）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GWS 9X5 桨的默认参数</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">RotorParams</span> &#123;</span><br><span class="line">    real_T C_T = <span class="number">0.109919f</span>;   <span class="comment">// 推力系数（@6396.667 RPM）</span></span><br><span class="line">    real_T C_P = <span class="number">0.040164f</span>;   <span class="comment">// 功率系数</span></span><br><span class="line">    real_T max_rpm = <span class="number">6396.667f</span>;</span><br><span class="line">    real_T D = <span class="number">9.0f</span> * <span class="number">0.0254f</span>; <span class="comment">// 直径 (m)</span></span><br><span class="line">    <span class="comment">// 推力公式: T = C_T * ρ * n² * D⁴</span></span><br><span class="line">    <span class="comment">// 扭矩公式: τ = C_P * ρ * n² * D⁵ / (2π)</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>重要发现</strong>：AirSim 的旋翼模型使用<strong>常数推力&#x2F;功率系数</strong>，这意味着它<strong>不支持进距比（advance ratio）校正</strong>。对于高速前飞场景（如前飞速度超过 15 m&#x2F;s），桨叶效率会显著下降，但 AirSim 的常数系数模型无法捕捉这一效应。这是高速截击机仿真需要考虑补充的关键模型。</p>
+<h3 id="2-3-阻力模型：六面-box-drag-face"><a href="#2-3-阻力模型：六面-box-drag-face" class="headerlink" title="2.3 阻力模型：六面 box drag face"></a>2.3 阻力模型：六面 box drag face</h3><p>AirSim 使用简化的 box 阻力模型——将机身近似为长方体，每个面产生独立的阻力：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 阻力计算（FastPhysicsEngine::getDragWrench() 简化）</span></span><br><span class="line"><span class="function">Wrench <span class="title">getDragWrench</span><span class="params">(<span class="type">const</span> PhysicsBody* body)</span> </span>&#123;</span><br><span class="line">    Wrench drag_wrench;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; vertex : body-&gt;<span class="built_in">getDragVertices</span>()) &#123;</span><br><span class="line">        <span class="comment">// 计算该面在体轴系的速度分量</span></span><br><span class="line">        Vector3r velocity = body-&gt;<span class="built_in">getVelocityAtVertex</span>(vertex.position);</span><br><span class="line">        <span class="comment">// 阻力 = 0.5 * ρ * v² * Cd * Area（沿面法向）</span></span><br><span class="line">        Vector3r drag_force = <span class="number">-0.5f</span> * air_density </span><br><span class="line">                            * velocity.<span class="built_in">squaredNorm</span>() </span><br><span class="line">                            * vertex.drag_coefficient </span><br><span class="line">                            * vertex.area </span><br><span class="line">                            * velocity.<span class="built_in">normalized</span>();</span><br><span class="line">        <span class="comment">// 累加力和力矩</span></span><br><span class="line">        drag_wrench.force += drag_force;</span><br><span class="line">        drag_wrench.torque += vertex.position.<span class="built_in">cross</span>(drag_force);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> drag_wrench;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>局限性</strong>：</p>
+<ul>
+<li>不区分前飞&#x2F;悬停气动特性</li>
+<li>无升力面建模（固定翼&#x2F;倾转旋翼无法仿真）</li>
+<li>无攻角&#x2F;侧滑角相关气动系数</li>
+<li>高速场景下精度不足</li>
+</ul>
+<h3 id="2-4-积分方法：Verlet（半隐式-Euler）"><a href="#2-4-积分方法：Verlet（半隐式-Euler）" class="headerlink" title="2.4 积分方法：Verlet（半隐式 Euler）"></a>2.4 积分方法：Verlet（半隐式 Euler）</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 速度更新（半隐式 Euler）</span></span><br><span class="line">linear_velocity += (force / mass + gravity) * dt;</span><br><span class="line">angular_velocity += inertia_inv * (torque - angular_velocity.<span class="built_in">cross</span>(inertia * angular_velocity)) * dt;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 位置更新（显式 Euler）</span></span><br><span class="line">position += linear_velocity * dt;</span><br><span class="line">orientation = <span class="built_in">integrate_quaternion</span>(orientation, angular_velocity, dt);</span><br></pre></td></tr></table></figure>
+
+<p>相比 RK4，Verlet 积分的优势是计算量小，劣势是在高速机动（&gt;100°&#x2F;s 角速度）时精度下降。</p>
+<hr>
+<h2 id="三、传感器层：教科书级噪声建模"><a href="#三、传感器层：教科书级噪声建模" class="headerlink" title="三、传感器层：教科书级噪声建模"></a>三、传感器层：教科书级噪声建模</h2><p>AirSim 的传感器实现是其最值得学习的部分。所有传感器遵循统一的 <code>SensorBase</code> 架构。</p>
+<h3 id="3-1-传感器基类设计"><a href="#3-1-传感器基类设计" class="headerlink" title="3.1 传感器基类设计"></a>3.1 传感器基类设计</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SensorBase</span> : <span class="keyword">public</span> UpdatableObject &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">GroundTruth</span> &#123;</span><br><span class="line">        <span class="type">const</span> Kinematics::State* kinematics;  <span class="comment">// 真实运动学状态</span></span><br><span class="line">        <span class="type">const</span> Environment* environment;       <span class="comment">// 真实环境状态</span></span><br><span class="line">    &#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">initialize</span><span class="params">(<span class="type">const</span> Kinematics::State*, <span class="type">const</span> Environment*)</span></span>;</span><br><span class="line">    <span class="comment">// 子类实现 resetImplementation() 和 update()</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>设计要点</strong>：</p>
+<ul>
+<li>Ground truth 在所有传感器之间<strong>共享</strong>，不拷贝数据</li>
+<li>构造函数不做重活（不访问 ground truth），初始化在 <code>reset()</code> 中完成</li>
+<li><code>SensorCollection</code> 通过 <code>unordered_map&lt;SensorType, Container&gt;</code> 管理所有传感器</li>
+</ul>
+<h3 id="3-2-IMU：ARW-Bias-随机游走"><a href="#3-2-IMU：ARW-Bias-随机游走" class="headerlink" title="3.2 IMU：ARW + Bias 随机游走"></a>3.2 IMU：ARW + Bias 随机游走</h3><p><code>ImuSimple</code>（<code>AirLib/include/sensors/imu/ImuSimple.hpp</code>）实现了标准的惯性传感器噪声模型，参考 Oliver J. Woodman 的经典论文《An introduction to inertial navigation》：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">ImuSimple::addNoise</span><span class="params">(Vector3r&amp; linear_accel, Vector3r&amp; angular_vel)</span> </span>&#123;</span><br><span class="line">    real_T sqrt_dt = <span class="built_in">sqrt</span>(std::<span class="built_in">max</span>(dt, params_.min_sample_time));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 陀螺仪噪声模型</span></span><br><span class="line">    real_T gyro_sigma_arw = params_.gyro.arw / sqrt_dt;     <span class="comment">// ARW → 标准差</span></span><br><span class="line">    angular_vel += gauss_dist.<span class="built_in">next</span>() * gyro_sigma_arw + state_.gyroscope_bias;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 陀螺仪 bias 随机游走</span></span><br><span class="line">    real_T gyro_sigma_bias = gyro_bias_stability_norm * sqrt_dt;</span><br><span class="line">    state_.gyroscope_bias += gauss_dist.<span class="built_in">next</span>() * gyro_sigma_bias;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加速度计噪声模型（同理）</span></span><br><span class="line">    real_T accel_sigma_vrw = params_.accel.vrw / sqrt_dt;</span><br><span class="line">    linear_accel += gauss_dist.<span class="built_in">next</span>() * accel_sigma_vrw + state_.accelerometer_bias;</span><br><span class="line">    </span><br><span class="line">    real_T accel_sigma_bias = accel_bias_stability_norm * sqrt_dt;</span><br><span class="line">    state_.accelerometer_bias += gauss_dist.<span class="built_in">next</span>() * accel_sigma_bias;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>噪声组分三要素</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>组分</th>
+<th>物理意义</th>
+<th>建模方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ARW &#x2F; VRW</strong></td>
+<td>角度&#x2F;速度随机游走（白噪声）</td>
+<td>σ_arw &#x3D; arw &#x2F; √dt，叠加高斯噪声</td>
+</tr>
+<tr>
+<td><strong>Bias 稳定性</strong></td>
+<td>零偏随时间漂移（随机游走）</td>
+<td>σ_bias &#x3D; bias_stability_norm × √dt，积分累计</td>
+</tr>
+<tr>
+<td><strong>Turn-on Bias</strong></td>
+<td>上电时的初始偏置</td>
+<td>固定常值，在 reset() 时设置</td>
+</tr>
+</tbody></table>
+<p><strong>输出格式</strong>（与 ROS <code>sensor_msgs/Imu</code> 兼容）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Output &#123;</span><br><span class="line">    orientation: 四元数（真值，未加噪）</span><br><span class="line">    angular_velocity: 体轴系角速度（已加噪）</span><br><span class="line">    linear_acceleration: 体轴系加速度（已减重力，已加噪）</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-GPS：频率限制-延迟线-HDOP-收敛"><a href="#3-3-GPS：频率限制-延迟线-HDOP-收敛" class="headerlink" title="3.3 GPS：频率限制 + 延迟线 + HDOP 收敛"></a>3.3 GPS：频率限制 + 延迟线 + HDOP 收敛</h3><p><code>GpsSimple</code>（<code>AirLib/include/sensors/gps/GpsSimple.hpp</code>）模拟了真实 GPS 的关键特性：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GpsSimple::update</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    freq_limiter_.<span class="built_in">update</span>();   <span class="comment">// 频率限制（典型 5Hz）</span></span><br><span class="line">    eph_filter.<span class="built_in">update</span>();      <span class="comment">// 水平精度因子逐步收敛</span></span><br><span class="line">    epv_filter.<span class="built_in">update</span>();      <span class="comment">// 垂直精度因子逐步收敛</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (freq_limiter_.<span class="built_in">isWaitComplete</span>()) &#123;</span><br><span class="line">        <span class="comment">// 将当前测量推入延迟线</span></span><br><span class="line">        <span class="built_in">addOutputToDelayLine</span>(eph, epv);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    delay_line_.<span class="built_in">update</span>();     <span class="comment">// 延迟输出（模拟信号处理延迟）</span></span><br><span class="line">    <span class="built_in">setOutput</span>(delay_line_.<span class="built_in">getOutput</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GPS 仿真特性</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>实现方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>更新频率</strong></td>
+<td><code>FrequencyLimiter</code>，可配置（默认 5Hz）</td>
+</tr>
+<tr>
+<td><strong>信号延迟</strong></td>
+<td><code>DelayLine&lt;Output&gt;</code>，模拟信号处理和传输延迟</td>
+</tr>
+<tr>
+<td><strong>HDOP&#x2F;VDOP 收敛</strong></td>
+<td>一阶低通滤波器，从 100 逐步收敛到 ~0.3</td>
+</tr>
+<tr>
+<td><strong>启动延迟</strong></td>
+<td><code>startup_delay</code>，模拟冷启动时间</td>
+</tr>
+<tr>
+<td><strong>Fix 类型切换</strong></td>
+<td>基于 eph 阈值：<code>GNSS_NO_FIX → 2D_FIX → 3D_FIX</code></td>
+</tr>
+</tbody></table>
+<h3 id="3-4-气压计：Gauss-Markov-漂移模型"><a href="#3-4-气压计：Gauss-Markov-漂移模型" class="headerlink" title="3.4 气压计：Gauss-Markov 漂移模型"></a>3.4 气压计：Gauss-Markov 漂移模型</h3><p><code>BarometerSimple</code> 使用 Gauss-Markov 过程模拟气压漂移：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Output <span class="title">getOutputInternal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> altitude = environment_-&gt;<span class="built_in">getState</span>().geo_point.altitude;</span><br><span class="line">    <span class="keyword">auto</span> pressure = EarthUtils::<span class="built_in">getStandardPressure</span>(altitude);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Gauss-Markov 压力漂移（约 10m/hr 漂移率，默认设置）</span></span><br><span class="line">    pressure_factor_.<span class="built_in">update</span>();</span><br><span class="line">    pressure += pressure * pressure_factor_.<span class="built_in">getOutput</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 非相关噪声（约 0.2m σ）</span></span><br><span class="line">    pressure += uncorrelated_noise_.<span class="built_in">next</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 气压高度公式</span></span><br><span class="line">    output.altitude = (<span class="number">1</span> - <span class="built_in">pow</span>(pressure / SeaLevelPressure, <span class="number">0.190284</span>)) </span><br><span class="line">                    * <span class="number">145366.45</span> * <span class="number">0.3048</span>; <span class="comment">// 英尺 → 米</span></span><br><span class="line">    output.pressure = pressure - SeaLevelPressure + qnh * <span class="number">100.0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-磁力计：偶极子模型-体轴变换"><a href="#3-5-磁力计：偶极子模型-体轴变换" class="headerlink" title="3.5 磁力计：偶极子模型 + 体轴变换"></a>3.5 磁力计：偶极子模型 + 体轴变换</h3><p><code>MagnetometerSimple</code> 支持两种磁场参考源：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">updateReference</span><span class="params">(<span class="type">const</span> GroundTruth&amp; ground_truth)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (params_.ref_source) &#123;</span><br><span class="line">    <span class="keyword">case</span> ReferenceSource_Constant:</span><br><span class="line">        <span class="comment">// 西雅图当地磁场（常值）</span></span><br><span class="line">        magnetic_field_true_ = <span class="built_in">Vector3r</span>(<span class="number">0.34252</span>, <span class="number">0.09805</span>, <span class="number">0.93438</span>); <span class="comment">// Gauss</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> ReferenceSource_DipoleModel:</span><br><span class="line">        <span class="comment">// 地球偶极子磁场模型（随经纬度变化）</span></span><br><span class="line">        magnetic_field_true_ = EarthUtils::<span class="built_in">getMagField</span>(</span><br><span class="line">            ground_truth.environment-&gt;<span class="built_in">getState</span>().geo_point</span><br><span class="line">        ) * <span class="number">1E4</span>; <span class="comment">// Tesla → Gauss</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Output <span class="title">getOutputInternal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 体轴系变换 + 比例因子 + 噪声 + 偏置</span></span><br><span class="line">    output.magnetic_field_body = </span><br><span class="line">        VectorMath::<span class="built_in">transformToBodyFrame</span>(</span><br><span class="line">            magnetic_field_true_, </span><br><span class="line">            kinematics_-&gt;pose.orientation, <span class="literal">true</span></span><br><span class="line">        ) * params_.scale_factor </span><br><span class="line">        + noise_vec_.<span class="built_in">next</span>() </span><br><span class="line">        + bias_vec_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-6-传感器共同模式总结"><a href="#3-6-传感器共同模式总结" class="headerlink" title="3.6 传感器共同模式总结"></a>3.6 传感器共同模式总结</h3><p>所有 Simple 传感器有统一的模式：</p>
+<ol>
+<li><strong>继承 <code>SensorBase</code></strong>，通过 <code>GroundTruth</code> 获取真值</li>
+<li><strong><code>update()</code> 中</strong>：读真值 → 加噪声 → （可选：频率限制+延迟线） → 写输出</li>
+<li><strong>噪声生成</strong>：使用 <code>RandomVectorGaussianR</code>（高斯向量随机数生成器）</li>
+<li><strong>与 ROS 兼容</strong>：所有 Output 结构与 ROS 标准消息对齐</li>
+</ol>
+<hr>
+<h2 id="四、固件层：Cascade-级联-PID-控制器"><a href="#四、固件层：Cascade-级联-PID-控制器" class="headerlink" title="四、固件层：Cascade 级联 PID 控制器"></a>四、固件层：Cascade 级联 PID 控制器</h2><h3 id="4-1-Firmware-主循环"><a href="#4-1-Firmware-主循环" class="headerlink" title="4.1 Firmware 主循环"></a>4.1 Firmware 主循环</h3><p><code>Firmware::update()</code>（<code>firmware/Firmware.hpp</code>）实现了完整的飞行控制主循环：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Firmware::update</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    board_-&gt;<span class="built_in">update</span>();            <span class="comment">// 读取 RC 输入</span></span><br><span class="line">    offboard_api_.<span class="built_in">update</span>();      <span class="comment">// 状态机 + RC/API 模式切换</span></span><br><span class="line">    controller_-&gt;<span class="built_in">update</span>();       <span class="comment">// 级联 PID 计算</span></span><br><span class="line">    </span><br><span class="line">    <span class="type">const</span> Axis4r&amp; output_controls = controller_-&gt;<span class="built_in">getOutput</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (controller_-&gt;<span class="built_in">isLastGoalModeAllPassthrough</span>()) &#123;</span><br><span class="line">        <span class="comment">// Passthrough 模式：直接输出到电机（如 moveByMotorPWMs）</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; motor_count; ++i)</span><br><span class="line">            motor_outputs_[i] = output_controls[i];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 正常模式：经混控器转换为电机输出</span></span><br><span class="line">        mixer_.<span class="built_in">getMotorOutput</span>(output_controls, motor_outputs_);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入电机输出</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; motor_count; ++i)</span><br><span class="line">        board_-&gt;<span class="built_in">writeOutput</span>(i, motor_outputs_[i]);</span><br><span class="line">    </span><br><span class="line">    comm_link_-&gt;<span class="built_in">update</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-CascadeController：四层级联架构"><a href="#4-2-CascadeController：四层级联架构" class="headerlink" title="4.2 CascadeController：四层级联架构"></a>4.2 CascadeController：四层级联架构</h3><p>这是 AirSim 控制系统的核心。<code>CascadeController</code>（<code>firmware/CascadeController.hpp</code>）为每条控制轴独立选择控制模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PositionWorld → VelocityWorld → AngleLevel → AngleRate → Motor</span><br><span class="line">     (PID)          (PID)        (PID)        (PID)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">CascadeController::update</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="keyword">auto</span>&amp; goal_mode = goal_-&gt;<span class="built_in">getGoalMode</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">unsigned</span> <span class="type">int</span> axis = <span class="number">0</span>; axis &lt; <span class="number">4</span>; ++axis) &#123;</span><br><span class="line">        <span class="comment">// 如果 GoalMode 改变，重新创建该轴的控制器</span></span><br><span class="line">        <span class="keyword">if</span> (goal_mode[axis] != last_goal_mode_[axis]) &#123;</span><br><span class="line">            <span class="keyword">switch</span> (goal_mode[axis]) &#123;</span><br><span class="line">            <span class="keyword">case</span> GoalModeType::AngleRate:</span><br><span class="line">                axis_controllers_[axis].<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">AngleRateController</span>(params_, clock_));</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> GoalModeType::AngleLevel:</span><br><span class="line">                axis_controllers_[axis].<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">AngleLevelController</span>(params_, clock_));</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> GoalModeType::VelocityWorld:</span><br><span class="line">                axis_controllers_[axis].<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">VelocityController</span>(params_, clock_));</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> GoalModeType::PositionWorld:</span><br><span class="line">                axis_controllers_[axis].<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">PositionController</span>(params_, clock_));</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> GoalModeType::Passthrough:</span><br><span class="line">                axis_controllers_[axis].<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">PassthroughController</span>());</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        axis_controllers_[axis]-&gt;<span class="built_in">update</span>();</span><br><span class="line">        output_[axis] = axis_controllers_[axis]-&gt;<span class="built_in">getOutput</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>六种控制模式</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>输入</th>
+<th>输出</th>
+<th>子控制器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Passthrough</code></td>
+<td>直接值</td>
+<td>直通</td>
+<td>无</td>
+</tr>
+<tr>
+<td><code>AngleRate</code></td>
+<td>目标角速率 (rad&#x2F;s)</td>
+<td>电机指令</td>
+<td>PID</td>
+</tr>
+<tr>
+<td><code>AngleLevel</code></td>
+<td>目标角度 (rad)</td>
+<td>角速率指令</td>
+<td>PID + AngleRate</td>
+</tr>
+<tr>
+<td><code>VelocityWorld</code></td>
+<td>目标世界速度 (m&#x2F;s)</td>
+<td>角度指令</td>
+<td>PID + AngleLevel</td>
+</tr>
+<tr>
+<td><code>PositionWorld</code></td>
+<td>目标世界位置 (m)</td>
+<td>速度指令</td>
+<td>PID + VelocityWorld</td>
+</tr>
+<tr>
+<td><code>ConstantOutput</code></td>
+<td>常值</td>
+<td>恒定输出</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<p><strong>位置控制器的级联实现</strong>（<code>PositionController</code>）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">PositionController::update</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 外环：位置 → 速度</span></span><br><span class="line">    pid_-&gt;<span class="built_in">setGoal</span>(goal_position_world[axis_]);</span><br><span class="line">    pid_-&gt;<span class="built_in">setMeasured</span>(measured_position_world[axis_]);</span><br><span class="line">    pid_-&gt;<span class="built_in">update</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 内环：速度 → 角度（子控制器）</span></span><br><span class="line">    velocity_goal_[axis_] = pid_-&gt;<span class="built_in">getOutput</span>() * max_limit;</span><br><span class="line">    velocity_controller_-&gt;<span class="built_in">update</span>();  <span class="comment">// 内部再级联 AngleLevel → AngleRate</span></span><br><span class="line">    </span><br><span class="line">    output_ = velocity_controller_-&gt;<span class="built_in">getOutput</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-Mixer：QuadX-混控器"><a href="#4-3-Mixer：QuadX-混控器" class="headerlink" title="4.3 Mixer：QuadX 混控器"></a>4.3 Mixer：QuadX 混控器</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// QuadX 布局的混控矩阵</span></span><br><span class="line"><span class="type">const</span> motorMixer_t mixerQuadX[<span class="number">4</span>] = &#123;</span><br><span class="line">    &#123;  <span class="number">1.0f</span>, <span class="number">-1.0f</span>,  <span class="number">1.0f</span>,  <span class="number">1.0f</span> &#125;,  <span class="comment">// FRONT_R</span></span><br><span class="line">    &#123;  <span class="number">1.0f</span>,  <span class="number">1.0f</span>, <span class="number">-1.0f</span>,  <span class="number">1.0f</span> &#125;,  <span class="comment">// REAR_L</span></span><br><span class="line">    &#123;  <span class="number">1.0f</span>,  <span class="number">1.0f</span>,  <span class="number">1.0f</span>, <span class="number">-1.0f</span> &#125;,  <span class="comment">// FRONT_L</span></span><br><span class="line">    &#123;  <span class="number">1.0f</span>, <span class="number">-1.0f</span>, <span class="number">-1.0f</span>, <span class="number">-1.0f</span> &#125;,  <span class="comment">// REAR_R</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 混控公式</span></span><br><span class="line">motor[i] = throttle * mixer[i].throttle </span><br><span class="line">         + pitch    * mixer[i].pitch </span><br><span class="line">         + roll     * mixer[i].roll </span><br><span class="line">         + yaw      * mixer[i].yaw;</span><br></pre></td></tr></table></figure>
+
+<p>混控后执行安全限幅：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 下限保护（防止电机停转导致失控）</span></span><br><span class="line"><span class="keyword">if</span> (min_motor &lt; min_motor_output)</span><br><span class="line">    所有电机 += (min_motor_output - min_motor);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 上限保护（防止饱和）</span></span><br><span class="line"><span class="keyword">if</span> (max_motor &gt; max_motor_output)</span><br><span class="line">    所有电机 /= (max_motor / max_motor_output);</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-增益热更新"><a href="#4-4-增益热更新" class="headerlink" title="4.4 增益热更新"></a>4.4 增益热更新</h3><p>AirSim 支持运行时通过 API 修改 PID 增益：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">SimpleFlightApi::setControllerGains</span><span class="params">(<span class="type">uint8_t</span> type, </span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> vector&lt;<span class="type">float</span>&gt;&amp; kp, <span class="type">const</span> vector&lt;<span class="type">float</span>&gt;&amp; ki, <span class="type">const</span> vector&lt;<span class="type">float</span>&gt;&amp; kd)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">    <span class="keyword">case</span> GoalModeType::AngleRate:</span><br><span class="line">        params_.angle_rate_pid.p.<span class="built_in">setValues</span>(kp_axis4);</span><br><span class="line">        params_.angle_rate_pid.i.<span class="built_in">setValues</span>(ki_axis4);</span><br><span class="line">        params_.angle_rate_pid.d.<span class="built_in">setValues</span>(kd_axis4);</span><br><span class="line">        params_.gains_changed = <span class="literal">true</span>;  <span class="comment">// 触发 CascadeController 重建</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="comment">// ... 其他模式同理</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>gains_changed = true</code> 时，<code>CascadeController</code> 在下一次 <code>update()</code> 中自动重建所有轴控制器，使新增益生效。这极大便利了参数调优和在线自适应控制。</p>
+<hr>
+<h2 id="五、API-层与状态机"><a href="#五、API-层与状态机" class="headerlink" title="五、API 层与状态机"></a>五、API 层与状态机</h2><h3 id="5-1-OffboardApi-状态管理"><a href="#5-1-OffboardApi-状态管理" class="headerlink" title="5.1 OffboardApi 状态管理"></a>5.1 OffboardApi 状态管理</h3><p><code>OffboardApi</code>（<code>firmware/OffboardApi.hpp</code>）是飞行状态的核心管理器：</p>
+<p><strong>状态机转换</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Disarmed → [arm()] → Armed → [takeoff detected] → Active</span><br><span class="line">Active   → [land detected] → Disarmed</span><br></pre></td></tr></table></figure>
+
+<p><strong>API 超时保护</strong>：起飞后如果超过 <code>api_goal_timeout</code> 未收到新指令，自动进入 hover 模式：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (takenoff_ &amp;&amp; (now - goal_timestamp_ &gt; params_-&gt;api_goal_timeout)) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!is_api_timedout_) &#123;</span><br><span class="line">        comm_link_-&gt;<span class="built_in">log</span>(<span class="string">&quot;API timeout, entering hover mode&quot;</span>);</span><br><span class="line">        goal_mode_ = GoalMode::<span class="built_in">getPositionMode</span>();  <span class="comment">// 位置悬停</span></span><br><span class="line">        goal_ = Axis4r::<span class="built_in">xyzToAxis4</span>(current_position, <span class="literal">true</span>);</span><br><span class="line">        is_api_timedout_ = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>着陆检测</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">detectLanding</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (takenoff_) &#123;</span><br><span class="line">        <span class="type">float</span> throttle = rc_.<span class="built_in">getMotorOutput</span>();</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">isGreaterThanArmedThrottle</span>(throttle)) &#123;</span><br><span class="line">            <span class="keyword">auto</span> angular = state_estimator_-&gt;<span class="built_in">getAngularVelocity</span>();</span><br><span class="line">            <span class="keyword">auto</span> velocity = state_estimator_-&gt;<span class="built_in">getLinearVelocity</span>();</span><br><span class="line">            <span class="comment">// 油门低 + 角速度≈0 + 线速度≈0 → 判定着陆</span></span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">isAlmostZero</span>(angular) &amp;&amp; <span class="built_in">isAlmostZero</span>(velocity))</span><br><span class="line">                landed_ = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-MultirotorApiBase：高级路径规划"><a href="#5-2-MultirotorApiBase：高级路径规划" class="headerlink" title="5.2 MultirotorApiBase：高级路径规划"></a>5.2 MultirotorApiBase：高级路径规划</h3><p><code>MultirotorApiBase</code>（<code>api/MultirotorApiBase.cpp</code>）实现了高层次飞行功能：</p>
+<p><strong>路径跟随（<code>moveOnPath</code>）</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">moveOnPath</span><span class="params">(<span class="type">const</span> vector&lt;Vector3r&gt;&amp; path, <span class="type">float</span> velocity, ...)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 将路径分解为路径段</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; point : path) &#123;</span><br><span class="line">        path_segs.<span class="built_in">push_back</span>(<span class="built_in">PathSegment</span>(prev_point, point, velocity, length));</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 自适应 lookahead 控制</span></span><br><span class="line">    <span class="keyword">while</span> (!waiter.<span class="built_in">isTimeout</span>()) &#123;</span><br><span class="line">        <span class="comment">// 计算下一个 lookahead 目标点</span></span><br><span class="line">        <span class="built_in">setNextPathPosition</span>(path, segs, cur_loc, lookahead + error, next_loc);</span><br><span class="line">        <span class="comment">// 发送位置指令</span></span><br><span class="line">        <span class="built_in">moveToPathPosition</span>(next_loc.position, seg_velocity, ...);</span><br><span class="line">        <span class="comment">// 更新当前位置并调整 lookahead 误差</span></span><br><span class="line">        lookahead_error = <span class="built_in">computeLookaheadError</span>(cur_loc, next_loc, actual_pos);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键特性</strong>：</p>
+<ul>
+<li><strong>自适应 lookahead</strong>：无人机偏离路径时自动增大 lookahead 距离</li>
+<li><strong>末端减速</strong>：接近路径终点时自动切换为 <code>breaking_vel</code></li>
+<li><strong>安全检查</strong>：lookahead &lt; 精度距离时抛出异常，防止失控</li>
+</ul>
+<hr>
+<h2 id="六、技术评估与适用边界"><a href="#六、技术评估与适用边界" class="headerlink" title="六、技术评估与适用边界"></a>六、技术评估与适用边界</h2><h3 id="6-1-设计优势"><a href="#6-1-设计优势" class="headerlink" title="6.1 设计优势"></a>6.1 设计优势</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>分层架构</strong></td>
+<td>⭐⭐⭐⭐⭐ 五层解耦清晰，接口设计合理</td>
+</tr>
+<tr>
+<td><strong>传感器噪声模型</strong></td>
+<td>⭐⭐⭐⭐⭐ 教科书级实现，ARW&#x2F;Bias&#x2F;延迟一应俱全</td>
+</tr>
+<tr>
+<td><strong>级联控制器</strong></td>
+<td>⭐⭐⭐⭐⭐ 四层级联 + 独立轴模式 + 热更新增益</td>
+</tr>
+<tr>
+<td><strong>GoalMode 架构</strong></td>
+<td>⭐⭐⭐⭐ 灵活的多模式控制（Position&#x2F;Velocity&#x2F;Angle&#x2F;Rate&#x2F;Passthrough）</td>
+</tr>
+<tr>
+<td><strong>路径规划</strong></td>
+<td>⭐⭐⭐⭐ 自适应 lookahead + 末端减速</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-局限性"><a href="#6-2-局限性" class="headerlink" title="6.2 局限性"></a>6.2 局限性</h3><table>
+<thead>
+<tr>
+<th>局限</th>
+<th>影响场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>常数 C_T&#x2F;C_P</strong>（无进距比校正）</td>
+<td>高速前飞（&gt;15 m&#x2F;s）时旋翼效率建模不准</td>
+</tr>
+<tr>
+<td><strong>Box drag 模型</strong>（无升力面）</td>
+<td>固定翼、倾转旋翼、高速机动仿真不适用</td>
+</tr>
+<tr>
+<td><strong>Verlet 积分</strong>（非高阶）</td>
+<td>&gt;100°&#x2F;s 角速度机动精度不足</td>
+</tr>
+<tr>
+<td><strong>无气动系数表</strong></td>
+<td>无法模拟失速、大攻角等非线性气动效应</td>
+</tr>
+<tr>
+<td><strong>SimpleFlight 控制器</strong></td>
+<td>仅适用于四旋翼，延伸性有限</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-适用边界"><a href="#6-3-适用边界" class="headerlink" title="6.3 适用边界"></a>6.3 适用边界</h3><p><strong>AirSim 适合</strong>：</p>
+<ul>
+<li>四旋翼通用仿真（侦察、航拍、物流等 ≤15 m&#x2F;s 场景）</li>
+<li>传感器算法开发（视觉 SLAM、避障、目标跟踪）</li>
+<li>控制参数调优（PID 增益搜索）</li>
+<li>多机编队仿真</li>
+<li>强化学习训练环境</li>
+</ul>
+<p><strong>AirSim 不适合</strong>：</p>
+<ul>
+<li>高速飞行器（&gt;20 m&#x2F;s 前飞速度）</li>
+<li>固定翼&#x2F;垂直起降&#x2F;倾转旋翼</li>
+<li>需要精确气动模型（如失速恢复、螺旋机动）</li>
+<li>导弹&#x2F;截击机等大机动飞行器</li>
+</ul>
+<hr>
+<h2 id="七、传感器噪声模型参数参考"><a href="#七、传感器噪声模型参数参考" class="headerlink" title="七、传感器噪声模型参数参考"></a>七、传感器噪声模型参数参考</h2><p>下表汇总了 AirSim 中四类传感器的默认噪声参数，可供自主开发仿真器时参考：</p>
+<table>
+<thead>
+<tr>
+<th>传感器</th>
+<th>噪声参数</th>
+<th>默认值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>IMU 陀螺</strong></td>
+<td><code>arw</code></td>
+<td>2.0E-4 rad&#x2F;s&#x2F;√Hz</td>
+<td>角度随机游走</td>
+</tr>
+<tr>
+<td></td>
+<td><code>bias_stability</code></td>
+<td>2.5E-4 rad&#x2F;s</td>
+<td>Bias 稳定性</td>
+</tr>
+<tr>
+<td></td>
+<td><code>tau</code></td>
+<td>100.0 s</td>
+<td>Bias 相关时间常数</td>
+</tr>
+<tr>
+<td><strong>IMU 加计</strong></td>
+<td><code>vrw</code></td>
+<td>1.4E-3 m&#x2F;s&#x2F;√Hz</td>
+<td>速度随机游走</td>
+</tr>
+<tr>
+<td></td>
+<td><code>bias_stability</code></td>
+<td>3.0E-3 m&#x2F;s²</td>
+<td>Bias 稳定性</td>
+</tr>
+<tr>
+<td><strong>GPS</strong></td>
+<td><code>update_frequency</code></td>
+<td>5 Hz</td>
+<td>更新频率</td>
+</tr>
+<tr>
+<td></td>
+<td><code>eph_final</code></td>
+<td>0.3</td>
+<td>最终水平精度因子</td>
+</tr>
+<tr>
+<td></td>
+<td><code>epv_final</code></td>
+<td>0.6</td>
+<td>最终垂直精度因子</td>
+</tr>
+<tr>
+<td><strong>气压计</strong></td>
+<td><code>pressure_factor_sigma</code></td>
+<td>1.0E-5</td>
+<td>压力漂移率 (Pa&#x2F;s)</td>
+</tr>
+<tr>
+<td></td>
+<td><code>uncorrelated_noise_sigma</code></td>
+<td>2.0</td>
+<td>非相关噪声 (Pa)</td>
+</tr>
+<tr>
+<td><strong>磁力计</strong></td>
+<td><code>noise_sigma</code></td>
+<td>5.0E-4 Gauss</td>
+<td>测量噪声</td>
+</tr>
+<tr>
+<td></td>
+<td><code>scale_factor</code></td>
+<td>1.0</td>
+<td>比例因子</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>通过对 AirSim 源码的逐文件分析，可以得出以下核心结论：</p>
+<ol>
+<li><p><strong>分层架构是仿真系统的基石</strong>。AirSim 的 Physics → Sensors → Firmware → API → Client 五层设计使得各模块独立演化、可替换。</p>
+</li>
+<li><p><strong>传感器噪声建模是 AirSim 最值得学习的部分</strong>。IMU 的 ARW+Bias 随机游走、GPS 的 HDOP 收敛、气压计的 Gauss-Markov 漂移，都是经过学术验证的经典模型。</p>
+</li>
+<li><p><strong>级联 PID 的 GoalMode 设计极具灵活性</strong>。四轴独立模式 + 运行时切换 + 增益热更新，为控制算法开发提供了良好基础。</p>
+</li>
+<li><p><strong>旋翼模型的常数 C_T&#x2F;C_P 是最大的精度瓶颈</strong>。对于高速前飞场景，需要补充进距比（advance ratio）校正模型，建议参考 <code>C_T(J)</code> 查表法或 blade element theory。</p>
+</li>
+<li><p><strong>AirSim 的适用边界清晰</strong>——它是四旋翼通用仿真的优秀参考，但不是高速飞行器仿真的完整解决方案。</p>
+</li>
+</ol>
+<hr>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>AirSim 源码仓库: <a target="_blank" rel="noopener" href="https://github.com/microsoft/AirSim">https://github.com/microsoft/AirSim</a>（MIT License）</li>
+<li>Woodman, O. J. (2007). <em>An introduction to inertial navigation</em>. University of Cambridge, Computer Laboratory. UCAM-CL-TR-696.</li>
+<li>GWS 9X5 propeller data: UIUC Propeller Data Site, <a target="_blank" rel="noopener" href="https://m-selig.ae.illinois.edu/props/volume-1/">https://m-selig.ae.illinois.edu/props/volume-1/</a></li>
+<li>Gaffer, G. (2004). <em>Game Physics: Resolution — Contact Constraints</em>. gafferongames.com.</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/08/2026-05-08-airsim-source-code-analysis/">https://goodisok.github.io/2026/05/08/2026-05-08-airsim-source-code-analysis/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/AirSim/">AirSim</a><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a><a class="post-meta__tags" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a><a class="post-meta__tags" href="/tags/%E4%BC%A0%E6%84%9F%E5%99%A8%E5%BB%BA%E6%A8%A1/">传感器建模</a><a class="post-meta__tags" href="/tags/PID%E6%8E%A7%E5%88%B6/">PID控制</a><a class="post-meta__tags" href="/tags/C/">C++</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/08/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="四旋翼飞行动力学建模：AirSim 源码深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">四旋翼飞行动力学建模：AirSim 源码深度解析</div></div><div class="info-2"><div class="info-item-1">四旋翼飞行动力学建模：AirSim 源码深度解析一、为什么要读 AirSim 的动力学代码Microsoft AirSim 是无人机仿真领域最知名的开源项目之一。它发布于 2017 年，核心动力学代码（AirLib 库）约 15 万行 C++，定位在 Unreal Engine&#x2F;Unity 之上，为多旋翼提供高保真物理仿真。 虽然 AirSim 已于 2022 年进入维护模式（不再新增功能），但其多旋翼飞行动力学实现——特别是转子推力模型、气动阻力和传感器噪声建模——至今仍是 C++ 开源仿真中相当完整的参考，值得逐行阅读。 本文聚焦 AirSim 动力学内核（AirLib），不涉及 Unreal Engine 渲染层、Python API 和 ROS 桥接，只看 AirLib/include/ 下的物理建模代码。 分析范围：    模块 所在文件 代码行数    物理引擎主循环 FastPhysicsEngine.hpp ~465 行   多旋翼动力学体 MultiRotorPhysicsBody.hpp ~230 行   螺旋桨参数 RotorParams.hpp ...</div></div></div></a><a class="pagination-related" href="/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/" title="Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络</div></div><div class="info-2"><div class="info-item-1"> 摘要：Physical AI 是过去两年 AI 领域最具范式意义的演进方向——从”会说”到”会做”。本文按技术层次梳理 VLA 基础模型、扩散策略、世界模型、可微仿真、人形机器人、3D 场景表征、Sim-to-Real 和边缘推理八大方向的创新，以数学推导、消融数据和量化对比作为论证基础。所有引用均标注 arXiv ID 或 DOI，确保可验证。    一、物理 AI 的技术定义Physical AI 和数字 AI 的核心差异不是”有没有身体”，而是状态空间的数学属性不同：    维度 数字 AI（LLM） 物理 AI（机器人）    状态空间 离散 token 序列 VN\mathcal{V}^NVN 连续状态流形 Rn×SO(3)\mathbb{R}^n \times SO(3)Rn×SO(3)   状态转移 p(xt+1∣xt)p(x_{t+1}|x_t)p(xt+1​∣xt​) 无因果惩罚 x˙=f(x,u)\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})x˙=f(x,u) 不可逆   反馈 人工标注 &#x2F; RLAIF 物...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/08/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="四旋翼飞行动力学建模：AirSim 源码深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-08</div><div class="info-item-2">四旋翼飞行动力学建模：AirSim 源码深度解析</div></div><div class="info-2"><div class="info-item-1">四旋翼飞行动力学建模：AirSim 源码深度解析一、为什么要读 AirSim 的动力学代码Microsoft AirSim 是无人机仿真领域最知名的开源项目之一。它发布于 2017 年，核心动力学代码（AirLib 库）约 15 万行 C++，定位在 Unreal Engine&#x2F;Unity 之上，为多旋翼提供高保真物理仿真。 虽然 AirSim 已于 2022 年进入维护模式（不再新增功能），但其多旋翼飞行动力学实现——特别是转子推力模型、气动阻力和传感器噪声建模——至今仍是 C++ 开源仿真中相当完整的参考，值得逐行阅读。 本文聚焦 AirSim 动力学内核（AirLib），不涉及 Unreal Engine 渲染层、Python API 和 ROS 桥接，只看 AirLib/include/ 下的物理建模代码。 分析范围：    模块 所在文件 代码行数    物理引擎主循环 FastPhysicsEngine.hpp ~465 行   多旋翼动力学体 MultiRotorPhysicsBody.hpp ~230 行   螺旋桨参数 RotorParams.hpp ...</div></div></div></a><a class="pagination-related" href="/2026/02/13/PX4-PID%E8%B0%83%E5%8F%82%E5%8E%9F%E7%90%86%E4%B8%8E%E6%96%B9%E6%B3%95-AirSim%E8%81%94%E5%90%88%E4%BB%BF%E7%9C%9F%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="PX4 PID调参原理与方法：AirSim+PX4联合仿真实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">PX4 PID调参原理与方法：AirSim+PX4联合仿真实战指南</div></div><div class="info-2"><div class="info-item-1"> 本文深入解析PX4飞控中的PID控制原理，提供在AirSim+PX4联合仿真环境中进行系统化PID调参的完整方法学。基于真实的仿真调试经验，包含从理论公式到实践验证的全流程，为无人机控制算法开发提供可复现的技术指南。  引言：为什么PID调参仍然是无人机飞控的核心挑战？尽管现代飞控系统引入了MPC、自适应控制等高级算法，PID控制器依然是PX4等开源飞控的核心控制策略。在AirSim+PX4联合仿真环境中，精确的PID参数不仅影响仿真稳定性，更直接关系到算法开发效率与真实飞行安全。本文基于PX4 v1.16.0与AirSim v1.8.0的实际调参经验，系统化地展示如何在高保真仿真环境中进行科学、高效的PID调参。 核心挑战 多环耦合：外环位置控制依赖内环姿态控制的精确性 非线性特性：四旋翼的欠驱动特性与空气动力学非线性 仿真-现实差距：仿真环境中的理想化假设 vs 真实物理约束 参数交互：PID参数间的相互影响与优化空间探索  一、PX4中的PID控制架构：从源码到数学模型1.1 多环PID控制结构PX4采用嵌套PID控制结构，典型控制链路如下： 12位置外环 → 速度中环 ...</div></div></div></a><a class="pagination-related" href="/2026/03/06/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-06</div><div class="info-item-2">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</div></div><div class="info-2"><div class="info-item-1"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div></a><a class="pagination-related" href="/2026/03/09/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%BB%BA%E6%A8%A1%E4%B8%AD%E7%9A%84%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0-%E4%BB%8E%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E5%88%B0%E5%A7%BF%E6%80%81%E6%8E%A7%E5%88%B6%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="无人机建模中的线性代数：从坐标变换到姿态控制的数学基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-09</div><div class="info-item-2">无人机建模中的线性代数：从坐标变换到姿态控制的数学基础</div></div><div class="info-2"><div class="info-item-1"> 线性代数是无人机建模与控制的数学基石。本文从工程实际出发，系统讲解向量空间、矩阵、旋转、四元数、特征值等核心概念，每个知识点都给出数学定义、推导过程与无人机应用场景，帮你建立「定义 → 公式推导 → 物理直觉 → 代码实现」的完整认知链路。   一、为什么无人机工程师需要线性代数打开任何一份无人机动力学代码，你会发现线性代数无处不在：  坐标变换：地面站用经纬高（NED 系），飞控内部用机体系，传感器各有安装系——在它们之间转换全靠矩阵乘法 [1] 姿态表示：四旋翼「朝哪飞、歪了多少」用旋转矩阵或四元数描述 [5] 动力学方程：Iω˙+ω×Iω=τ\mathbf{I}\dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times \mathbf{I}\boldsymbol{\omega} = \boldsymbol{\tau}Iω˙+ω×Iω=τ 里的惯性张量 I\mathbf{I}I 是一个 3×33\times33×3 矩阵 [7] 控制器设计：PID 调参要看特征值判断稳定性，卡尔曼滤波核心是矩阵方程 [9] 传感器融合：多传...</div></div></div></a><a class="pagination-related" href="/2026/02/08/Gazebo-Sim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8EECS%E6%9E%B6%E6%9E%84%E5%88%B0%E4%BB%BF%E7%9C%9F%E4%B8%BB%E5%BE%AA%E7%8E%AF%E7%9A%84%E5%AE%8C%E6%95%B4%E5%89%96%E6%9E%90/" title="Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-08</div><div class="info-item-2">Gazebo Sim 源码深度解析：从 ECS 架构到组件生态与实战</div></div><div class="info-2"><div class="info-item-1"> 源码版本：Gazebo Sim 10 (Jetty)，对应仓库 gazebosim&#x2F;gz-sim参考：Zread - gz-sim 源码解读，Gazebo Sim API 文档本文定位：不仅分析源码架构，还覆盖组件生态的用法和实战配置，帮助无人机开发者快速上手   一、为什么要读 Gazebo Sim 源码？Gazebo Sim（原 Ignition Gazebo）是当前机器人仿真领域事实标准之一。它是 Gazebo Classic 的完全重写版本，积累了超过 16 年的机器人仿真经验。理解其源码对以下场景有直接价值：  自定义物理仿真：需要修改物理步进逻辑、添加自定义力&#x2F;力矩 高性能传感器开发：编写自定义传感器插件（如事件相机、声纳阵列） PX4&#x2F;Ardupilot SITL 集成：理解仿真端如何与飞控软件交互 Sim-to-Real 调优：精确控制仿真步长、物理引擎参数、传感器噪声模型 分布式仿真：理解多 Runner、网络同步的实现机制  本文将从源码层面逐层剖析 Gazebo Sim 的核心架构。  二、仓库结构总览123456789101...</div></div></div></a><a class="pagination-related" href="/2026/03/14/%E7%AA%81%E7%A0%B4AirSim%E7%9B%B8%E6%9C%BA%E5%B8%A7%E7%8E%87%E7%93%B6%E9%A2%88-%E4%BB%8EJPEG%E5%88%B0NVENC%E5%A4%9A%E9%80%9A%E9%81%93%E7%BC%96%E7%A0%81%E7%9A%844%E5%80%8D%E5%8A%A0%E9%80%9F%E5%AE%9E%E6%88%98/" title="突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-14</div><div class="info-item-2">突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战</div></div><div class="info-2"><div class="info-item-1"> 本文介绍如何利用 NVENC（NVIDIA 硬件编码器）突破 AirSim 相机的帧率瓶颈。JPEG 让 1080p 单相机从 ~10 FPS 提到了 ~22 FPS，但双相机并发 + 像素级语义分割真值仍跑不到 30 FPS。本文把整个传输管线推进到 GPU 直接编码（NVENC），最终在 RTX 4090 上做到双相机 1080p 同时 41 FPS、语义分割 IoU &#x3D; 1.000。 文章会把整个工程过程完整复盘，重点讲三个容易踩、文档里没写的坑：  NVENC 多 session 在共享 ID3D11Device 上的 race condition——驱动不会报错，但所有 session 在 ~10 帧内永久性损坏。 snap_to_palette 在 256 色调色板上的 OOM 6GB 陷阱——一次 numpy 广播就把整机内存吃光。 运行期 palette discovery 的反模式——AirSim 早就给了规范调色板，根本不需要”自己探”。    一、背景：JPEG 之后，瓶颈到底在哪？JPEG 方案把 RPC 传输体积从 ~6 MB&#x2F;帧压...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%EF%BC%9A%E4%BA%94%E5%B1%82%E5%88%86%E5%B1%82%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">一、总体架构：五层分层设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%B1%82%EF%BC%9AVerlet-%E7%A7%AF%E5%88%86%E4%B8%8E-box-%E9%98%BB%E5%8A%9B%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">二、物理引擎层：Verlet 积分与 box 阻力模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 核心架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%97%8B%E7%BF%BC%E6%89%A7%E8%A1%8C%E5%99%A8%EF%BC%9A%E5%B8%B8%E6%95%B0-C-T-%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 旋翼执行器：常数 C_T 模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%98%BB%E5%8A%9B%E6%A8%A1%E5%9E%8B%EF%BC%9A%E5%85%AD%E9%9D%A2-box-drag-face"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 阻力模型：六面 box drag face</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%A7%AF%E5%88%86%E6%96%B9%E6%B3%95%EF%BC%9AVerlet%EF%BC%88%E5%8D%8A%E9%9A%90%E5%BC%8F-Euler%EF%BC%89"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 积分方法：Verlet（半隐式 Euler）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BC%A0%E6%84%9F%E5%99%A8%E5%B1%82%EF%BC%9A%E6%95%99%E7%A7%91%E4%B9%A6%E7%BA%A7%E5%99%AA%E5%A3%B0%E5%BB%BA%E6%A8%A1"><span class="toc-number">4.</span> <span class="toc-text">三、传感器层：教科书级噪声建模</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BC%A0%E6%84%9F%E5%99%A8%E5%9F%BA%E7%B1%BB%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 传感器基类设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-IMU%EF%BC%9AARW-Bias-%E9%9A%8F%E6%9C%BA%E6%B8%B8%E8%B5%B0"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 IMU：ARW + Bias 随机游走</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-GPS%EF%BC%9A%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6-%E5%BB%B6%E8%BF%9F%E7%BA%BF-HDOP-%E6%94%B6%E6%95%9B"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 GPS：频率限制 + 延迟线 + HDOP 收敛</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%B0%94%E5%8E%8B%E8%AE%A1%EF%BC%9AGauss-Markov-%E6%BC%82%E7%A7%BB%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.4.</span> <span class="toc-text">3.4 气压计：Gauss-Markov 漂移模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E7%A3%81%E5%8A%9B%E8%AE%A1%EF%BC%9A%E5%81%B6%E6%9E%81%E5%AD%90%E6%A8%A1%E5%9E%8B-%E4%BD%93%E8%BD%B4%E5%8F%98%E6%8D%A2"><span class="toc-number">4.5.</span> <span class="toc-text">3.5 磁力计：偶极子模型 + 体轴变换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%B1%E5%90%8C%E6%A8%A1%E5%BC%8F%E6%80%BB%E7%BB%93"><span class="toc-number">4.6.</span> <span class="toc-text">3.6 传感器共同模式总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%9B%BA%E4%BB%B6%E5%B1%82%EF%BC%9ACascade-%E7%BA%A7%E8%81%94-PID-%E6%8E%A7%E5%88%B6%E5%99%A8"><span class="toc-number">5.</span> <span class="toc-text">四、固件层：Cascade 级联 PID 控制器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Firmware-%E4%B8%BB%E5%BE%AA%E7%8E%AF"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Firmware 主循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-CascadeController%EF%BC%9A%E5%9B%9B%E5%B1%82%E7%BA%A7%E8%81%94%E6%9E%B6%E6%9E%84"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 CascadeController：四层级联架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Mixer%EF%BC%9AQuadX-%E6%B7%B7%E6%8E%A7%E5%99%A8"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 Mixer：QuadX 混控器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%A2%9E%E7%9B%8A%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 增益热更新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81API-%E5%B1%82%E4%B8%8E%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">6.</span> <span class="toc-text">五、API 层与状态机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-OffboardApi-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 OffboardApi 状态管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-MultirotorApiBase%EF%BC%9A%E9%AB%98%E7%BA%A7%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 MultirotorApiBase：高级路径规划</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%8A%80%E6%9C%AF%E8%AF%84%E4%BC%B0%E4%B8%8E%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">7.</span> <span class="toc-text">六、技术评估与适用边界</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%AE%BE%E8%AE%A1%E4%BC%98%E5%8A%BF"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 设计优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 局限性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 适用边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%BC%A0%E6%84%9F%E5%99%A8%E5%99%AA%E5%A3%B0%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8F%82%E8%80%83"><span class="toc-number">8.</span> <span class="toc-text">七、传感器噪声模型参数参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">八、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">10.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

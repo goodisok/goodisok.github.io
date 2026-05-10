@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="960" height="600" fill="#ffffff"/>
+  <text x="480" y="38" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">消融实验结果: 什么最重要？</text>
+  <text x="480" y="60" text-anchor="middle" font-size="12" fill="#6b7280">Tobin et al. 2017 — 逐步去掉每个随机化组件, 观察真实世界误差</text>
+  <line x1="50" y1="100" x2="50" y2="520" stroke="#d1d5db" stroke-width="1"/>
+  <line x1="45" y1="520" x2="55" y2="520" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="524" text-anchor="end" font-size="10" fill="#6b7280">0</text>
+  <line x1="45" y1="490" x2="55" y2="490" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="494" text-anchor="end" font-size="10" fill="#6b7280">1</text>
+  <line x1="45" y1="460" x2="55" y2="460" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="464" text-anchor="end" font-size="10" fill="#6b7280">2</text>
+  <line x1="45" y1="430" x2="55" y2="430" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="434" text-anchor="end" font-size="10" fill="#6b7280">3</text>
+  <line x1="45" y1="400" x2="55" y2="400" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="404" text-anchor="end" font-size="10" fill="#6b7280">4</text>
+  <line x1="45" y1="370" x2="55" y2="370" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="374" text-anchor="end" font-size="10" fill="#6b7280">5</text>
+  <line x1="45" y1="340" x2="55" y2="340" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="344" text-anchor="end" font-size="10" fill="#6b7280">6</text>
+  <line x1="45" y1="310" x2="55" y2="310" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="314" text-anchor="end" font-size="10" fill="#6b7280">7</text>
+  <line x1="45" y1="280" x2="55" y2="280" stroke="#d1d5db" stroke-width="1"/>
+  <text x="38" y="284" text-anchor="end" font-size="10" fill="#6b7280">8</text>
+  <text x="20" y="310" text-anchor="middle" font-size="11" fill="#6b7280" transform="rotate(-90,20,310)">误差 (cm) ↓ 越低越好</text>
+  <rect x="70" y="90" width="200" height="430" rx="8" fill="#dbeafe" fill-opacity="0.4" stroke="#2563eb" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="130" y="112" text-anchor="middle" font-size="14" font-weight="600" fill="#2563eb">仅目标物</text>
+  <rect x="55" y="481.0" width="40" height="39.0" rx="3" fill="#22c55e" filter="url(#shadow)"/>
+  <rect x="105" y="478.0" width="40" height="42.0" rx="3" fill="#86efac" filter="url(#shadow)"/>
+  <rect x="155" y="460.0" width="40" height="60.0" rx="3" fill="#fbbf24" filter="url(#shadow)"/>
+  <text x="175.0" y="455.0" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">2.0</text>
+  <rect x="205" y="475.0" width="40" height="45.0" rx="3" fill="#ef4444" filter="url(#shadow)"/>
+  <text x="225.0" y="470.0" text-anchor="middle" font-size="10" font-weight="600" fill="#ef4444">1.5</text>
+  <rect x="320" y="90" width="200" height="430" rx="8" fill="#fef3c7" fill-opacity="0.4" stroke="#d97706" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="380" y="112" text-anchor="middle" font-size="14" font-weight="600" fill="#d97706">含干扰物</text>
+  <rect x="305" y="466.0" width="40" height="54.0" rx="3" fill="#22c55e" filter="url(#shadow)"/>
+  <text x="325.0" y="461.0" text-anchor="middle" font-size="10" font-weight="600" fill="#22c55e">1.8</text>
+  <rect x="355" y="463.0" width="40" height="57.0" rx="3" fill="#86efac" filter="url(#shadow)"/>
+  <text x="375.0" y="458.0" text-anchor="middle" font-size="10" font-weight="600" fill="#86efac">1.9</text>
+  <rect x="405" y="448.0" width="40" height="72.0" rx="3" fill="#fbbf24" filter="url(#shadow)"/>
+  <text x="425.0" y="443.0" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">2.4</text>
+  <rect x="455" y="304.0" width="40" height="216.0" rx="3" fill="#ef4444" filter="url(#shadow)"/>
+  <text x="475.0" y="299.0" text-anchor="middle" font-size="10" font-weight="600" fill="#ef4444">7.2</text>
+  <rect x="570" y="90" width="200" height="430" rx="8" fill="#fce7f3" fill-opacity="0.4" stroke="#db2777" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="630" y="112" text-anchor="middle" font-size="14" font-weight="600" fill="#db2777">含遮挡</text>
+  <rect x="555" y="448.0" width="40" height="72.0" rx="3" fill="#22c55e" filter="url(#shadow)"/>
+  <text x="575.0" y="443.0" text-anchor="middle" font-size="10" font-weight="600" fill="#22c55e">2.4</text>
+  <rect x="605" y="448.0" width="40" height="72.0" rx="3" fill="#86efac" filter="url(#shadow)"/>
+  <text x="625.0" y="443.0" text-anchor="middle" font-size="10" font-weight="600" fill="#86efac">2.4</text>
+  <rect x="655" y="433.0" width="40" height="87.0" rx="3" fill="#fbbf24" filter="url(#shadow)"/>
+  <text x="675.0" y="428.0" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">2.9</text>
+  <rect x="705" y="298.0" width="40" height="222.0" rx="3" fill="#ef4444" filter="url(#shadow)"/>
+  <text x="725.0" y="293.0" text-anchor="middle" font-size="10" font-weight="600" fill="#ef4444">7.4</text>
+  <rect x="200" y="560" width="16" height="16" rx="3" fill="#22c55e"/>
+  <text x="222" y="573" font-size="12" fill="#4b5563">完整方法</text>
+  <rect x="355" y="560" width="16" height="16" rx="3" fill="#86efac"/>
+  <text x="377" y="573" font-size="12" fill="#4b5563">无噪声</text>
+  <rect x="510" y="560" width="16" height="16" rx="3" fill="#fbbf24"/>
+  <text x="532" y="573" font-size="12" fill="#4b5563">无相机随机化</text>
+  <rect x="665" y="560" width="16" height="16" rx="3" fill="#ef4444"/>
+  <text x="687" y="573" font-size="12" fill="#4b5563">无干扰物训练</text>
+  <text x="700" y="130" text-anchor="start" font-size="11" font-weight="700" fill="#ef4444">⚠ 关键发现:</text>
+  <text x="700" y="148" text-anchor="start" font-size="11" fill="#ef4444">去掉干扰物训练后</text>
+  <text x="700" y="166" text-anchor="start" font-size="11" fill="#ef4444">误差 1.8 → 7.2 cm</text>
+  <text x="700" y="184" text-anchor="start" font-size="10" fill="#9ca3af">(飙升 4 倍)</text>
+</svg>

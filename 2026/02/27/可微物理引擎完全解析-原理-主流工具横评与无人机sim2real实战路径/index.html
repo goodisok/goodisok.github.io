@@ -1,0 +1,992 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真">
+<meta property="og:type" content="article">
+<meta property="og:title" content="可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径">
+<meta property="og:url" content="https://goodisok.github.io/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-02-27T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-26T16:00:00.000Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="Brax">
+<meta property="article:tag" content="Isaac Sim">
+<meta property="article:tag" content="MuJoCo">
+<meta property="article:tag" content="Warp">
+<meta property="article:tag" content="sim2real">
+<meta property="article:tag" content="可微仿真">
+<meta property="article:tag" content="可微物理">
+<meta property="article:tag" content="无人机">
+<meta property="article:tag" content="物理引擎">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径",
+  "url": "https://goodisok.github.io/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-02-27T02:00:00.000Z",
+  "dateModified": "2026-02-26T16:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-27T02:00:00.000Z" title="发表于 2026-02-27 10:00:00">2026-02-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-26T16:00:00.000Z" title="更新于 2026-02-27 00:00:00">2026-02-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF/">仿真技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p><strong>本文目标</strong>：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。</p>
+<p><strong>预设读者</strong>：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。</p>
+<p>配套阅读：<a href="/2026/05/05/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E8%87%AA%E5%8A%A8%E4%BC%98%E5%8C%96-%E6%A2%AF%E5%BA%A6%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/">可微仿真完全入门</a> 讲名词，本篇讲<strong>引擎本身</strong>。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="一、先把”可微物理引擎”这五个字拆开"><a href="#一、先把”可微物理引擎”这五个字拆开" class="headerlink" title="一、先把”可微物理引擎”这五个字拆开"></a>一、先把”可微物理引擎”这五个字拆开</h2><h3 id="1-1-什么是物理引擎？"><a href="#1-1-什么是物理引擎？" class="headerlink" title="1.1 什么是物理引擎？"></a>1.1 什么是物理引擎？</h3><p>任何物理仿真本质上是一个<strong>状态递推</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo separator="true">,</mo><mtext> </mtext><msub><mi>u</mi><mi>t</mi></msub><mo separator="true">,</mo><mtext> </mtext><mi>θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">s_{t+1} = f(s_t,\, u_t,\, \theta)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span></span></span></span></span>
+
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：当前状态（位置、速度、姿态、角速度……）</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">u_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：当前控制输入（电机指令、舵面偏转……）</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span>：物理参数（质量、惯量、摩擦、空气阻力、电机系数……）</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span>：物理引擎本身——给定当前状态和输入，告诉你下一时刻的状态</li>
+</ul>
+<p>PhysX、Bullet、ODE、MuJoCo、Drake 都干的是这件事。</p>
+<h3 id="1-2-“可微”加在哪？"><a href="#1-2-“可微”加在哪？" class="headerlink" title="1.2 “可微”加在哪？"></a>1.2 “可微”加在哪？</h3><p>可微物理引擎要求 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span> <strong>对 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>、<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">u_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>、<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span> 全部可微</strong>——也就是不仅能算出 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">s_{t+1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span> 是什么，还能算出：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mi>t</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="1em"/><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>u</mi><mi>t</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="1em"/><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial s_{t+1}}{\partial s_t},\quad \frac{\partial s_{t+1}}{\partial u_t},\quad \frac{\partial s_{t+1}}{\partial \theta}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.2074em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>进一步，对一段长度为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span></span></span></span> 的仿真，链式法则给出：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mi>T</mi></msub></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></munderover><mrow><mo fence="true">(</mo><munderover><mo>∏</mo><mrow><mi>k</mi><mo>=</mo><mi>t</mi><mo>+</mo><mn>1</mn></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></munderover><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>f</mi></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>s</mi><mi>k</mi></msub></mrow></mfrac><mo fence="true">)</mo></mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>f</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac><msub><mo fence="false" stretchy="true" minsize="2.4em" maxsize="2.4em">∣</mo><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\frac{\partial s_T}{\partial \theta} = \sum_{t=0}^{T-1} \left( \prod_{k=t+1}^{T-1} \frac{\partial f}{\partial s_k} \right) \frac{\partial f}{\partial \theta}\bigg|_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.1888em;vertical-align:-1.3604em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8829em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2671em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">(</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3604em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord"><span class="mord"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.45em;"><span class="pstrut" style="height:4.4em;"></span><span style="width:0.333em;height:2.4em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.333em" height="2.4em" viewBox="0 0 333 2400"><path d="M145 15 v585 v1200 v585 c2.667,10,9.667,15,21,15
+c10,0,16.667,-5,20,-15 v-585 v-1200 v-585 c-2.667,-10,-9.667,-15,-21,-15
+c-10,0,-16.667,5,-20,15z M188 15 H145 v585 v1200 v585 h43z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.5692em;"><span style="top:-1.7003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9997em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<p>定义任意损失 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false">(</mo><msub><mi>s</mi><mi>T</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">L(s_T)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，你就能直接拿到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi>L</mi></mrow><annotation encoding="application/x-tex">\nabla_\theta L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">L</span></span></span></span>，喂给 Adam、L-BFGS 这类一阶优化器。</p>
+<p><strong>说人话</strong>：传统物理引擎是黑盒——给你一个结果，你不知道改参数会怎么变；可微物理引擎是白盒——它告诉你”你想让结果好一点，你应该把质量调大一点、把阻力调小一点”。</p>
+<h3 id="1-3-一句话区分"><a href="#1-3-一句话区分" class="headerlink" title="1.3 一句话区分"></a>1.3 一句话区分</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统物理引擎</th>
+<th>可微物理引擎</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前向仿真</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>输出对参数的梯度</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>与神经网络耦合</td>
+<td>需要采样估计（PPO、ES）</td>
+<td>直接端到端反传</td>
+</tr>
+<tr>
+<td>系统辨识</td>
+<td>CMA-ES、贝叶斯优化（无梯度）</td>
+<td>梯度下降（一阶）</td>
+</tr>
+<tr>
+<td>编程语言</td>
+<td>C++（性能优先）</td>
+<td>Python + JAX&#x2F;PyTorch&#x2F;Taichi&#x2F;CUDA</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、数学本质：物理仿真就是一个超长的-RNN"><a href="#二、数学本质：物理仿真就是一个超长的-RNN" class="headerlink" title="二、数学本质：物理仿真就是一个超长的 RNN"></a>二、数学本质：物理仿真就是一个超长的 RNN</h2><h3 id="2-1-一个最小直观例子"><a href="#2-1-一个最小直观例子" class="headerlink" title="2.1 一个最小直观例子"></a>2.1 一个最小直观例子</h3><p>设小球从高度 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mn>0</mn></msub><mo>=</mo><mn>5</mn><mtext> m</mtext></mrow><annotation encoding="application/x-tex">h_0 = 5\text{ m}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span><span class="mord text"><span class="mord"> m</span></span></span></span></span> 自由下落，未知重力 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span>，落地时刻 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>t</mi><mo>⋆</mo></msup></mrow><annotation encoding="application/x-tex">t^\star</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6887em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">⋆</span></span></span></span></span></span></span></span></span></span></span> 实测为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.0</mn></mrow><annotation encoding="application/x-tex">1.0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> 秒。</p>
+<p>物理：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>h</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>h</mi><mn>0</mn></msub><mo>−</mo><mstyle scriptlevel="0" displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mi>g</mi><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">h(t) = h_0 - \tfrac{1}{2} g t^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.2091em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>定义损失：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>L</mi><mo stretchy="false">(</mo><mi>g</mi><mo stretchy="false">)</mo><mo>=</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mi>h</mi><mo stretchy="false">(</mo><msup><mi>t</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo><msup><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mn>2</mn></msup><mo>=</mo><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mn>5</mn><mo>−</mo><mn>0.5</mn><mi>g</mi><msup><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">L(g) = \big(h(t^\star)\big)^2 = \big(5 - 0.5 g\big)^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.404em;vertical-align:-0.35em;"></span><span class="mord"><span class="delimsizing size1">(</span></span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">⋆</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord"><span class="mord"><span class="delimsizing size1">)</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.054em;"><span style="top:-3.3029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2em;vertical-align:-0.35em;"></span><span class="mord"><span class="delimsizing size1">(</span></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.404em;vertical-align:-0.35em;"></span><span class="mord">0.5</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mord"><span class="mord"><span class="delimsizing size1">)</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.054em;"><span style="top:-3.3029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>可微物理直接算：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>L</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>g</mi></mrow></mfrac><mo>=</mo><mn>2</mn><mo stretchy="false">(</mo><mn>5</mn><mo>−</mo><mn>0.5</mn><mi>g</mi><mo stretchy="false">)</mo><mo>⋅</mo><mo stretchy="false">(</mo><mo>−</mo><mn>0.5</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\frac{\partial L}{\partial g} = 2(5 - 0.5g) \cdot (-0.5)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.2519em;vertical-align:-0.8804em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mopen">(</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.5</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">0.5</span><span class="mclose">)</span></span></span></span></span>
+
+<p>一步 Adam，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span> 立刻往 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9.8</mn></mrow><annotation encoding="application/x-tex">9.8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">9.8</span></span></span></span> 收敛。</p>
+<p><strong>如果是传统引擎</strong>？只能扔几百个 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span> 候选值进去跑几百次仿真，再用 CMA-ES 拟合。<strong>这就是可微 vs 不可微最直观的区别</strong>——前者是”问问题”，后者是”猜答案”。</p>
+<h3 id="2-2-为什么说像-RNN？"><a href="#2-2-为什么说像-RNN？" class="headerlink" title="2.2 为什么说像 RNN？"></a>2.2 为什么说像 RNN？</h3><p>把仿真展开：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s_0 ──f──► s_1 ──f──► s_2 ──f──► ... ──f──► s_T  →  L</span><br><span class="line">       ↑          ↑          ↑          ↑</span><br><span class="line">       θ          θ          θ          θ</span><br></pre></td></tr></table></figure>
+
+<p>这跟一个 RNN 在数学结构上<strong>完全一样</strong>——每一步都用同一组参数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span>，反向传播时梯度沿整条链回传。</p>
+<p>这意味着：<strong>RNN 训练遇到的所有问题，可微物理仿真都会遇到</strong>：</p>
+<ul>
+<li>梯度爆炸 &#x2F; 梯度消失</li>
+<li>长时序数值不稳定</li>
+<li>截断反向传播（TBPTT）的必要性</li>
+</ul>
+<p>第三章会展开。</p>
+<h3 id="2-3-自动微分（AD）才是真正的发动机"><a href="#2-3-自动微分（AD）才是真正的发动机" class="headerlink" title="2.3 自动微分（AD）才是真正的发动机"></a>2.3 自动微分（AD）才是真正的发动机</h3><p>可微物理引擎之所以 2020 年后突然爆发，<strong>不是因为算法多么新</strong>，而是因为<strong>通用 AD 工具链成熟了</strong>：</p>
+<ul>
+<li><strong>PyTorch &#x2F; JAX</strong>：动态图 + 静态图两条路都跑通</li>
+<li><strong>Taichi</strong>：把 AD 直接做进编译器（DiffTaichi 论文的核心贡献）</li>
+<li><strong>NVIDIA Warp</strong>：Python 写 CUDA kernel，编译期生成反向 kernel</li>
+</ul>
+<blockquote>
+<p>工程师不用再手写每个物理操作的伴随方程（adjoint），AD 工具自动求出来。<strong>这是质变</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="三、三大技术难点（这是工程师真正会被坑的地方）"><a href="#三、三大技术难点（这是工程师真正会被坑的地方）" class="headerlink" title="三、三大技术难点（这是工程师真正会被坑的地方）"></a>三、三大技术难点（这是工程师真正会被坑的地方）</h2><h3 id="3-1-难点一：接触与碰撞的不连续性"><a href="#3-1-难点一：接触与碰撞的不连续性" class="headerlink" title="3.1 难点一：接触与碰撞的不连续性"></a>3.1 难点一：接触与碰撞的不连续性</h3><p>物理上的”接触”是分段函数：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>a</mi><mi>c</mi><mi>t</mi></mrow></msub><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><mo>&gt;</mo><mn>0</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo>−</mo><mi>k</mi><mo>⋅</mo><mi>d</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>d</mi><mo>≤</mo><mn>0</mn></mrow></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">F_{contact}(d) = \begin{cases} 0 &amp; d &gt; 0 \\ -k \cdot d &amp; d \le 0 \end{cases}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">co</span><span class="mord mathnormal mtight">n</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3em;vertical-align:-1.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord">−</span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>在接触切换点，朴素求导得到的梯度要么是 0、要么是无穷大，<strong>完全没有学习信号</strong>。</p>
+<blockquote>
+<p>想象一只机器手抓杯子。在”还没碰到”的瞬间，”再往前 1mm”的物理结果天差地别——但对杯子最终位置的梯度近似为零。优化器一脸懵。</p>
+</blockquote>
+<h4 id="三类解决方案"><a href="#三类解决方案" class="headerlink" title="三类解决方案"></a>三类解决方案</h4><p><strong>方案 A：软接触（spring-damper）</strong></p>
+<ul>
+<li>把硬接触换成弹簧阻尼器</li>
+<li>优点：实现简单</li>
+<li>缺点：刚度参数难调，过软会穿透，过硬会数值爆炸</li>
+<li>代表：DiffTaichi、Brax 的 <code>spring</code> 后端</li>
+</ul>
+<p><strong>方案 B：隐式微分 LCP</strong></p>
+<ul>
+<li>接触求解写成线性互补问题（Linear Complementarity Problem）</li>
+<li>用隐函数定理对优化问题本身求微分</li>
+<li>优点：物理严格、梯度数值稳定</li>
+<li>缺点：实现复杂、性能开销大</li>
+<li>代表：Nimble Physics、Dojo</li>
+</ul>
+<p><strong>方案 C：随机平滑（Stochastic Smoothing）</strong></p>
+<ul>
+<li>在接触参数上加噪声，对噪声求期望</li>
+<li>把分段函数”模糊”成连续函数</li>
+<li>优点：通用性强、数学优雅</li>
+<li>缺点：方差大、需要采样</li>
+<li>代表：Stochastic Differentiable Programming 系列论文</li>
+</ul>
+<blockquote>
+<p><strong>对四旋翼&#x2F;无人机做空中仿真，这个问题不存在</strong>——空中没有接触。这也是为什么无人机是可微物理引擎最早最成熟的应用场景。</p>
+</blockquote>
+<h3 id="3-2-难点二：长时序梯度爆炸-消失"><a href="#3-2-难点二：长时序梯度爆炸-消失" class="headerlink" title="3.2 难点二：长时序梯度爆炸 &#x2F; 消失"></a>3.2 难点二：长时序梯度爆炸 &#x2F; 消失</h3><p>仿真 1000 步，链式法则乘 1000 次雅可比矩阵 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∂</mi><mi>f</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">∂</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">\partial f/\partial s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mord">/</span><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal">s</span></span></span></span>。任何特征值远离 1 的方向都会指数级放大或衰减。</p>
+<p><strong>典型症状</strong>：</p>
+<ul>
+<li>Loss 曲线一开始下降很快，然后突然 NaN</li>
+<li>梯度某个分量是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>12</mn></msup></mrow><annotation encoding="application/x-tex">10^{12}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">12</span></span></span></span></span></span></span></span></span></span></span></span>，其他都是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">8</span></span></span></span></span></span></span></span></span></span></span></span></li>
+<li>同样的代码在 Python 跑能用，写成 JIT 之后梯度对不上</li>
+</ul>
+<p><strong>对策</strong>：</p>
+<ol>
+<li><strong>TBPTT（截断反向传播）</strong>：把长序列切成短窗（0.2~0.5s），每窗的初值用真实数据 reset，只反传窗内梯度——这是工程上<strong>最常用、最有效</strong>的对策。</li>
+<li><strong>隐式积分器</strong>：比 Euler、RK4 数值上更稳定，代价是每步求一个非线性方程</li>
+<li><strong>梯度裁剪</strong>：粗暴但有效</li>
+<li><strong>加速度域损失</strong>：直接对 IMU 加速度反传，跳过两次积分（位置积分误差累积是大头）</li>
+</ol>
+<h3 id="3-3-难点三：隐式求解的微分"><a href="#3-3-难点三：隐式求解的微分" class="headerlink" title="3.3 难点三：隐式求解的微分"></a>3.3 难点三：隐式求解的微分</h3><p>很多物理操作天然是<strong>隐式</strong>的：</p>
+<ul>
+<li>接触约束 LCP</li>
+<li>流体不可压条件求解 Poisson 方程</li>
+<li>软体的隐式时间积分</li>
+<li>优化-based 控制（MPC）</li>
+</ul>
+<p>这些操作不能直接展开成 forward 计算图。要让它们可微，必须用<strong>隐函数定理</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>若 </mtext><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn><mtext> 隐式定义 </mtext><mi>x</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mtext> 则 </mtext><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac><mo>=</mo><mo>−</mo><msup><mrow><mo fence="true">(</mo><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>g</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>x</mi></mrow></mfrac><mo fence="true">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>g</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{若 } g(x, \theta) = 0 \text{ 隐式定义 } x(\theta), \text{ 则 } \frac{\partial x}{\partial \theta} = -\left(\frac{\partial g}{\partial x}\right)^{-1} \frac{\partial g}{\partial \theta}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord cjk_fallback">若</span><span class="mord"> </span></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord">0</span><span class="mord text"><span class="mord"> </span><span class="mord cjk_fallback">隐式定义</span><span class="mord"> </span></span><span class="mord mathnormal">x</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord"> </span><span class="mord cjk_fallback">则</span><span class="mord"> </span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.604em;vertical-align:-0.95em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal">x</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.654em;"><span style="top:-3.9029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>工程上意味着：每次反向传播都要解一次线性方程。性能开销不小，但 Dojo、Nimble、CasADi 都在这一层做了非常优雅的抽象。</p>
+<blockquote>
+<p>对四旋翼场景，<strong>这一项基本可以忽略</strong>——你的物理操作几乎全是显式（推力计算、阻力计算、力矩计算、欧拉&#x2F;RK4 积分），不涉及隐式求解。</p>
+</blockquote>
+<hr>
+<h2 id="四、2026-年主流可微物理引擎横评"><a href="#四、2026-年主流可微物理引擎横评" class="headerlink" title="四、2026 年主流可微物理引擎横评"></a>四、2026 年主流可微物理引擎横评</h2><p>下面是当前活跃的 8 大可微物理引擎，按场景适配度横评。</p>
+<h3 id="4-1-一张总表"><a href="#4-1-一张总表" class="headerlink" title="4.1 一张总表"></a>4.1 一张总表</h3><table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>后端</th>
+<th>重点领域</th>
+<th>接触可微</th>
+<th>GPU 并行</th>
+<th>与 RL 框架</th>
+<th>上手难度</th>
+<th>我的总评</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Brax</strong></td>
+<td>JAX</td>
+<td>刚体、RL</td>
+<td>软接触</td>
+<td>极强（TPU）</td>
+<td>自带</td>
+<td>中</td>
+<td>RL 训练首选</td>
+</tr>
+<tr>
+<td><strong>MuJoCo MJX</strong></td>
+<td>JAX</td>
+<td>刚体、接触</td>
+<td>软接触</td>
+<td>强</td>
+<td>Isaac Lab、其他</td>
+<td>中</td>
+<td>MuJoCo 用户的可微版</td>
+</tr>
+<tr>
+<td><strong>NVIDIA Warp</strong></td>
+<td>CUDA Python</td>
+<td>通用、自定义</td>
+<td>自己写</td>
+<td>极强</td>
+<td>Isaac Sim&#x2F;Lab</td>
+<td>中高</td>
+<td><strong>工程灵活性最强</strong></td>
+</tr>
+<tr>
+<td><strong>Taichi &#x2F; DiffTaichi</strong></td>
+<td>Taichi</td>
+<td>软体、流体、MPM</td>
+<td>软接触</td>
+<td>强</td>
+<td>弱</td>
+<td>中</td>
+<td>学术鼻祖、软体强项</td>
+</tr>
+<tr>
+<td><strong>Genesis</strong> (2024)</td>
+<td>PyTorch + Taichi</td>
+<td>通用机器人</td>
+<td>软+隐式</td>
+<td>强</td>
+<td>自带</td>
+<td>中</td>
+<td>新一代综合体</td>
+</tr>
+<tr>
+<td><strong>Nimble Physics</strong></td>
+<td>C++ + PyTorch</td>
+<td>刚体、严格接触</td>
+<td>LCP 隐式</td>
+<td>弱</td>
+<td>弱</td>
+<td>高</td>
+<td>接触最严谨</td>
+</tr>
+<tr>
+<td><strong>Dojo</strong></td>
+<td>Julia</td>
+<td>刚体、接触</td>
+<td>锥规划</td>
+<td>弱</td>
+<td>弱</td>
+<td>高</td>
+<td>数学最严谨</td>
+</tr>
+<tr>
+<td><strong>Drake</strong>（半可微）</td>
+<td>C++</td>
+<td>控制、规划</td>
+<td>部分</td>
+<td>弱</td>
+<td>弱</td>
+<td>高</td>
+<td>工业控制传承</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：Drake 严格说不算”可微物理引擎”，但它的 SystemFramework 部分支持自动微分用于轨迹优化，所以列在这里供参考。</p>
+</blockquote>
+<h3 id="4-2-详细横评（按场景分组）"><a href="#4-2-详细横评（按场景分组）" class="headerlink" title="4.2 详细横评（按场景分组）"></a>4.2 详细横评（按场景分组）</h3><h4 id="场景-A：纯刚体-RL-训练（机器人步态、四旋翼策略）"><a href="#场景-A：纯刚体-RL-训练（机器人步态、四旋翼策略）" class="headerlink" title="场景 A：纯刚体 + RL 训练（机器人步态、四旋翼策略）"></a>场景 A：纯刚体 + RL 训练（机器人步态、四旋翼策略）</h4><p><strong>首选：Brax &#x2F; MuJoCo MJX</strong></p>
+<ul>
+<li>Brax 是 Google 出品，与 JAX 生态深度耦合，TPU 加速一流</li>
+<li>MJX 是 MuJoCo 的可微 GPU 版，物理保真度更高</li>
+<li>两者都能在单卡跑几千~几万环境，PPO 训练数十倍提速</li>
+</ul>
+<p><strong>次选：Warp + Isaac Lab</strong></p>
+<ul>
+<li>Warp 本身不是 RL 引擎，但 Isaac Lab 大量用 Warp 做奖励、观测、域随机化</li>
+<li>适合需要 RTX 渲染（视觉策略）的项目</li>
+<li>对 NVIDIA GPU 要求硬</li>
+</ul>
+<h4 id="场景-B：系统辨识、参数反推（数字孪生、sim2real）"><a href="#场景-B：系统辨识、参数反推（数字孪生、sim2real）" class="headerlink" title="场景 B：系统辨识、参数反推（数字孪生、sim2real）"></a>场景 B：系统辨识、参数反推（数字孪生、sim2real）</h4><p><strong>首选：NVIDIA Warp</strong></p>
+<ul>
+<li>你需要写<strong>领域专属的可微模型</strong>（例如四旋翼的特殊气动），Warp 的 Python 写 CUDA kernel 是最灵活的</li>
+<li>自动微分稳定，适合 40+ 维参数空间的 Adam 优化</li>
+<li>后续要扩展到 Isaac Sim 全栈无缝</li>
+</ul>
+<p><strong>次选：Brax &#x2F; MJX</strong></p>
+<ul>
+<li>如果你的模型能套进它们的”刚体 + 关节”框架，可以省事</li>
+<li>但自定义气动力、电机动态、风扰模型时不如 Warp 灵活</li>
+</ul>
+<h4 id="场景-C：软体、布料、流体、MPM"><a href="#场景-C：软体、布料、流体、MPM" class="headerlink" title="场景 C：软体、布料、流体、MPM"></a>场景 C：软体、布料、流体、MPM</h4><p><strong>首选：Taichi &#x2F; DiffTaichi</strong></p>
+<ul>
+<li>学术界的鼻祖，论文最多</li>
+<li>MPM、SPH、布料、可变形体全覆盖</li>
+<li>缺点：刚体动力学和 RL 生态弱</li>
+</ul>
+<p><strong>次选：Genesis</strong></p>
+<ul>
+<li>2024 年发布，号称”全可微全场景”</li>
+<li>把 Taichi 后端 + PyTorch 前端缝合</li>
+<li>综合度高，但生态尚浅</li>
+</ul>
+<h4 id="场景-D：严格接触、机械臂抓取"><a href="#场景-D：严格接触、机械臂抓取" class="headerlink" title="场景 D：严格接触、机械臂抓取"></a>场景 D：严格接触、机械臂抓取</h4><p><strong>首选：Nimble Physics &#x2F; Dojo</strong></p>
+<ul>
+<li>LCP &#x2F; 锥规划隐式微分，物理上最严谨</li>
+<li>适合做学术研究，工程项目慎用（性能不如 Brax&#x2F;Warp）</li>
+</ul>
+<p><strong>次选：MuJoCo MJX</strong></p>
+<ul>
+<li>MuJoCo 的接触模型工程上最成熟</li>
+<li>MJX 让它具备可微能力</li>
+</ul>
+<h4 id="场景-E：控制理论、轨迹优化"><a href="#场景-E：控制理论、轨迹优化" class="headerlink" title="场景 E：控制理论、轨迹优化"></a>场景 E：控制理论、轨迹优化</h4><p><strong>首选：Drake + Pyomo + CasADi 组合</strong></p>
+<ul>
+<li>半可微，但生态成熟、工业可用</li>
+<li>这是控制论传统派系的首选</li>
+<li>适合 MPC、iLQR、轨迹优化</li>
+</ul>
+<h3 id="4-3-一张选型决策图"><a href="#4-3-一张选型决策图" class="headerlink" title="4.3 一张选型决策图"></a>4.3 一张选型决策图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">你要做的是？</span><br><span class="line">│</span><br><span class="line">├── RL 训练（已有任务环境）</span><br><span class="line">│     └── Brax / MJX（看你属于 JAX 还是 PyTorch 派）</span><br><span class="line">│</span><br><span class="line">├── 系统辨识、sim2real（自定义动力学）</span><br><span class="line">│     └── Warp（首选，灵活性最强）</span><br><span class="line">│</span><br><span class="line">├── 软体、流体、MPM</span><br><span class="line">│     └── Taichi / Genesis</span><br><span class="line">│</span><br><span class="line">├── 严格接触、机械臂</span><br><span class="line">│     └── MJX / Nimble / Dojo</span><br><span class="line">│</span><br><span class="line">└── 轨迹优化、MPC</span><br><span class="line">      └── CasADi / Drake</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、可微物理引擎能解锁什么——应用全谱"><a href="#五、可微物理引擎能解锁什么——应用全谱" class="headerlink" title="五、可微物理引擎能解锁什么——应用全谱"></a>五、可微物理引擎能解锁什么——应用全谱</h2><h3 id="5-1-系统辨识（最成熟的应用）"><a href="#5-1-系统辨识（最成熟的应用）" class="headerlink" title="5.1 系统辨识（最成熟的应用）"></a>5.1 系统辨识（最成熟的应用）</h3><p><strong>问题</strong>：真机是黑盒，你只能测到输入和输出，参数怎么估？</p>
+<p><strong>传统方法</strong>：CMA-ES、贝叶斯优化、Matlab SID Toolbox。30 维以上几乎必陷局部最优。</p>
+<p><strong>可微物理方法</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>θ</mi><mo>⋆</mo></msup><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>min</mi><mo>⁡</mo></mrow><mi>θ</mi></munder><munder><mo>∑</mo><mi>i</mi></munder><mi mathvariant="normal">∥</mi><msub><mi>f</mi><mrow><mi>s</mi><mi>i</mi><mi>m</mi></mrow></msub><mo stretchy="false">(</mo><msubsup><mi>x</mi><mn>0</mn><mi>i</mi></msubsup><mo separator="true">,</mo><msup><mi>u</mi><mi>i</mi></msup><mo separator="true">;</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>−</mo><msubsup><mi>x</mi><mrow><mi>r</mi><mi>e</mi><mi>a</mi><mi>l</mi></mrow><mi>i</mi></msubsup><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\theta^\star = \arg\min_\theta \sum_i \| f_{sim}(x_0^i, u^i;\theta) - x_{real}^i \|^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7387em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">⋆</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3277em;vertical-align:-1.2777em;"></span><span class="mop">ar<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-2.3479em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">min</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7521em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∥</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">im</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8747em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8747em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span></span></span></span></span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1247em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8747em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">l</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>40~100 维参数空间，Adam 几分钟收敛。</p>
+<p><strong>典型用例</strong>：</p>
+<ul>
+<li>四旋翼气动参数辨识（ETH ASL 系列论文）</li>
+<li>机器人摩擦系数辨识</li>
+<li>软体材料杨氏模量反推</li>
+</ul>
+<h3 id="5-2-端到端策略学习"><a href="#5-2-端到端策略学习" class="headerlink" title="5.2 端到端策略学习"></a>5.2 端到端策略学习</h3><p>把策略网络 + 仿真器拼成一个大可微图，<strong>直接对策略参数求梯度</strong>。</p>
+<ul>
+<li><strong>Brax PPO</strong> 等典型 RL：仍然用采样梯度（REINFORCE 类），可微物理只是加速仿真</li>
+<li><strong>真正可微策略</strong>：APG（Analytic Policy Gradient）、SHAC，直接对物理梯度反传<ul>
+<li>优点：样本效率比 PPO 高 100~1000×</li>
+<li>缺点：长时序梯度问题严重，要小心 TBPTT</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-3-可微规划与最优控制"><a href="#5-3-可微规划与最优控制" class="headerlink" title="5.3 可微规划与最优控制"></a>5.3 可微规划与最优控制</h3><p>把整条轨迹当作可优化变量，<strong>直接对控制序列求梯度</strong>。</p>
+<ul>
+<li>比 iLQR 更通用（iLQR 只对二次代价 + 线性化动力学最优）</li>
+<li>适合处理非凸代价（避障、视觉目标对齐）</li>
+<li>计算成本可观，离线规划为主</li>
+</ul>
+<h3 id="5-4-形状-材料逆向设计"><a href="#5-4-形状-材料逆向设计" class="headerlink" title="5.4 形状&#x2F;材料逆向设计"></a>5.4 形状&#x2F;材料逆向设计</h3><p>软体机器人的形状能不能反推？布料的纤维强度能不能优化？</p>
+<p>可微物理 + 拓扑优化已经在以下领域跑通：</p>
+<ul>
+<li>软体抓手形状自动设计</li>
+<li>翼型外形多目标优化（小型）</li>
+<li>流体对象（船型、机翼）几何反推</li>
+</ul>
+<h3 id="5-5-可微传感器仿真（2024-后新热点）"><a href="#5-5-可微传感器仿真（2024-后新热点）" class="headerlink" title="5.5 可微传感器仿真（2024 后新热点）"></a>5.5 可微传感器仿真（2024 后新热点）</h3><p>把<strong>渲染器、IMU 模型、动力学</strong>全打通成可微管线，做端到端 sim2real：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">真实图像 ──► 神经渲染 ──► 可微相机 ──► 视觉策略</span><br><span class="line">                                          ↓</span><br><span class="line">真机姿态 ──► 可微 IMU  ──► 可微动力学 ──► 控制器</span><br><span class="line">                                          ↓</span><br><span class="line">                                    ────► 真实输出</span><br></pre></td></tr></table></figure>
+
+<p>整条链路对参数都可微 → 可以从真机数据反向标定<strong>整个仿真管线</strong>，不只是动力学。这是 Skydio、Anduril 等公司正在做的事情。</p>
+<hr>
+<h2 id="六、无人机-sim2real-实战路径（以四旋翼为例）"><a href="#六、无人机-sim2real-实战路径（以四旋翼为例）" class="headerlink" title="六、无人机 sim2real 实战路径（以四旋翼为例）"></a>六、无人机 sim2real 实战路径（以四旋翼为例）</h2><p>这是我个人最熟悉、也是可微物理引擎工程价值最高的场景。</p>
+<h3 id="6-1-标准-pipeline"><a href="#6-1-标准-pipeline" class="headerlink" title="6.1 标准 pipeline"></a>6.1 标准 pipeline</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────────────────────┐</span><br><span class="line">│ Step 1：飞够&quot;信息量足&quot;的真机数据                │</span><br><span class="line">│   - 悬停、chirp、阶跃、急停、盘旋                │</span><br><span class="line">│   - PX4 ulog 直接导出，250+ Hz IMU             │</span><br><span class="line">└────────────────────────────────────────────────┘</span><br><span class="line">                   ↓</span><br><span class="line">┌────────────────────────────────────────────────┐</span><br><span class="line">│ Step 2：用 Warp/JAX 写可微动力学                │</span><br><span class="line">│   - 刚体六自由度 + RK4                          │</span><br><span class="line">│   - 推力 + 阻力（含二次项）+ 力矩耦合            │</span><br><span class="line">│   - 电机一阶动态                                 │</span><br><span class="line">└────────────────────────────────────────────────┘</span><br><span class="line">                   ↓</span><br><span class="line">┌────────────────────────────────────────────────┐</span><br><span class="line">│ Step 3：加速度域损失 + TBPTT                    │</span><br><span class="line">│   L = ‖a_imu - a_sim‖² + ‖α_imu - α_sim‖² + 正则 │</span><br><span class="line">└────────────────────────────────────────────────┘</span><br><span class="line">                   ↓</span><br><span class="line">┌────────────────────────────────────────────────┐</span><br><span class="line">│ Step 4：Adam（粗调）→ L-BFGS（精调）→ θ*        │</span><br><span class="line">└────────────────────────────────────────────────┘</span><br><span class="line">                   ↓</span><br><span class="line">┌────────────────────────────────────────────────┐</span><br><span class="line">│ Step 5：θ* 灌回 PX4 SITL，对比真机回归测试      │</span><br><span class="line">└────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-一个工程上踩坑最多的点：损失函数"><a href="#6-2-一个工程上踩坑最多的点：损失函数" class="headerlink" title="6.2 一个工程上踩坑最多的点：损失函数"></a>6.2 一个工程上踩坑最多的点：损失函数</h3><p><strong>❌ 错误写法</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loss = ((sim_position - real_position) ** <span class="number">2</span>).mean()</span><br></pre></td></tr></table></figure>
+
+<p>仿真初值微小误差经过 1000 步积分会指数放大，loss 必然 NaN。</p>
+<p><strong>✅ 正确写法</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> window <span class="keyword">in</span> split_windows(real_traj, <span class="number">0.5</span>s):</span><br><span class="line">    s = window.x0  <span class="comment"># 用真实数据 reset</span></span><br><span class="line">    sim_acc = []</span><br><span class="line">    <span class="keyword">for</span> u <span class="keyword">in</span> window.u:</span><br><span class="line">        s, a = step(s, u, theta)</span><br><span class="line">        sim_acc.append(a)</span><br><span class="line">    loss += ((sim_acc - window.imu_acc) ** <span class="number">2</span>).mean()</span><br><span class="line">loss.backward()</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键点</strong>：</p>
+<ol>
+<li>每窗 ≤ 0.5 秒，避免长时序梯度爆炸</li>
+<li>用 IMU 加速度做对比，不用位置&#x2F;速度（避免积分误差累积）</li>
+<li>每窗用真实数据 reset 初值（截断梯度）</li>
+</ol>
+<h3 id="6-3-工程上常见的”假梯度”陷阱"><a href="#6-3-工程上常见的”假梯度”陷阱" class="headerlink" title="6.3 工程上常见的”假梯度”陷阱"></a>6.3 工程上常见的”假梯度”陷阱</h3><p>写完代码后<strong>一定要做梯度数值校验</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">torch.autograd.gradcheck(model, (theta,))</span><br></pre></td></tr></table></figure>
+
+<p>常见 bug：</p>
+<ul>
+<li>用了 <code>.item()</code> 把张量变成标量（梯度断了）</li>
+<li>用了 numpy 操作（不在计算图里）</li>
+<li>用了 <code>if</code> 分支但条件依赖 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span>（不可微）</li>
+<li>Warp kernel 里写了不可微的 <code>wp.abs</code> 或 <code>wp.sign</code>（在 0 附近梯度有问题）</li>
+</ul>
+<h3 id="6-4-进阶：混合模型（Hybrid-Model）"><a href="#6-4-进阶：混合模型（Hybrid-Model）" class="headerlink" title="6.4 进阶：混合模型（Hybrid Model）"></a>6.4 进阶：混合模型（Hybrid Model）</h3><p>可微物理 + 残差神经网络：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>s</mi><mo>˙</mo></mover><mo>=</mo><msub><mi>f</mi><mrow><mi>p</mi><mi>h</mi><mi>y</mi><mi>s</mi><mi>i</mi><mi>c</mi><mi>s</mi></mrow></msub><mo stretchy="false">(</mo><mi>s</mi><mo separator="true">,</mo><mi>u</mi><mo separator="true">;</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>f</mi><mrow><mi>N</mi><mi>N</mi></mrow></msub><mo stretchy="false">(</mo><mi>s</mi><mo separator="true">,</mo><mi>u</mi><mo separator="true">;</mo><mi>ϕ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\dot{s} = f_{physics}(s, u; \theta) + f_{NN}(s, u; \phi)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6679em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">s</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">cs</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">u</span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">s</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">u</span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span></span></span></span></span>
+
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mrow><mi>p</mi><mi>h</mi><mi>y</mi><mi>s</mi><mi>i</mi><mi>c</mi><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">f_{physics}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">cs</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> 保证**外推能力**和**可解释性**</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mrow><mi>N</mi><mi>N</mi></mrow></msub></mrow><annotation encoding="application/x-tex">f_{NN}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 吸收没建模的非线性（涡脱、桨-机身干扰等）</li>
+<li>联合训练 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ϕ</span></span></span></span></li>
+</ul>
+<p>这是 2024 后的主流 sim2real 范式，能把模型误差从 10% 压到 2~3%。</p>
+<hr>
+<h2 id="七、那些”可微物理”卖给你时不会告诉你的事"><a href="#七、那些”可微物理”卖给你时不会告诉你的事" class="headerlink" title="七、那些”可微物理”卖给你时不会告诉你的事"></a>七、那些”可微物理”卖给你时不会告诉你的事</h2><h3 id="7-1-可微物理不是-CFD-的替代品"><a href="#7-1-可微物理不是-CFD-的替代品" class="headerlink" title="7.1 可微物理不是 CFD 的替代品"></a>7.1 可微物理不是 CFD 的替代品</h3><p>可微物理引擎<strong>不会自动给你气动数据</strong>——它只是让你用真机数据<strong>反推</strong>等效气动参数。</p>
+<ul>
+<li>包线内：精度可以做到非常好</li>
+<li>包线外：模型会”自信地胡说”</li>
+<li>真要全包线高精度，还是要风洞 &#x2F; OpenFOAM</li>
+</ul>
+<h3 id="7-2-性能不一定比传统快"><a href="#7-2-性能不一定比传统快" class="headerlink" title="7.2 性能不一定比传统快"></a>7.2 性能不一定比传统快</h3><ul>
+<li>Brax 在 GPU 上单步<strong>可能</strong>比 MuJoCo CPU 慢，但并行 1000 个环境后总吞吐快 100×</li>
+<li>Warp 写的自定义模型，第一次 JIT 编译要 5~30 秒，调试时很折磨</li>
+<li>长时序梯度反传比前向慢 3~5×（要存中间状态）</li>
+</ul>
+<h3 id="7-3-不是所有”声称可微”的都真可微"><a href="#7-3-不是所有”声称可微”的都真可微" class="headerlink" title="7.3 不是所有”声称可微”的都真可微"></a>7.3 不是所有”声称可微”的都真可微</h3><ul>
+<li>某些库声称可微，但只支持参数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span> 的梯度，不支持状态 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的梯度（无法做策略学习）</li>
+<li>某些库的接触梯度是”假”的（用了 detach）</li>
+<li>验收方法：<strong>永远先做 <code>gradcheck</code></strong></li>
+</ul>
+<h3 id="7-4-可微-≠-数值稳定"><a href="#7-4-可微-≠-数值稳定" class="headerlink" title="7.4 可微 ≠ 数值稳定"></a>7.4 可微 ≠ 数值稳定</h3><p>可微只解决”能算梯度”，不解决”梯度数值稳定”。常见症状：</p>
+<ul>
+<li>训练 100 步突然 NaN</li>
+<li>同样代码在 fp32 ok、fp64 失败（或反之）</li>
+<li>一阶优化器（Adam）跑得动，二阶（L-BFGS）跑不动</li>
+</ul>
+<p>工程对策：单元测试、梯度裁剪、损失归一化、TBPTT。</p>
+<h3 id="7-5-工业界还没有形成统一栈"><a href="#7-5-工业界还没有形成统一栈" class="headerlink" title="7.5 工业界还没有形成统一栈"></a>7.5 工业界还没有形成统一栈</h3><p>学术界 Brax&#x2F;MJX 一统天下的趋势明显，但工业界还在分裂：</p>
+<ul>
+<li>Skydio、Anduril：内部栈 + Warp</li>
+<li>Boston Dynamics：内部 C++ 栈</li>
+<li>ETH&#x2F;CMU 实验室：Brax + JAX</li>
+<li>中国新势力：MuJoCo MJX + PyTorch</li>
+</ul>
+<p>短期内不会有”the one”。<strong>别等”业界标准”，按自己场景选</strong>。</p>
+<hr>
+<h2 id="八、一份极简选型建议"><a href="#八、一份极简选型建议" class="headerlink" title="八、一份极简选型建议"></a>八、一份极简选型建议</h2><table>
+<thead>
+<tr>
+<th>你是谁</th>
+<th>你应该用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大学实验室，做 RL 算法研究</td>
+<td><strong>Brax</strong>（JAX 生态）</td>
+</tr>
+<tr>
+<td>工业团队，做无人机 sim2real</td>
+<td><strong>NVIDIA Warp + Isaac Sim</strong></td>
+</tr>
+<tr>
+<td>软体机器人 &#x2F; 布料 &#x2F; 流体研究</td>
+<td><strong>Taichi &#x2F; Genesis</strong></td>
+</tr>
+<tr>
+<td>学术验证接触动力学</td>
+<td><strong>Nimble &#x2F; Dojo</strong></td>
+</tr>
+<tr>
+<td>控制理论组，做轨迹优化</td>
+<td><strong>CasADi &#x2F; Drake</strong></td>
+</tr>
+<tr>
+<td>完全不知道选什么</td>
+<td>先用 <strong>Brax</strong> 跑通示例，再决定要不要换</td>
+</tr>
+<tr>
+<td>有 NVIDIA RTX GPU，想要”全栈”</td>
+<td><strong>Isaac Sim + Warp</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="九、结语：可微物理是范式转变，不是工具升级"><a href="#九、结语：可微物理是范式转变，不是工具升级" class="headerlink" title="九、结语：可微物理是范式转变，不是工具升级"></a>九、结语：可微物理是范式转变，不是工具升级</h2><p>可微物理引擎不是”快一点的物理引擎”，<strong>它改变了我们和物理仿真打交道的方式</strong>：</p>
+<ul>
+<li>过去：物理是给定的，我们设计算法去适应它</li>
+<li>现在：物理本身是可优化的，我们让真实和仿真<strong>互相校准</strong></li>
+</ul>
+<p>工程上的影响是颠覆性的：</p>
+<ul>
+<li><strong>真机调参周期</strong>从一周一次缩短到一天一次</li>
+<li><strong>算法验证</strong>从手工 5 次试飞变成 1000 次蒙特卡洛</li>
+<li><strong>数字孪生</strong>从”看起来像”进化到”动起来一样”</li>
+</ul>
+<p>但门槛也在提升——它要求工程师不仅懂物理，还要懂自动微分、懂数值优化、懂深度学习训练 trick。<strong>这个门槛过了之后，回不去</strong>。</p>
+<p>如果你正在做无人机、机器人、自动驾驶或者任何涉及”仿真→真机”的项目，<strong>2026 年是时候认真看一眼可微物理引擎了</strong>——它不会替代你的传统物理仿真，但它会让你的仿真<strong>第一次具有”自我修正”的能力</strong>。</p>
+<hr>
+<h2 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h2><ul>
+<li><a href="/2026/05/05/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E8%87%AA%E5%8A%A8%E4%BC%98%E5%8C%96-%E6%A2%AF%E5%BA%A6%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/">可微仿真完全入门</a>：本文的概念入门篇，先看这篇再回来读本篇</li>
+<li><a href="/2026/05/02/%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E5%8F%AF%E5%BE%AE%E6%B5%81%E6%B0%B4%E7%BA%BF%E5%88%B0%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%87%AA%E4%B8%BB%E9%A3%9E%E8%A1%8C%E7%9A%84%E8%8C%83%E5%BC%8F%E9%9D%A9%E5%91%BD/">端到端深度学习深度解析</a>：可微物理在端到端范式中的位置</li>
+<li><a href="/2026/05/02/%E6%9C%80%E4%BC%98%E5%8C%96%E7%90%86%E8%AE%BA%E5%AE%8C%E5%85%A8%E5%85%A5%E9%97%A8-%E4%BB%8E%E9%9B%B6%E5%9F%BA%E7%A1%80%E5%88%B0%E7%90%86%E8%A7%A3%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8DAdam%E4%B8%8EPPO%E7%AD%96%E7%95%A5%E4%BC%98%E5%8C%96/">最优化理论完全入门</a>：可微物理依赖的梯度优化器</li>
+<li><a href="/2026/03/23/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%A3%9E%E8%A1%8C%E7%89%A9%E7%90%86%E5%AD%A6-%E4%BB%8E%E7%89%9B%E9%A1%BF%E5%8A%9B%E5%AD%A6%E5%88%B0%E5%85%AD%E8%87%AA%E7%94%B1%E5%BA%A6%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC/">无人机飞行物理学</a>：可微动力学的物理基础</li>
+<li><a href="/2026/04/21/%E6%97%A0%E4%BA%BA%E6%9C%BA%E8%A7%86%E8%A7%89%E4%BB%BF%E7%9C%9F%E7%9A%848%E9%81%93%E9%B8%BF%E6%B2%9F-%E4%BB%8E%E7%90%86%E6%83%B3%E7%9B%B8%E6%9C%BA%E5%88%B0%E7%9C%9F%E5%AE%9E%E4%BC%A0%E6%84%9F%E5%99%A8%E7%9A%84%E5%B7%AE%E8%B7%9D%E4%B8%8E%E5%BC%A5%E5%90%88/">无人机视觉仿真的 8 道鸿沟</a>：可微传感器仿真的延伸阅读</li>
+</ul>
+<h2 id="参考资料（外部）"><a href="#参考资料（外部）" class="headerlink" title="参考资料（外部）"></a>参考资料（外部）</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2106.13281">Brax: A Differentiable Physics Engine for Large Scale Rigid Body Simulation</a>（Google, 2021）</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1910.00935">DiffTaichi: Differentiable Programming for Physical Simulation</a>（MIT&#x2F;Taichi, 2020）</li>
+<li><a target="_blank" rel="noopener" href="https://nvidia.github.io/warp/">NVIDIA Warp 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://mujoco.readthedocs.io/en/stable/mjx.html">MuJoCo MJX 文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2103.16021">Nimble Physics 论文</a></li>
+<li><a target="_blank" rel="noopener" href="https://genesis-embodied-ai.github.io/">Genesis Project 主页</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2204.07137">SHAC: Accelerated Policy Learning with Parallel Differentiable Simulation</a>（NVIDIA, 2022）</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/">https://goodisok.github.io/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%97%A0%E4%BA%BA%E6%9C%BA/">无人机</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F/">可微仿真</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86/">可微物理</a><a class="post-meta__tags" href="/tags/%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E/">物理引擎</a><a class="post-meta__tags" href="/tags/sim2real/">sim2real</a><a class="post-meta__tags" href="/tags/Warp/">Warp</a><a class="post-meta__tags" href="/tags/Brax/">Brax</a><a class="post-meta__tags" href="/tags/MuJoCo/">MuJoCo</a><a class="post-meta__tags" href="/tags/Isaac-Sim/">Isaac Sim</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/28/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80/" title="四旋翼飞行力学基础：推力、反扭矩与三轴控制——四旋翼特有的力和力矩"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">四旋翼飞行力学基础：推力、反扭矩与三轴控制——四旋翼特有的力和力矩</div></div><div class="info-2"><div class="info-item-1">要做四旋翼设计、调参或写仿真，飞行原理是最先要建立正确直觉的一块：四个电机各自产生什么力与力矩、它们怎样组合成「上升、前倾、转弯」。本文从单桨推力与反扭出发，讲到欠驱动、俯仰滚转偏航与油门，便于对照实机与公式阅读。  一、从单桨说起：推力与反扭1.1 桨产生升力螺旋桨旋转时，桨叶像机翼一样产生升力（在机体上常沿桨轴方向，对常见多旋翼可理解为沿电机轴、指向机体上方或下方，具体与桨的安装方向、正反转约定有关）。飞控里常把「四个桨沿 z 轴的合力」称为总推力，记为 TTT（或四个 TiT_iTi​ 之和）。 简化理解：转速越高，单桨推力越大（常近似与转速平方成正比，具体系数与桨型、空气密度有关）。 1.2 反扭矩（反扭）螺旋桨除了产生沿轴的推力，还会给机身一个绕电机轴的反扭矩。下面把文中用到的物理名词和「为什么会这样」说清楚。 名词与公式（尽量简短） 力矩（扭矩）使物体绕某根轴产生转动趋势的物理量，类似直线运动里的「力」。绕固定轴时，大小可写成   M=r⊥ F   M = r_\perp \, F   M=r⊥​F   即：力 FFF 作用在离转轴垂直距离 r⊥r_\perpr⊥​ ...</div></div></div></a><a class="pagination-related" href="/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/" title="可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机</div></div><div class="info-2"><div class="info-item-1">  阅读成本：了解无人机动力学基础（6DOF方程、推力&#x2F;阻力概念）和微积分基本知识即可。核心论点：可微物理仿真不是截击机的专属技术——它适用于所有”飞得快→气动效应显著→模型参数多且耦合”的高速无人机。本文从底层数学原理出发，系统论证这一方法的统一性，并针对截击机、高速固定翼、穿越机、复合翼VTOL四种典型机型给出具体的落地方案。     一、引言：为什么这个问题值得问？可微仿真的基本概念是让仿真器本身可求导，从而从损失函数反向传播梯度到每个物理参数或网络权重。 但有读者会追问一个自然的问题：  “可微仿真听起来很好，但它是否只适用于截击机？毕竟我看到的很多讨论都围绕着制导律参数辨识和拦截任务展开。高速固定翼侦察机呢？暴力机动的穿越机呢？VTOL复合翼呢？它们的动力学模型完全不同，也能用吗？”  答案是：不仅能，而且可能收益更大。 原因很简单：可微仿真不关心你的无人机是去拦截敌人、侦察地形、穿越门洞还是垂直起降。它只关心一件事——你的动力学模型能否写成一组连续可微的函数。只要答案是肯定的，梯度就可以从”最终任务指标”一直传递到”每个物理参数”。 本文的系统结构如下：  ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/10/shanghai-jiaotong-e2e-fly-5/" title="上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</div></div><div class="info-2"><div class="info-item-1"> 一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤立的工作——它们是一套逐渐完善的技术栈：    论文 arXiv 核心贡献    E2E-Fly 2604.12916 完整训练-部署系统：可微物理→渲染→域随机化→真机   High-Fidelity Diff Sim 2604.10548 深度图直接映射体速率，替代传统感知→规划→控制管线   VisFly-Lab 2603.21123 统一可微框架：悬停&#x2F;追踪&#x2F;着陆&#x2F;竞速，修正 BPTT 梯度   Gap Traversal 2604.02779 SE(3) 可微仿真，零样本穿越不规则缝隙   下面逐一拆解。  二、E2E-Fly：从可微物理到真机部署...</div></div></div></a><a class="pagination-related" href="/2026/03/06/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-06</div><div class="info-item-2">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</div></div><div class="info-2"><div class="info-item-1"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div></a><a class="pagination-related" href="/2026/02/25/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E8%87%AA%E5%8A%A8%E4%BC%98%E5%8C%96-%E6%A2%AF%E5%BA%A6%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/" title="可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-25</div><div class="info-item-2">可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？</div></div><div class="info-2"><div class="info-item-1"> 本文目标：让完全没有机器学习或数值优化背景的读者，从零开始理解”可微仿真”相关的核心名词。   无人机仿真就是用计算机模拟无人机的飞行——给定一组参数（质量、推力系数等），计算机算出无人机怎么飞。     一、从一道最简单的数学题说起想象你要解一个问题：  找一个数 xxx，使得 x2=9x^2 = 9x2=9。  很简单，x=3x = 3x=3 或 x=−3x = -3x=−3，心算就行。 现在换个问题：  找一个数 xxx，使得 x3−2x2+5x−17=0x^3 - 2x^2 + 5x - 17 = 0x3−2x2+5x−17=0。  你还能心算吗？不能了。你需要试：  试 x=2x = 2x=2：8−8+10−17=−78 - 8 + 10 - 17 = -78−8+10−17=−7（太小了） 试 x=3x = 3x=3：27−18+15−17=727 - 18 + 15 - 17 = 727−18+15−17=7（太大了）  介于 222 和 333 之间。 再试 x=2.5x = 2.5x=2.5：15.625−12.5+12.5−17=−1.37515.625 -...</div></div></div></a><a class="pagination-related" href="/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-06</div><div class="info-item-2">E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统</div></div><div class="info-2"><div class="info-item-1"> 摘要：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。    一、引言：端到端四旋翼自主飞行面临的核心挑战四旋翼自主飞行系统的传统开发范式是模块化流水线： 1感知（视觉/IMU）→ 状态估计 → 轨迹规划 → 控制（PID/MPC）→ 执行  每个模块由独立团队开发，通过人工定义的接口传递信息。这种架构存在根本性缺陷：  信息损失：图像→边界框→轨迹→控制指令，每步都在压缩信息 误差传递：感知的微小偏差经过规划和控制放大，最终表现为飞行性能退化 接口僵硬：人工定义的中间表示限制了系统性能上限 开发成本：模块间调试、调参、适配耗费大量工程时间  端到端学习试图用单一可微模型替代整个流水线，但应用到四旋翼领域面临三大难题：    难题 具体表现 传统解决    �...</div></div></div></a><a class="pagination-related" href="/2026/03/12/%E6%97%A0%E4%BA%BA%E6%9C%BA%E9%A3%9E%E8%A1%8C%E7%89%A9%E7%90%86%E5%AD%A6-%E4%BB%8E%E7%89%9B%E9%A1%BF%E5%8A%9B%E5%AD%A6%E5%88%B0%E5%85%AD%E8%87%AA%E7%94%B1%E5%BA%A6%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC/" title="无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导（6DOF 通用框架）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-12</div><div class="info-item-2">无人机飞行物理学：从牛顿力学到六自由度运动方程的完整推导（6DOF 通用框架）</div></div><div class="info-2"><div class="info-item-1"> 四旋翼的仿真与控制，本质上是在求解一组微分方程。本文从牛顿三定律出发，逐步推导刚体平动与转动方程，引入螺旋桨空气动力学模型，最终得到完整的六自由度（6-DOF）运动方程组。每一步都给出物理图像、数学推导和数值示例，并以拉格朗日力学提供第二视角。   一、引言：一组微分方程如何让无人机飞起来无人机仿真的核心工作，就是在每个时间步里回答一个问题：已知当前状态和控制输入，下一个时刻无人机在哪、朝哪、转多快？ 这个问题的答案隐藏在一组常微分方程（ODE）中——六自由度运动方程。它的推导需要三块物理知识：  经典力学：牛顿定律 → 刚体的平动和转动方程 空气动力学：螺旋桨如何产生推力与扭矩 数值方法：如何在计算机上高效、稳定地积分这些方程  本文从第一性原理出发，逐步搭建完整的物理模型。如果你已经读过《四旋翼飞行力学基础》建立了直觉，这篇文章会帮你把直觉变成可以编程实现的方程 [1][6]。  二、经典力学回顾：从质点到刚体2.1 牛顿三定律所有推导的起点是牛顿三定律 [1][2]： 第一定律（惯性定律）：不受外力的物体保持匀速直线运动或静止。 第二定律（运动定律）： F=ma=mdvd...</div></div></div></a><a class="pagination-related" href="/2026/03/04/%E6%88%AA%E5%87%BB%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E4%BB%8E%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%B0%E8%87%AA%E4%B8%BB%E5%88%B6%E5%AF%BC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88/" title="截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-04</div><div class="info-item-2">截击无人机核心算法深度解析：从目标检测到自主制导的技术栈（2026）</div></div><div class="info-2"><div class="info-item-1"> 一架截击无人机从发现目标到完成拦截，整个过程通常不超过 60 秒。在这 60 秒内，机载计算机需要完成目标检测与分类、多目标跟踪与状态估计、拦截航线规划与制导律计算、GPS 拒止环境下的自主导航、以及多机协同任务分配——每一步都依赖精密的算法。本文基于 2025–2026 年最新论文和工程实践，系统解析截击无人机的完整算法技术栈。   一、算法全景：截击无人机的软件架构一次完整的无人机拦截任务可以分解为五个算法层次，从感知到执行依次递进： 1234567891011┌─────────────────────────────────────────────────────────┐│  第五层：蜂群协同        任务分配 / 多机编队 / 目标优先级  │├─────────────────────────────────────────────────────────┤│  第四层：自主导航        VIO / SLAM / 无GPS定位           │├───────────────────────────────────────────────────...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E2%80%9D%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E2%80%9D%E8%BF%99%E4%BA%94%E4%B8%AA%E5%AD%97%E6%8B%86%E5%BC%80"><span class="toc-number">1.</span> <span class="toc-text">一、先把”可微物理引擎”这五个字拆开</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 什么是物理引擎？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E2%80%9C%E5%8F%AF%E5%BE%AE%E2%80%9D%E5%8A%A0%E5%9C%A8%E5%93%AA%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 “可微”加在哪？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%8C%BA%E5%88%86"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 一句话区分</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B0%E5%AD%A6%E6%9C%AC%E8%B4%A8%EF%BC%9A%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E5%B0%B1%E6%98%AF%E4%B8%80%E4%B8%AA%E8%B6%85%E9%95%BF%E7%9A%84-RNN"><span class="toc-number">2.</span> <span class="toc-text">二、数学本质：物理仿真就是一个超长的 RNN</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%80%E4%B8%AA%E6%9C%80%E5%B0%8F%E7%9B%B4%E8%A7%82%E4%BE%8B%E5%AD%90"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 一个最小直观例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AF%B4%E5%83%8F-RNN%EF%BC%9F"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 为什么说像 RNN？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%87%AA%E5%8A%A8%E5%BE%AE%E5%88%86%EF%BC%88AD%EF%BC%89%E6%89%8D%E6%98%AF%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%8F%91%E5%8A%A8%E6%9C%BA"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 自动微分（AD）才是真正的发动机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%89%E5%A4%A7%E6%8A%80%E6%9C%AF%E9%9A%BE%E7%82%B9%EF%BC%88%E8%BF%99%E6%98%AF%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9C%9F%E6%AD%A3%E4%BC%9A%E8%A2%AB%E5%9D%91%E7%9A%84%E5%9C%B0%E6%96%B9%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、三大技术难点（这是工程师真正会被坑的地方）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%9A%BE%E7%82%B9%E4%B8%80%EF%BC%9A%E6%8E%A5%E8%A7%A6%E4%B8%8E%E7%A2%B0%E6%92%9E%E7%9A%84%E4%B8%8D%E8%BF%9E%E7%BB%AD%E6%80%A7"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 难点一：接触与碰撞的不连续性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E7%B1%BB%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">3.1.1.</span> <span class="toc-text">三类解决方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%9A%BE%E7%82%B9%E4%BA%8C%EF%BC%9A%E9%95%BF%E6%97%B6%E5%BA%8F%E6%A2%AF%E5%BA%A6%E7%88%86%E7%82%B8-%E6%B6%88%E5%A4%B1"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 难点二：长时序梯度爆炸 &#x2F; 消失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%9A%BE%E7%82%B9%E4%B8%89%EF%BC%9A%E9%9A%90%E5%BC%8F%E6%B1%82%E8%A7%A3%E7%9A%84%E5%BE%AE%E5%88%86"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 难点三：隐式求解的微分</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%812026-%E5%B9%B4%E4%B8%BB%E6%B5%81%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E6%A8%AA%E8%AF%84"><span class="toc-number">4.</span> <span class="toc-text">四、2026 年主流可微物理引擎横评</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%80%E5%BC%A0%E6%80%BB%E8%A1%A8"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 一张总表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%AF%A6%E7%BB%86%E6%A8%AA%E8%AF%84%EF%BC%88%E6%8C%89%E5%9C%BA%E6%99%AF%E5%88%86%E7%BB%84%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 详细横评（按场景分组）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-A%EF%BC%9A%E7%BA%AF%E5%88%9A%E4%BD%93-RL-%E8%AE%AD%E7%BB%83%EF%BC%88%E6%9C%BA%E5%99%A8%E4%BA%BA%E6%AD%A5%E6%80%81%E3%80%81%E5%9B%9B%E6%97%8B%E7%BF%BC%E7%AD%96%E7%95%A5%EF%BC%89"><span class="toc-number">4.2.1.</span> <span class="toc-text">场景 A：纯刚体 + RL 训练（机器人步态、四旋翼策略）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-B%EF%BC%9A%E7%B3%BB%E7%BB%9F%E8%BE%A8%E8%AF%86%E3%80%81%E5%8F%82%E6%95%B0%E5%8F%8D%E6%8E%A8%EF%BC%88%E6%95%B0%E5%AD%97%E5%AD%AA%E7%94%9F%E3%80%81sim2real%EF%BC%89"><span class="toc-number">4.2.2.</span> <span class="toc-text">场景 B：系统辨识、参数反推（数字孪生、sim2real）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-C%EF%BC%9A%E8%BD%AF%E4%BD%93%E3%80%81%E5%B8%83%E6%96%99%E3%80%81%E6%B5%81%E4%BD%93%E3%80%81MPM"><span class="toc-number">4.2.3.</span> <span class="toc-text">场景 C：软体、布料、流体、MPM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-D%EF%BC%9A%E4%B8%A5%E6%A0%BC%E6%8E%A5%E8%A7%A6%E3%80%81%E6%9C%BA%E6%A2%B0%E8%87%82%E6%8A%93%E5%8F%96"><span class="toc-number">4.2.4.</span> <span class="toc-text">场景 D：严格接触、机械臂抓取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-E%EF%BC%9A%E6%8E%A7%E5%88%B6%E7%90%86%E8%AE%BA%E3%80%81%E8%BD%A8%E8%BF%B9%E4%BC%98%E5%8C%96"><span class="toc-number">4.2.5.</span> <span class="toc-text">场景 E：控制理论、轨迹优化</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%80%E5%BC%A0%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E5%9B%BE"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 一张选型决策图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E8%83%BD%E8%A7%A3%E9%94%81%E4%BB%80%E4%B9%88%E2%80%94%E2%80%94%E5%BA%94%E7%94%A8%E5%85%A8%E8%B0%B1"><span class="toc-number">5.</span> <span class="toc-text">五、可微物理引擎能解锁什么——应用全谱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%B3%BB%E7%BB%9F%E8%BE%A8%E8%AF%86%EF%BC%88%E6%9C%80%E6%88%90%E7%86%9F%E7%9A%84%E5%BA%94%E7%94%A8%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 系统辨识（最成熟的应用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%AD%96%E7%95%A5%E5%AD%A6%E4%B9%A0"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 端到端策略学习</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%8F%AF%E5%BE%AE%E8%A7%84%E5%88%92%E4%B8%8E%E6%9C%80%E4%BC%98%E6%8E%A7%E5%88%B6"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 可微规划与最优控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%BD%A2%E7%8A%B6-%E6%9D%90%E6%96%99%E9%80%86%E5%90%91%E8%AE%BE%E8%AE%A1"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 形状&#x2F;材料逆向设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%8F%AF%E5%BE%AE%E4%BC%A0%E6%84%9F%E5%99%A8%E4%BB%BF%E7%9C%9F%EF%BC%882024-%E5%90%8E%E6%96%B0%E7%83%AD%E7%82%B9%EF%BC%89"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 可微传感器仿真（2024 后新热点）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%97%A0%E4%BA%BA%E6%9C%BA-sim2real-%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84%EF%BC%88%E4%BB%A5%E5%9B%9B%E6%97%8B%E7%BF%BC%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">六、无人机 sim2real 实战路径（以四旋翼为例）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%A0%87%E5%87%86-pipeline"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 标准 pipeline</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%80%E4%B8%AA%E5%B7%A5%E7%A8%8B%E4%B8%8A%E8%B8%A9%E5%9D%91%E6%9C%80%E5%A4%9A%E7%9A%84%E7%82%B9%EF%BC%9A%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 一个工程上踩坑最多的点：损失函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B7%A5%E7%A8%8B%E4%B8%8A%E5%B8%B8%E8%A7%81%E7%9A%84%E2%80%9D%E5%81%87%E6%A2%AF%E5%BA%A6%E2%80%9D%E9%99%B7%E9%98%B1"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 工程上常见的”假梯度”陷阱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%BF%9B%E9%98%B6%EF%BC%9A%E6%B7%B7%E5%90%88%E6%A8%A1%E5%9E%8B%EF%BC%88Hybrid-Model%EF%BC%89"><span class="toc-number">6.4.</span> <span class="toc-text">6.4 进阶：混合模型（Hybrid Model）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%82%A3%E4%BA%9B%E2%80%9D%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E2%80%9D%E5%8D%96%E7%BB%99%E4%BD%A0%E6%97%B6%E4%B8%8D%E4%BC%9A%E5%91%8A%E8%AF%89%E4%BD%A0%E7%9A%84%E4%BA%8B"><span class="toc-number">7.</span> <span class="toc-text">七、那些”可微物理”卖给你时不会告诉你的事</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%B8%8D%E6%98%AF-CFD-%E7%9A%84%E6%9B%BF%E4%BB%A3%E5%93%81"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 可微物理不是 CFD 的替代品</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%80%A7%E8%83%BD%E4%B8%8D%E4%B8%80%E5%AE%9A%E6%AF%94%E4%BC%A0%E7%BB%9F%E5%BF%AB"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 性能不一定比传统快</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%B8%8D%E6%98%AF%E6%89%80%E6%9C%89%E2%80%9D%E5%A3%B0%E7%A7%B0%E5%8F%AF%E5%BE%AE%E2%80%9D%E7%9A%84%E9%83%BD%E7%9C%9F%E5%8F%AF%E5%BE%AE"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 不是所有”声称可微”的都真可微</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%8F%AF%E5%BE%AE-%E2%89%A0-%E6%95%B0%E5%80%BC%E7%A8%B3%E5%AE%9A"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 可微 ≠ 数值稳定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%B7%A5%E4%B8%9A%E7%95%8C%E8%BF%98%E6%B2%A1%E6%9C%89%E5%BD%A2%E6%88%90%E7%BB%9F%E4%B8%80%E6%A0%88"><span class="toc-number">7.5.</span> <span class="toc-text">7.5 工业界还没有形成统一栈</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%B8%80%E4%BB%BD%E6%9E%81%E7%AE%80%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.</span> <span class="toc-text">八、一份极简选型建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%BB%93%E8%AF%AD%EF%BC%9A%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E6%98%AF%E8%8C%83%E5%BC%8F%E8%BD%AC%E5%8F%98%EF%BC%8C%E4%B8%8D%E6%98%AF%E5%B7%A5%E5%85%B7%E5%8D%87%E7%BA%A7"><span class="toc-number">9.</span> <span class="toc-text">九、结语：可微物理是范式转变，不是工具升级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">10.</span> <span class="toc-text">延伸阅读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%EF%BC%88%E5%A4%96%E9%83%A8%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">参考资料（外部）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

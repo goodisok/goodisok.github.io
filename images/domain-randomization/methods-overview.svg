@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 560">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="1100" height="560" fill="#ffffff"/>
+  <text x="550" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">Sim-to-Real 五大方法全景地图</text>
+  <text x="550" y="55" text-anchor="middle" font-size="12" fill="#6b7280">从零样本迁移到元学习 — 每种方法解决什么问题？</text>
+  <rect x="30" y="80" width="210" height="160" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="30" y="80" width="180" height="40" rx="10" fill="#0891b2" fill-opacity="0.12"/>
+  <rect x="40" y="112" width="180" height="8" fill="#0891b2" fill-opacity="0.12"/>
+  <text x="130.0" y="106" text-anchor="middle" font-size="15" font-weight="600" fill="#0891b2">零样本迁移</text>
+  <text x="130.0" y="136" text-anchor="middle" font-size="11" fill="#6b7280">系统辨识</text>
+  <text x="130.0" y="166" text-anchor="middle" font-size="12" fill="#111827">建精准仿真 → 直接部署</text>
+  <rect x="55" y="185" width="150" height="22" rx="5" fill="#ea580c" fill-opacity="0.1"/>
+  <text x="130.0" y="201" text-anchor="middle" font-size="11" font-weight="500" fill="#ea580c">真实数据: 需要(校准)</text>
+  <rect x="260" y="80" width="210" height="160" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="260" y="80" width="180" height="40" rx="10" fill="#2563eb" fill-opacity="0.12"/>
+  <rect x="255" y="112" width="180" height="8" fill="#2563eb" fill-opacity="0.12"/>
+  <text x="345.0" y="106" text-anchor="middle" font-size="15" font-weight="600" fill="#2563eb">域随机化</text>
+  <text x="345.0" y="136" text-anchor="middle" font-size="11" fill="#6b7280">数据增强思想</text>
+  <text x="345.0" y="166" text-anchor="middle" font-size="12" fill="#111827">随机化到覆盖真实分布</text>
+  <rect x="270" y="185" width="150" height="22" rx="5" fill="#059669" fill-opacity="0.1"/>
+  <text x="345.0" y="201" text-anchor="middle" font-size="11" font-weight="500" fill="#059669">真实数据: 不需要</text>
+  <rect x="490" y="80" width="210" height="160" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="490" y="80" width="180" height="40" rx="10" fill="#7c3aed" fill-opacity="0.12"/>
+  <rect x="470" y="112" width="180" height="8" fill="#7c3aed" fill-opacity="0.12"/>
+  <text x="560.0" y="106" text-anchor="middle" font-size="15" font-weight="600" fill="#7c3aed">域自适应</text>
+  <text x="560.0" y="136" text-anchor="middle" font-size="11" fill="#6b7280">特征空间对齐</text>
+  <text x="560.0" y="166" text-anchor="middle" font-size="12" fill="#111827">学习仿真→真实的映射</text>
+  <rect x="485" y="185" width="150" height="22" rx="5" fill="#ea580c" fill-opacity="0.1"/>
+  <text x="560.0" y="201" text-anchor="middle" font-size="11" font-weight="500" fill="#ea580c">真实数据: 需要少量</text>
+  <rect x="145" y="280" width="210" height="160" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="145" y="280" width="180" height="40" rx="10" fill="#ea580c" fill-opacity="0.12"/>
+  <rect x="147" y="312" width="180" height="8" fill="#ea580c" fill-opacity="0.12"/>
+  <text x="237.0" y="306" text-anchor="middle" font-size="15" font-weight="600" fill="#ea580c">模仿学习</text>
+  <text x="237.0" y="336" text-anchor="middle" font-size="11" fill="#6b7280">行为克隆/逆RL</text>
+  <text x="237.0" y="366" text-anchor="middle" font-size="12" fill="#111827">专家示范替代奖励设计</text>
+  <rect x="162" y="385" width="150" height="22" rx="5" fill="#ea580c" fill-opacity="0.1"/>
+  <text x="237.0" y="401" text-anchor="middle" font-size="11" font-weight="500" fill="#ea580c">真实数据: 需要专家</text>
+  <rect x="375" y="280" width="210" height="160" rx="10" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="375" y="280" width="180" height="40" rx="10" fill="#16a34a" fill-opacity="0.12"/>
+  <rect x="362" y="312" width="180" height="8" fill="#16a34a" fill-opacity="0.12"/>
+  <text x="452.0" y="306" text-anchor="middle" font-size="15" font-weight="600" fill="#16a34a">元学习+蒸馏</text>
+  <text x="452.0" y="336" text-anchor="middle" font-size="11" fill="#6b7280">Meta-RL/KD</text>
+  <text x="452.0" y="366" text-anchor="middle" font-size="12" fill="#111827">学会如何快速适应</text>
+  <rect x="377" y="385" width="150" height="22" rx="5" fill="#059669" fill-opacity="0.1"/>
+  <text x="452.0" y="401" text-anchor="middle" font-size="11" font-weight="500" fill="#059669">真实数据: 不需要</text>
+  <line x1="220" y1="200" x2="220" y2="290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="400" y1="200" x2="400" y2="290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3"/>
+  <rect x="40" y="470" width="1020" height="70" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="550" y="493" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">演化时间线</text>
+  <circle cx="160" cy="515" r="5" fill="#2563eb"/>
+  <text x="160" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#2563eb">2017</text>
+  <text x="160" y="532" text-anchor="middle" font-size="10" fill="#6b7280">域随机化</text>
+  <circle cx="280" cy="515" r="5" fill="#2563eb"/>
+  <text x="280" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#2563eb">2018</text>
+  <text x="280" y="532" text-anchor="middle" font-size="10" fill="#6b7280">OpenAI 五指手</text>
+  <circle cx="400" cy="515" r="5" fill="#7c3aed"/>
+  <text x="400" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#7c3aed">2020</text>
+  <text x="400" y="532" text-anchor="middle" font-size="10" fill="#6b7280">综述·系统化</text>
+  <circle cx="520" cy="515" r="5" fill="#0891b2"/>
+  <text x="520" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#0891b2">2021</text>
+  <text x="520" y="532" text-anchor="middle" font-size="10" fill="#6b7280">Isaac Gym GPU</text>
+  <circle cx="640" cy="515" r="5" fill="#ea580c"/>
+  <text x="640" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#ea580c">2023</text>
+  <text x="640" y="532" text-anchor="middle" font-size="10" fill="#6b7280">Eureka LLM奖励</text>
+  <circle cx="760" cy="515" r="5" fill="#16a34a"/>
+  <text x="760" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#16a34a">2025</text>
+  <text x="760" y="532" text-anchor="middle" font-size="10" fill="#6b7280">Newton 可微</text>
+  <circle cx="880" cy="515" r="5" fill="#16a34a"/>
+  <text x="880" y="508" text-anchor="middle" font-size="10" font-weight="600" fill="#16a34a">2026</text>
+  <text x="880" y="532" text-anchor="middle" font-size="10" fill="#6b7280">MAVEN/E2E-Fly</text>
+</svg>

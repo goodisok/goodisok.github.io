@@ -1,0 +1,1059 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="阅读成本：了解无人机动力学基础（6DOF方程、推力&#x2F;阻力概念）和微积分基本知识即可。核心论点：可微物理仿真不是截击机的专属技术——它适用于所有”飞得快→气动效应显著→模型参数多且耦合”的高速无人机。本文从底层数学原理出发，系统论证这一方法的统一性，并针对截击机、高速固定翼、穿越机、复合翼VTOL四种典型机型给出具体的落地方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机">
+<meta property="og:url" content="https://goodisok.github.io/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="阅读成本：了解无人机动力学基础（6DOF方程、推力&#x2F;阻力概念）和微积分基本知识即可。核心论点：可微物理仿真不是截击机的专属技术——它适用于所有”飞得快→气动效应显著→模型参数多且耦合”的高速无人机。本文从底层数学原理出发，系统论证这一方法的统一性，并针对截击机、高速固定翼、穿越机、复合翼VTOL四种典型机型给出具体的落地方案。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-02-26T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-25T16:00:00.000Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="参数辨识">
+<meta property="article:tag" content="可微仿真">
+<meta property="article:tag" content="固定翼">
+<meta property="article:tag" content="截击机">
+<meta property="article:tag" content="穿越机">
+<meta property="article:tag" content="端到端">
+<meta property="article:tag" content="高速无人机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机",
+  "url": "https://goodisok.github.io/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-02-26T02:00:00.000Z",
+  "dateModified": "2026-02-25T16:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">可微物理仿真在高速无人机中的统一方法论：从截击机到固定翼、穿越机</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-26T02:00:00.000Z" title="发表于 2026-02-26 10:00:00">2026-02-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-25T16:00:00.000Z" title="更新于 2026-02-26 00:00:00">2026-02-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F/">无人机仿真</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="https://img.shields.io/badge/%E4%B8%BB%E9%A2%98-%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F-orange?style=for-the-badge" alt="Badge"><br><img src="https://img.shields.io/badge/%E9%80%82%E7%94%A8-%E6%88%AA%E5%87%BB%E6%9C%BA|%E5%9B%BA%E5%AE%9A%E7%BF%BC|%E7%A9%BF%E8%B6%8A%E6%9C%BA|%E5%9B%9B%E6%97%8B%E7%BF%BC-blue?style=for-the-badge" alt="Badge"><br><img src="https://img.shields.io/badge/%E7%B1%BB%E5%9E%8B-%E7%BB%BC%E8%BF%B0+%E6%96%B9%E6%B3%95%E8%AE%BA-lightgrey?style=for-the-badge" alt="Badge"></p>
+<blockquote>
+<p><strong>阅读成本</strong>：了解无人机动力学基础（6DOF方程、推力&#x2F;阻力概念）和微积分基本知识即可。<br><strong>核心论点</strong>：可微物理仿真不是截击机的专属技术——它适用于所有”飞得快→气动效应显著→模型参数多且耦合”的高速无人机。本文从底层数学原理出发，系统论证这一方法的统一性，并针对截击机、高速固定翼、穿越机、复合翼VTOL四种典型机型给出具体的落地方案。</p>
+</blockquote>
+<span id="more"></span>
+
+<hr>
+<h2 id="一、引言：为什么这个问题值得问？"><a href="#一、引言：为什么这个问题值得问？" class="headerlink" title="一、引言：为什么这个问题值得问？"></a>一、引言：为什么这个问题值得问？</h2><p>可微仿真的基本概念是让仿真器本身可求导，从而从损失函数反向传播梯度到每个物理参数或网络权重。</p>
+<p>但有读者会追问一个自然的问题：</p>
+<blockquote>
+<p>“可微仿真听起来很好，但它是否只适用于截击机？毕竟我看到的很多讨论都围绕着制导律参数辨识和拦截任务展开。高速固定翼侦察机呢？暴力机动的穿越机呢？VTOL复合翼呢？它们的动力学模型完全不同，也能用吗？”</p>
+</blockquote>
+<p>答案是：<strong>不仅能，而且可能收益更大。</strong></p>
+<p>原因很简单：<strong>可微仿真不关心你的无人机是去拦截敌人、侦察地形、穿越门洞还是垂直起降</strong>。它只关心一件事——你的动力学模型能否写成一组连续可微的函数。只要答案是肯定的，梯度就可以从”最终任务指标”一直传递到”每个物理参数”。</p>
+<p>本文的系统结构如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">章节</th>
+<th align="left">内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>二</strong></td>
+<td align="left">可微仿真适用于所有高速无人机的数学原理（为什么飞得快 &#x3D; 更需要可微）</td>
+</tr>
+<tr>
+<td align="left"><strong>三</strong></td>
+<td align="left">四类典型高速无人机的具体落地分析</td>
+</tr>
+<tr>
+<td align="left"><strong>四</strong></td>
+<td align="left">当前学术界与开源生态全景（论文+框架）</td>
+</tr>
+<tr>
+<td align="left"><strong>五</strong></td>
+<td align="left">工程落地指南：从零搭建可微仿真参数辨识管线</td>
+</tr>
+<tr>
+<td align="left"><strong>六</strong></td>
+<td align="left">边界条件：什么时候可微仿真没用？</td>
+</tr>
+<tr>
+<td align="left"><strong>七</strong></td>
+<td align="left">总结与前景展望</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、底层原理：为什么”高速”是可微仿真的天然适配场景？"><a href="#二、底层原理：为什么”高速”是可微仿真的天然适配场景？" class="headerlink" title="二、底层原理：为什么”高速”是可微仿真的天然适配场景？"></a>二、底层原理：为什么”高速”是可微仿真的天然适配场景？</h2><h3 id="2-1-物理参数的敏感度随速度非线性增长"><a href="#2-1-物理参数的敏感度随速度非线性增长" class="headerlink" title="2.1 物理参数的敏感度随速度非线性增长"></a>2.1 物理参数的敏感度随速度非线性增长</h3><p>低速悬停时的四旋翼动力学可以简化为：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>m</mi><mover accent="true"><mi>z</mi><mo>¨</mo></mover></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi>C</mi><mi>T</mi></msub><mo>⋅</mo><mo>∑</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><mo>−</mo><mi>m</mi><mi>g</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+m\ddot{z} &amp;= C_T \cdot \sum\omega_i^2 - mg
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.6em;vertical-align:-0.55em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">¨</span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.55em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop op-symbol large-op" style="position:relative;top:0em;">∑</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.55em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>在悬停点附近，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub></mrow><annotation encoding="application/x-tex">C_T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的偏差 ±5% 只会导致高度方向上 ±5% 的偏差——因为重力主导，推力只需克服重力即可。</p>
+<p>但当速度达到 20 m&#x2F;s 以上时，动力学变成：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>m</mi><mover accent="true"><mi>x</mi><mo>¨</mo></mover></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><msub><mi>C</mi><mi>T</mi></msub><mo>⋅</mo><mo>∑</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo><mi>sin</mi><mo>⁡</mo><mi>θ</mi><mo>−</mo><msub><mi>C</mi><mi>D</mi></msub><mo>⋅</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><msup><mi>V</mi><mn>2</mn></msup><mi>A</mi></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>m</mi><mover accent="true"><mi>z</mi><mo>¨</mo></mover></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><msub><mi>C</mi><mi>T</mi></msub><mo>⋅</mo><mo>∑</mo><msubsup><mi>ω</mi><mi>i</mi><mn>2</mn></msubsup><mo stretchy="false">)</mo><mi>cos</mi><mo>⁡</mo><mi>θ</mi><mo>−</mo><mi>m</mi><mi>g</mi><mo>−</mo><msub><mi>C</mi><mi>L</mi></msub><mo>⋅</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><msup><mi>V</mi><mn>2</mn></msup><mi>A</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+m\ddot{x} &amp;= (C_T \cdot \sum\omega_i^2) \sin\theta - C_D \cdot \frac{1}{2}\rho V^2 A \\
+m\ddot{z} &amp;= (C_T \cdot \sum\omega_i^2) \cos\theta - mg - C_L \cdot \frac{1}{2}\rho V^2 A
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.3149em;vertical-align:-1.9074em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.4074em;"><span style="top:-4.4074em;"><span class="pstrut" style="height:3.3214em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">¨</span></span></span></span></span></span></span></span></span><span style="top:-2.1em;"><span class="pstrut" style="height:3.3214em;"></span><span class="mord"><span class="mord mathnormal">m</span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">¨</span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.9074em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.4074em;"><span style="top:-4.4074em;"><span class="pstrut" style="height:3.3214em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop op-symbol large-op" style="position:relative;top:0em;">∑</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">sin</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord mathnormal">ρ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord mathnormal">A</span></span></span><span style="top:-2.1em;"><span class="pstrut" style="height:3.3214em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop op-symbol large-op" style="position:relative;top:0em;">∑</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">m</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord mathnormal">ρ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord mathnormal">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.9074em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>问题在于：</p>
+<ol>
+<li><strong>交叉耦合</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub></mrow><annotation encoding="application/x-tex">C_T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 偏差 5% 不仅影响高度，还通过倾角影响水平加速度</li>
+<li><strong>非线性放大</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>D</mi></msub><mo>⋅</mo><msup><mi>V</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">C_D \cdot V^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> 中速度平方项放大了阻力系数误差——<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mn>30</mn><mtext>m/s</mtext></mrow><annotation encoding="application/x-tex">V=30\text{m/s}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">30</span><span class="mord text"><span class="mord">m/s</span></span></span></span></span> 时的阻力是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo>=</mo><mn>10</mn><mtext>m/s</mtext></mrow><annotation encoding="application/x-tex">V=10\text{m/s}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">10</span><span class="mord text"><span class="mord">m/s</span></span></span></span></span> 时的 <strong>9 倍</strong></li>
+<li><strong>前进比效应</strong>：高速下 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span> 不再常数，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>=</mo><mi>V</mi><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>n</mi><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">J = V/(nD)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mclose">)</span></span></span></span> 变化剧烈，推力-速度耦合成为主导</li>
+</ol>
+<p><strong>定量地说</strong>：同样 5% 的参数误差，在 10 m&#x2F;s 时导致轨迹偏差约 5-8%；在 30 m&#x2F;s 时导致轨迹偏差约 20-40%。这意味着<strong>速度越高，参数标定的精度要求指数级增长</strong>——而可微仿真正好擅长解决这个问题。</p>
+<h3 id="2-2-梯度替代暴力扫参：可微方法的速度优势"><a href="#2-2-梯度替代暴力扫参：可微方法的速度优势" class="headerlink" title="2.2 梯度替代暴力扫参：可微方法的速度优势"></a>2.2 梯度替代暴力扫参：可微方法的速度优势</h3><p>传统参数标定方法是蒙特卡洛扫参：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 暴力扫参：在参数空间中均匀采样</span></span><br><span class="line">best_loss = inf</span><br><span class="line"><span class="keyword">for</span> C_T <span class="keyword">in</span> np.linspace(<span class="number">0.08</span>, <span class="number">0.14</span>, <span class="number">100</span>):</span><br><span class="line">    <span class="keyword">for</span> C_D <span class="keyword">in</span> np.linspace(<span class="number">0.3</span>, <span class="number">0.7</span>, <span class="number">100</span>):</span><br><span class="line">        <span class="keyword">for</span> I_xx <span class="keyword">in</span> np.linspace(<span class="number">0.01</span>, <span class="number">0.03</span>, <span class="number">100</span>):</span><br><span class="line">            trajectory = forward_sim(C_T, C_D, I_xx)</span><br><span class="line">            loss = compute_loss(trajectory, real_data)</span><br><span class="line">            <span class="keyword">if</span> loss &lt; best_loss:</span><br><span class="line">                best_loss, best_params = loss, (C_T, C_D, I_xx)</span><br></pre></td></tr></table></figure>
+
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>100</mn><mn>3</mn></msup><mo>=</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">100^3 = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">10</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span> 次仿真前推。每次 30 秒真实时间 × 250 Hz = 7500 步。在单核 CPU 上大约需要数小时到数天。
+
+<p>可微方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 可微参数辨识：一次前推 + 一次反传</span></span><br><span class="line">C_T, C_D, I_xx = nn.Parameter([<span class="number">0.11</span>, <span class="number">0.5</span>, <span class="number">0.02</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):  <span class="comment"># 最多 100 次迭代</span></span><br><span class="line">    trajectory = differentiable_forward_sim(C_T, C_D, I_xx)</span><br><span class="line">    loss = compute_loss(trajectory, real_data)</span><br><span class="line">    loss.backward()  <span class="comment"># 自动计算 ∂loss/∂C_T, ∂loss/∂C_D, ∂loss/∂I_xx</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 梯度下降更新</span></span><br><span class="line">    C_T -= lr * C_T.grad</span><br><span class="line">    C_D -= lr * C_D.grad</span><br><span class="line">    I_xx -= lr * I_xx.grad</span><br></pre></td></tr></table></figure>
+
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mo>×</mo><mn>2</mn><mo>=</mo><mn>200</mn></mrow><annotation encoding="application/x-tex">100 \times 2 = 200</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">200</span></span></span></span> 次仿真（一次前推 + 一次反传算两次）。同样的精度，**速度提升 3-4 个数量级**。
+
+<h3 id="2-3-核心洞察：该统一性的数学基础"><a href="#2-3-核心洞察：该统一性的数学基础" class="headerlink" title="2.3 核心洞察：该统一性的数学基础"></a>2.3 核心洞察：该统一性的数学基础</h3><p>可微仿真适用于所有高速无人机的根本原因是——<strong>它们的动力学都可以用如下的微分代数方程表示</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi mathvariant="bold">x</mi><mo>˙</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><mi mathvariant="bold">u</mi><mo separator="true">;</mo><mi mathvariant="bold-italic">θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u}; \boldsymbol{\theta})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6813em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6813em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">u</span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.0319em;">θ</span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">x</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>12</mn></msup></mrow><annotation encoding="application/x-tex">\mathbf{x} \in \mathbb{R}^{12}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathbf">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">12</span></span></span></span></span></span></span></span></span></span></span></span> 是状态（位置、速度、姿态、角速度），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">u</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">\mathbf{u} \in \mathbb{R}^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathbf">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6889em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 是控制输入，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold-italic">θ</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\theta}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.0319em;">θ</span></span></span></span></span></span> 是待标定参数集（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>L</mi></msub><mo separator="true">,</mo><msub><mi>I</mi><mrow><mi>x</mi><mi>x</mi></mrow></msub><mo separator="true">,</mo><mo>…</mo></mrow><annotation encoding="application/x-tex">C_T, C_D, C_L, I_{xx}, \ldots</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span></span></span></span>）。</p>
+<p>只要 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span> 对 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold-italic">θ</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\theta}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.0319em;">θ</span></span></span></span></span></span> 可微，梯度就可以流畅地反向传播。截击机、固定翼、穿越机、复合翼的区别只在于 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span> 的具体形式参数化不同——数学模型都是同一个框架下的特例。</p>
+<table>
+<thead>
+<tr>
+<th align="left">无人机类型</th>
+<th align="left">状态维度</th>
+<th align="left">关键参数</th>
+<th align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span></span></span> 中特有项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">截击机&#x2F;四旋翼</td>
+<td align="left">12</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub><mo separator="true">,</mo><msub><mi>I</mi><mrow><mi>x</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">C_T, C_D, I_{xx}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+<td align="left">桨叶入流模型、前进比修正</td>
+</tr>
+<tr>
+<td align="left">高速固定翼</td>
+<td align="left">12+</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><msub><mi>δ</mi><mi>e</mi></msub><mi mathvariant="normal">/</mi><msub><mi>δ</mi><mi>a</mi></msub><mi mathvariant="normal">/</mi><msub><mi>δ</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">C_L(\alpha), C_D(\alpha), \delta_e/\delta_a/\delta_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+<td align="left">升力曲面、舵面效率、翼尖涡</td>
+</tr>
+<tr>
+<td align="left">穿越机</td>
+<td align="left">12</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><msub><mi>C</mi><mi>Q</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub></mrow><annotation encoding="application/x-tex">C_T(J), C_Q, C_D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">Q</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+<td align="left">高桨盘载荷、攻角-力矩耦合</td>
+</tr>
+<tr>
+<td align="left">复合翼VTOL</td>
+<td align="left">12+</td>
+<td align="left"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>w</mi><mi>i</mi><mi>n</mi><mi>g</mi></mrow></msub><mo separator="true">,</mo><msub><mi>C</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>r</mi><mi>o</mi><mi>t</mi><mi>o</mi><mi>r</mi></mrow></msub><mo separator="true">,</mo><msub><mi>f</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>n</mi><mi>s</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">C_{L,wing}, C_{L,rotor}, f_{transition}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">in</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">or</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span><span class="mord mathnormal mtight">an</span><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight">i</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+<td align="left">旋翼-机翼干扰、过渡段非定常气动</td>
+</tr>
+</tbody></table>
+<p>它们在数学上都是同一个 <strong>参数化 ODE</strong> 的不同实例化——这就是可微仿真方法论统一性的数学基础。</p>
+<hr>
+<h2 id="三、四类高速无人机的具体落地分析"><a href="#三、四类高速无人机的具体落地分析" class="headerlink" title="三、四类高速无人机的具体落地分析"></a>三、四类高速无人机的具体落地分析</h2><h3 id="3-1-截击机（典型代表：Thunder-STD100-SKYctrl-Coyote）"><a href="#3-1-截击机（典型代表：Thunder-STD100-SKYctrl-Coyote）" class="headerlink" title="3.1 截击机（典型代表：Thunder STD100&#x2F;SKYctrl&#x2F;Coyote）"></a>3.1 截击机（典型代表：Thunder STD100&#x2F;SKYctrl&#x2F;Coyote）</h3><p>这是最自然的应用场景，也是高速截击机仿真研究中的重要方向。</p>
+<p><strong>核心需求</strong>：脱靶量对参数极度敏感——拦截弹道末端速度 &gt; 150 m&#x2F;s 时，0.1 秒的响应延迟意味着 &gt;15 米的位置误差。</p>
+<p><strong>可微仿真具体用途</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">用途</th>
+<th align="left">具体方法</th>
+<th align="left">预期效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>推力系数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span> 辨识</strong></td>
+<td align="left">从 ULog 数据反演 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub></mrow><annotation encoding="application/x-tex">C_T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> vs 前进比 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi></mrow><annotation encoding="application/x-tex">J</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span></span></span></span> 曲线</td>
+<td align="left">替代推力台架粗标，精度 ±3% → ±0.5%</td>
+</tr>
+<tr>
+<td align="left"><strong>阻力系数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>D</mi></msub></mrow><annotation encoding="application/x-tex">C_D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 辨识</strong></td>
+<td align="left">从高速截击轨迹反演 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>D</mi></msub></mrow><annotation encoding="application/x-tex">C_D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td>
+<td align="left">避免风洞试验，直接从实飞提取</td>
+</tr>
+<tr>
+<td align="left"><strong>转动惯量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi>x</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">I_{xx}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 标定</strong></td>
+<td align="left">从姿态阶跃响应反演</td>
+<td align="left">替代摆锤法，精度 ±10% → ±3%</td>
+</tr>
+<tr>
+<td align="left"><strong>PN&#x2F;EPN 制导参数优化</strong></td>
+<td align="left">用可微仿真预调 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span></span></span></span>（导航比例系数）</td>
+<td align="left">替代 1000 次 Monte Carlo 扫参</td>
+</tr>
+<tr>
+<td align="left"><strong>域随机化边界搜索</strong></td>
+<td align="left">梯度方法自动找到最优随机化范围</td>
+<td align="left">域随机化效果提升 2-3 倍</td>
+</tr>
+</tbody></table>
+<p><strong>现有论文</strong>：</p>
+<ul>
+<li><strong>E2E-Fly</strong> (2026, 上海交大, arXiv:2604.12916)：首个端到端四旋翼全链路系统，可微仿真引擎 + 一阶策略优化。虽然没有专门针对截击机，但其技术架构完全可迁移。</li>
+<li><strong>DiffAero</strong> (2025, 北理工, arXiv:2509.10247)：GPU 加速可微四旋翼仿真框架，支持多种动力学模型和传感器堆栈。</li>
+</ul>
+<h3 id="3-2-高速固定翼（典型时速-200-km-h）"><a href="#3-2-高速固定翼（典型时速-200-km-h）" class="headerlink" title="3.2 高速固定翼（典型时速 &gt; 200 km&#x2F;h）"></a>3.2 高速固定翼（典型时速 &gt; 200 km&#x2F;h）</h3><p>固定翼的动力学比旋翼更为复杂，但可微仿真的收益也更大。</p>
+<p><strong>核心挑战</strong>：</p>
+<ol>
+<li><strong>气动系数是高维非线性函数</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo separator="true">,</mo><mi>β</mi><mo separator="true">,</mo><mtext>Re</mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_L(\alpha, \beta, \text{Re})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0528em;">β</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">Re</span></span><span class="mclose">)</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>D</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo separator="true">,</mo><mi>β</mi><mo separator="true">,</mo><mtext>Re</mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_D(\alpha, \beta, \text{Re})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0528em;">β</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">Re</span></span><span class="mclose">)</span></span></span></span> 是攻角、侧滑角和雷诺数的函数，在整个飞行包线内变化剧烈</li>
+<li><strong>舵面效率跨速域非线性</strong>：低速、跨声速、超声速下的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\delta_e</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 效率差异可达 5 倍</li>
+<li><strong>动导数不可忽略</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>L</mi><mover accent="true"><mi>α</mi><mo>˙</mo></mover></mrow></msub><mo separator="true">,</mo><msub><mi>C</mi><msub><mi>m</mi><mi>q</mi></msub></msub></mrow><annotation encoding="application/x-tex">C_{L\dot{\alpha}}, C_{m_q}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0307em;vertical-align:-0.3473em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mord accent mtight"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6679em;"><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span class="mord mathnormal mtight" style="margin-right:0.0037em;">α</span></span><span style="top:-2.7em;"><span class="pstrut" style="height:2.7em;"></span><span class="accent-body" style="left:-0.1111em;"><span class="mord mtight">˙</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2819em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3473em;"><span></span></span></span></span></span></span></span></span></span> 等动导数在高机动时主导阻尼和稳定性</li>
+</ol>
+<p><strong>可微仿真具体用途</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">用途</th>
+<th align="left">具体方法</th>
+<th align="left">预期效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>升力&#x2F;阻力极曲线 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub><mo stretchy="false">(</mo><mi>α</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_L(\alpha), C_D(\alpha)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span></span></span></span> 辨识</strong></td>
+<td align="left">从爬升-巡航-下滑轨迹反演</td>
+<td align="left">替代 50% 以上风洞试验</td>
+</tr>
+<tr>
+<td align="left"><strong>舵面效率 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>e</mi></msub><mi mathvariant="normal">/</mi><msub><mi>δ</mi><mi>a</mi></msub><mi mathvariant="normal">/</mi><msub><mi>δ</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">\delta_e/\delta_a/\delta_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0379em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 标定</strong></td>
+<td align="left">从 S 型机动轨迹反演</td>
+<td align="left">1 次飞行替代 10 次试飞</td>
+</tr>
+<tr>
+<td align="left"><strong>发动机推力曲线标定</strong></td>
+<td align="left">从平飞加速段反演</td>
+<td align="left">精确到 ±2%</td>
+</tr>
+<tr>
+<td align="left"><strong>气弹耦合参数</strong></td>
+<td align="left">从颤振响应反演结构阻尼</td>
+<td align="left">安全边界更精确</td>
+</tr>
+</tbody></table>
+<p><strong>相关文献</strong>：</p>
+<ul>
+<li><strong>NODE-FDM</strong> (2025, arXiv:2509.23307)：用神经常微分方程做固定翼动力学建模。虽然目标是轨迹预测而非参数辨识，但底层思路与可微仿真高度一致——用可微模型从飞行数据中提取动力学参数。</li>
+<li><strong>Coupled DAE Framework</strong> (2024, arXiv:2412.17280)：6DOF 固定翼飞行动力学的微分-代数方程框架，含 35 个方程、30 个常数参数——这正是可微参数辨识的理想输入。</li>
+</ul>
+<p><strong>实测案例</strong>（虚拟推算）：</p>
+<p>考虑一架典型的高速侦察固定翼（翼展 2m, 巡航速度 180 km&#x2F;h, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>D</mi><mn>0</mn></mrow></msub><mo>=</mo><mn>0.025</mn><mo separator="true">,</mo><mi>A</mi><mi>R</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">C_{D0}=0.025, AR=8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span><span class="mord mtight">0</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">0.025</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">8</span></span></span></span>）。它的气动参数通常来自：</p>
+<ol>
+<li>风洞试验（昂贵，精度好）</li>
+<li>CFD 仿真（计算量大，需验证）</li>
+<li>经验公式（粗糙，精度 ±20%）</li>
+</ol>
+<p>用可微仿真 + 一次实飞数据，可以直接反演出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 实飞数据：空速 V(t)、高度 h(t)、迎角 α(t)、舵偏 δ_e(t)</span></span><br><span class="line"><span class="comment"># 可微仿真输出：预测的飞行轨迹</span></span><br><span class="line"><span class="comment"># 损失函数：预测轨迹 vs 实际轨迹</span></span><br><span class="line">loss = ∫[(x̂(t) - x(t))² + (ĥ(t) - h(t))²] dt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 梯度 ↓</span></span><br><span class="line">∂loss/∂C_L(α)  <span class="comment"># 升力系数曲线修正量</span></span><br><span class="line">∂loss/∂C_D(α)  <span class="comment"># 阻力系数曲线修正量</span></span><br><span class="line">∂loss/∂δ_e_eff <span class="comment"># 升降舵效率修正量</span></span><br></pre></td></tr></table></figure>
+
+<p>一次 10 分钟的典型起降循环，包含爬升、巡航、转弯、下滑等不同飞行状态，就能覆盖攻角 -5° 到 15° 的常见包线范围。这相当于<strong>一次实飞替代数十次风洞吹风</strong>。</p>
+<h3 id="3-3-穿越机-暴力四旋翼（典型时速-150-km-h）"><a href="#3-3-穿越机-暴力四旋翼（典型时速-150-km-h）" class="headerlink" title="3.3 穿越机&#x2F;暴力四旋翼（典型时速 &gt; 150 km&#x2F;h）"></a>3.3 穿越机&#x2F;暴力四旋翼（典型时速 &gt; 150 km&#x2F;h）</h3><p>穿越机（FPV Drone）是另一个”高速+高参数不确定性”的典型场景。</p>
+<p><strong>核心挑战</strong>：</p>
+<ol>
+<li><strong>极度暴力机动</strong>：高达 5-10G 的加速度，桨尖速度可达 0.7 Ma 以上</li>
+<li><strong>高桨盘载荷</strong>：推重比 &gt; 10:1，桨叶处于严重的非定常气动状态</li>
+<li><strong>空气阻尼主导</strong>：穿越机最大的能量耗散来源是空气阻尼，而非反扭矩</li>
+<li><strong>桨效随速度剧烈衰减</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span> 在前进比 &gt; 0.3 时下降 50% 以上，穿越机常工作在此区域</li>
+</ol>
+<p><strong>可微仿真具体用途</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">用途</th>
+<th align="left">具体方法</th>
+<th align="left">预期效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>桨效衰减曲线 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span> 标定</strong></td>
+<td align="left">从大速度前飞数据反演</td>
+<td align="left">推力预测精度提高 2 倍</td>
+</tr>
+<tr>
+<td align="left"><strong>机身阻力标定</strong></td>
+<td align="left">从俯冲-平飞过渡段反演</td>
+<td align="left">动力学模型误差降低 50%</td>
+</tr>
+<tr>
+<td align="left"><strong>陀螺力矩补偿参数</strong></td>
+<td align="left">从 yaw 阶跃响应反演</td>
+<td align="left">偏航控制精度提高 30%</td>
+</tr>
+<tr>
+<td align="left"><strong>陷波滤波器预调参数</strong></td>
+<td align="left">用可微仿真预跑共振频率</td>
+<td align="left">减少 70% 实机调试时间</td>
+</tr>
+</tbody></table>
+<p><strong>关键差异</strong>：与截击机不同，穿越机的参数辨识需求主要集中在<strong>桨效衰减</strong>和<strong>机身阻力</strong>两个维度上。因为穿越机通常使用标准部件（电机、桨、电调），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi>x</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">I_{xx}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 等惯量参数可以通过 CAD 精确计算，不需要可微辨识。但空气动力学相关的参数却极难通过计算获取。</p>
+<h3 id="3-4-复合翼-VTOL"><a href="#3-4-复合翼-VTOL" class="headerlink" title="3.4 复合翼&#x2F;VTOL"></a>3.4 复合翼&#x2F;VTOL</h3><p>复合翼是难度最高的场景，也是可微仿真收益最大的场景之一。</p>
+<p><strong>核心挑战</strong>：</p>
+<ol>
+<li><strong>多体耦合</strong>：旋翼和机翼之间的气动干扰没有封闭解析解</li>
+<li><strong>过渡段非定常效应</strong>：从垂直起飞到水平巡航的转换过程中，流场剧烈变化</li>
+<li><strong>襟翼偏转耦合</strong>：过渡段中襟翼往往与螺旋桨转速协同调节</li>
+</ol>
+<p><strong>可微仿真具体用途</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">用途</th>
+<th align="left">具体方法</th>
+<th align="left">预期效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>旋翼-机翼干扰因子 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mrow><mi>w</mi><mi>i</mi><mi>n</mi><mi>g</mi><mi mathvariant="normal">_</mi><mi>o</mi><mi>n</mi><mi mathvariant="normal">_</mi><mi>r</mi><mi>o</mi><mi>t</mi><mi>o</mi><mi>r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\eta_{wing\_on\_rotor}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7976em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">η</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">in</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span><span class="mord mtight" style="margin-right:0.0278em;">_</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">n</span><span class="mord mtight" style="margin-right:0.0278em;">_</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">or</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span></strong></td>
+<td align="left">从过渡段轨迹反演</td>
+<td align="left">替代 CFD 的高成本试算</td>
+</tr>
+<tr>
+<td align="left"><strong>过渡段升力分配曲线</strong></td>
+<td align="left">从速度-姿态-油门关系反演</td>
+<td align="left">过渡时间优化（15s → 8s）</td>
+</tr>
+<tr>
+<td align="left"><strong>模式切换门槛自动搜索</strong></td>
+<td align="left">梯度方法找”最优转换速度”</td>
+<td align="left">能耗降低 15-20%</td>
+</tr>
+</tbody></table>
+<p>复合翼的参数空间是最大的——旋翼参数（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>Q</mi></msub></mrow><annotation encoding="application/x-tex">C_T, C_Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">Q</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>）、机翼参数（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>D</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">C_L, C_D, C_M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>）、干扰参数（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi></mrow><annotation encoding="application/x-tex">\eta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">η</span></span></span></span>）加起来可能有 30-50 个。手动调参几乎不可能；暴力扫参由于维度诅咒也失效。<strong>可微参数辨识是唯一可行的工程路径</strong>。</p>
+<hr>
+<h2 id="四、学术界与开源生态：全景图"><a href="#四、学术界与开源生态：全景图" class="headerlink" title="四、学术界与开源生态：全景图"></a>四、学术界与开源生态：全景图</h2><h3 id="4-1-端到端训练方向（可微仿真替代-RL）"><a href="#4-1-端到端训练方向（可微仿真替代-RL）" class="headerlink" title="4.1 端到端训练方向（可微仿真替代 RL）"></a>4.1 端到端训练方向（可微仿真替代 RL）</h3><table>
+<thead>
+<tr>
+<th align="left">论文</th>
+<th align="left">年份</th>
+<th align="left">机构</th>
+<th align="left">核心贡献</th>
+<th align="left">引用&#x2F;开源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>E2E-Fly</strong> (arXiv:2604.12916)</td>
+<td align="left">2026</td>
+<td align="left">上海交大</td>
+<td align="left">首个从可微仿真训练到真机飞行的全链路系统</td>
+<td align="left">一阶策略优化替代 RL，零样本迁移</td>
+</tr>
+<tr>
+<td align="left"><strong>DiffAero</strong> (arXiv:2509.10247)</td>
+<td align="left">2025</td>
+<td align="left">北理工</td>
+<td align="left">GPU 加速可微四旋翼仿真框架</td>
+<td align="left">批量并行训练，IMU&#x2F;深度相机&#x2F;LiDAR</td>
+</tr>
+<tr>
+<td align="left"><strong>Learning Quadrotor from Visual Features</strong> (arXiv:2410.15979)</td>
+<td align="left">2024</td>
+<td align="left">UZH (Scaramuzza组)</td>
+<td align="left">用可微仿真从视觉特征直接学四旋翼控制</td>
+<td align="left">替代 RL，样本效率提升 1-2 个数量级</td>
+</tr>
+<tr>
+<td align="left"><strong>Actor-Critic MPC</strong> (arXiv:2306.09852)</td>
+<td align="left">2023</td>
+<td align="left">UZH (Scaramuzza组)</td>
+<td align="left">可微优化 + RL 融合，敏捷飞行控制</td>
+<td align="left">结合可微轨迹优化与 RL 策略</td>
+</tr>
+</tbody></table>
+<p>这些论文的核心共识是：<strong>可微仿真给端到端控制提供的不是”仿真环境”，而是”可微管道”——梯度可以直接从最终的飞行指标反向传播到策略网络的每个参数</strong>。这与传统的 RL（依赖探索-奖励信号）有本质区别。</p>
+<h3 id="4-2-参数辨识方向（可微仿真替代扫参）"><a href="#4-2-参数辨识方向（可微仿真替代扫参）" class="headerlink" title="4.2 参数辨识方向（可微仿真替代扫参）"></a>4.2 参数辨识方向（可微仿真替代扫参）</h3><table>
+<thead>
+<tr>
+<th align="left">论文</th>
+<th align="left">年份</th>
+<th align="left">核心贡献</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Spring-Rod System ID via Differentiable Physics</strong> (arXiv:2011.04910)</td>
+<td align="left">2020</td>
+<td align="left">用可微引擎做弹簧-杆系统参数辨识，比暴力扫参快数千倍</td>
+</tr>
+<tr>
+<td align="left"><strong>Parameter ID Using Differentiable PBD</strong> (arXiv:2201.05753)</td>
+<td align="left">2022</td>
+<td align="left">面向任意铰接刚体机器人的通用参数辨识框架</td>
+</tr>
+<tr>
+<td align="left"><strong>Real2Sim2Real</strong> (arXiv:2209.06261)</td>
+<td align="left">2022</td>
+<td align="left">用可微物理引擎做绳驱机器人的系统辨识+迁移</td>
+</tr>
+<tr>
+<td align="left"><strong>Model Identification of Wheeled Robot</strong> (arXiv:2009.11465)</td>
+<td align="left">2020</td>
+<td align="left">低成本轮式机器人的可微辨识，验证梯度下降找参数的有效性</td>
+</tr>
+<tr>
+<td align="left"><strong>Actor-Critic MPC</strong> (arXiv:2306.09852)</td>
+<td align="left">2023</td>
+<td align="left">可微 MPC + 参数学习，敏捷四旋翼飞行控制</td>
+</tr>
+</tbody></table>
+<p>参数辨识方向的文献大多聚焦于<strong>轮式&#x2F;机械臂&#x2F;绳驱机器人</strong>。无人机&#x2F;截击机专用参数辨识这个具体场景<strong>还没有专门的公开论文</strong>——这既是一个研究空白，也意味着你的工作有一定的独创性。</p>
+<h3 id="4-3-可微物理引擎（开源框架）"><a href="#4-3-可微物理引擎（开源框架）" class="headerlink" title="4.3 可微物理引擎（开源框架）"></a>4.3 可微物理引擎（开源框架）</h3><table>
+<thead>
+<tr>
+<th align="left">框架</th>
+<th align="left">年份</th>
+<th align="left">开发语言</th>
+<th align="left">底层技术</th>
+<th align="left">开源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Dojo</strong></td>
+<td align="left">2022</td>
+<td align="left">Julia</td>
+<td align="left">硬接触+摩擦+SOCP，二阶锥规划</td>
+<td align="left">✅ GitHub</td>
+</tr>
+<tr>
+<td align="left"><strong>Brax</strong></td>
+<td align="left">2021</td>
+<td align="left">Python&#x2F;JAX</td>
+<td align="left">可微刚体物理，GPU 原生</td>
+<td align="left">✅ GitHub</td>
+</tr>
+<tr>
+<td align="left"><strong>Tiny Differentiable Simulator</strong></td>
+<td align="left">2021</td>
+<td align="left">C++&#x2F;Python</td>
+<td align="left">Google 可微刚体仿真</td>
+<td align="left">✅ GitHub</td>
+</tr>
+<tr>
+<td align="left"><strong>Warp</strong></td>
+<td align="left">2022</td>
+<td align="left">Python</td>
+<td align="left">NVIDIA GPU 可微物理框架</td>
+<td align="left">✅ GitHub</td>
+</tr>
+<tr>
+<td align="left"><strong>DiffAero</strong></td>
+<td align="left">2025</td>
+<td align="left">Python&#x2F;JAX</td>
+<td align="left">四旋翼专用可微仿真</td>
+<td align="left">❓ 待确认</td>
+</tr>
+<tr>
+<td align="left"><strong>E2E-Fly Simulator</strong></td>
+<td align="left">2026</td>
+<td align="left">Python&#x2F;PyTorch</td>
+<td align="left">四旋翼可微仿真引擎</td>
+<td align="left">✅ GitHub (<a target="_blank" rel="noopener" href="https://github.com/SJTU-VisFly-Lab/E2E-Fly">https://github.com/SJTU-VisFly-Lab/E2E-Fly</a>)</td>
+</tr>
+</tbody></table>
+<p><strong>快速上手建议</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Brax（最简单，JAX 原生）</span></span><br><span class="line">pip install brax</span><br><span class="line"></span><br><span class="line"><span class="comment"># Warp（NVIDIA，GPU 原生）</span></span><br><span class="line">pip install warp-lang</span><br><span class="line"></span><br><span class="line"><span class="comment"># E2E-Fly 仿真器（四旋翼专用，PyTorch）</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/SJTU-VisFly-Lab/E2E-Fly</span><br><span class="line">pip install -e .</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-交叉验证：截击机的可微仿真有没有工作？"><a href="#4-4-交叉验证：截击机的可微仿真有没有工作？" class="headerlink" title="4.4 交叉验证：截击机的可微仿真有没有工作？"></a>4.4 交叉验证：截击机的可微仿真有没有工作？</h3><p>结论是：<strong>有部分相关工作，但没有直接针对截击机的高速拦截参数辨识</strong>。</p>
+<p>最近的相关工作有两类：</p>
+<ol>
+<li><strong>基于可微仿真的制导律优化</strong>：用可微仿真取代 Monte Carlo 做终点脱靶量优化——这本质上是对截击场景的间接应用</li>
+<li><strong>基于 PX4 ULog 的仿真参数辨识</strong>：通过 pyulog 从真实飞行数据提取 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>T</mi></msub><mo stretchy="false">(</mo><mi>J</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C_T(J)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0962em;">J</span><span class="mclose">)</span></span></span></span>，再闭环注入仿真进行验证——虽然当时没有使用可微方法，但这个 pipeline 天然适合接入可微仿真引擎</li>
+</ol>
+<p><strong>更精确地说</strong>：你的场景——“截击机 + 可微仿真做参数辨识”——在公开文献中处于”有邻近工作、无直接覆盖”的状态。这是一个值得投入的方向。</p>
+<hr>
+<h2 id="五、工程落地指南：搭建可微仿真参数辨识管线"><a href="#五、工程落地指南：搭建可微仿真参数辨识管线" class="headerlink" title="五、工程落地指南：搭建可微仿真参数辨识管线"></a>五、工程落地指南：搭建可微仿真参数辨识管线</h2><p>如果你想在自己现有的 6DOF 仿真引擎上接入可微分，有以下三条路径（按工程成本从低到高排序）。</p>
+<h3 id="5-1-路径一：JAX-PyTorch-包裹现有引擎（推荐）"><a href="#5-1-路径一：JAX-PyTorch-包裹现有引擎（推荐）" class="headerlink" title="5.1 路径一：JAX&#x2F;PyTorch 包裹现有引擎（推荐）"></a>5.1 路径一：JAX&#x2F;PyTorch 包裹现有引擎（推荐）</h3><p>不重写仿真器，只把关键物理参数暴露为可训练张量：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DifferentiableInterceptorSim</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="comment"># 可训练参数（初始值为当前估值）</span></span><br><span class="line">        <span class="variable language_">self</span>.C_T = torch.nn.Parameter(torch.tensor(<span class="number">0.11</span>))</span><br><span class="line">        <span class="variable language_">self</span>.C_D = torch.nn.Parameter(torch.tensor(<span class="number">0.5</span>))</span><br><span class="line">        <span class="variable language_">self</span>.I_xx = torch.nn.Parameter(torch.tensor(<span class="number">0.02</span>))</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, u, dt=<span class="number">0.004</span></span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;单步 6DOF 动力学前推（全部使用 torch 运算）&quot;&quot;&quot;</span></span><br><span class="line">        <span class="comment"># 初始化状态</span></span><br><span class="line">        p = torch.zeros(<span class="number">3</span>)   <span class="comment"># 位置</span></span><br><span class="line">        v = torch.zeros(<span class="number">3</span>)   <span class="comment"># 速度</span></span><br><span class="line">        q = torch.tensor([<span class="number">1.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>])  <span class="comment"># 姿态四元数</span></span><br><span class="line">        ω = torch.zeros(<span class="number">3</span>)   <span class="comment"># 角速度</span></span><br><span class="line">        </span><br><span class="line">        trajectory = []</span><br><span class="line">        <span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(num_steps):</span><br><span class="line">            <span class="comment"># 推力（使用可训练 C_T）</span></span><br><span class="line">            T = <span class="variable language_">self</span>.C_T * (u[:, step] ** <span class="number">2</span>).<span class="built_in">sum</span>()</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 阻力（使用可训练 C_D）</span></span><br><span class="line">            V = torch.norm(v)</span><br><span class="line">            D = <span class="variable language_">self</span>.C_D * <span class="number">0.5</span> * rho * V**<span class="number">2</span> * A</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 动力学更新（全部为可微操作）</span></span><br><span class="line">            a = (T * q_rot + D + gravity) / m</span><br><span class="line">            v = v + a * dt</span><br><span class="line">            p = p + v * dt</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 姿态更新</span></span><br><span class="line">            q_dot = <span class="number">0.5</span> * quaternion_multiply(q, ω)</span><br><span class="line">            q = q + q_dot * dt</span><br><span class="line">            q = q / torch.norm(q)  <span class="comment"># 归一化可微</span></span><br><span class="line">            </span><br><span class="line">            trajectory.append(p.clone())</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> torch.stack(trajectory)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">identify_from_flight_data</span>(<span class="params">self, real_trajectory</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;从实飞数据辨识参数&quot;&quot;&quot;</span></span><br><span class="line">        optimizer = torch.optim.Adam([<span class="variable language_">self</span>.C_T, <span class="variable language_">self</span>.C_D, <span class="variable language_">self</span>.I_xx], lr=<span class="number">1e-3</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">200</span>):</span><br><span class="line">            pred = <span class="variable language_">self</span>.forward(u_sequence)</span><br><span class="line">            loss = torch.mean((pred - real_trajectory) ** <span class="number">2</span>)</span><br><span class="line">            loss.backward()</span><br><span class="line">            optimizer.step()</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> epoch % <span class="number">20</span> == <span class="number">0</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;Epoch <span class="subst">&#123;epoch&#125;</span>: loss=<span class="subst">&#123;loss.item():<span class="number">.6</span>f&#125;</span>, &quot;</span></span><br><span class="line">                      <span class="string">f&quot;C_T=<span class="subst">&#123;self.C_T.item():<span class="number">.4</span>f&#125;</span>, C_D=<span class="subst">&#123;self.C_D.item():<span class="number">.4</span>f&#125;</span>&quot;</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.C_T.item(), <span class="variable language_">self</span>.C_D.item(), <span class="variable language_">self</span>.I_xx.item()</span><br></pre></td></tr></table></figure>
+
+<p><strong>优势</strong>：不需要重写 C++ 引擎，工程成本最低。<br><strong>劣势</strong>：如果你的仿真使用了非可微操作（clip、if-else、碰撞检测），需要做平滑近似。</p>
+<h3 id="5-2-路径二：使用现成可微框架（Warp-Brax）"><a href="#5-2-路径二：使用现成可微框架（Warp-Brax）" class="headerlink" title="5.2 路径二：使用现成可微框架（Warp&#x2F;Brax）"></a>5.2 路径二：使用现成可微框架（Warp&#x2F;Brax）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用 Brax + JAX</span></span><br><span class="line">import brax</span><br><span class="line">import jax.numpy as jnp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义无人机动力学为 Brax 系统</span></span><br><span class="line">sys = brax.System(</span><br><span class="line">    dt=0.004,</span><br><span class="line">    gravity=jnp.array([0., 0., -9.81]),</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Brax 自动处理可微</span></span><br><span class="line"><span class="comment"># 核心 API：</span></span><br><span class="line"><span class="comment">#   sys.step(state, action)  # 可微前推</span></span><br><span class="line"><span class="comment">#   jax.grad(loss_fn)(params)  # 自动梯度</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 参数可以是 Brax 配置中的任何数值</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>优势</strong>：框架帮你处理了自动微分。<br><strong>劣势</strong>：框架针对通用刚体物理设计，对无人机气动的特殊需求（前进比修正、桨效衰减）需要额外建模。</p>
+<h3 id="5-3-路径三：重写-6DOF-引擎为纯-PyTorch（适合新项目）"><a href="#5-3-路径三：重写-6DOF-引擎为纯-PyTorch（适合新项目）" class="headerlink" title="5.3 路径三：重写 6DOF 引擎为纯 PyTorch（适合新项目）"></a>5.3 路径三：重写 6DOF 引擎为纯 PyTorch（适合新项目）</h3><p>如果你的仿真引擎还不存在，或者当前引擎太耦合难以剥离，这也是一次性解决”可微问题”的机会。</p>
+<p><strong>关键注意事项</strong>：</p>
+<ol>
+<li><strong>所有操作必须可微</strong>：<code>torch.where</code> 替代 if-else，<code>torch.tanh</code> 替代 clip</li>
+<li><strong>硬接触需要平滑近似</strong>：用 <code>soft_contact</code> 模型替代硬约束</li>
+<li><strong>梯度消失是实际问题</strong>：30 秒的拦截轨迹（7500 步）的反传链式法则深度巨大，建议使用<strong>截断反向传播</strong>（只保留最近 1-2 秒的计算图）</li>
+</ol>
+<h4 id="截断反向传播示例"><a href="#截断反向传播示例" class="headerlink" title="截断反向传播示例"></a>截断反向传播示例</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">truncated_bptt</span>(<span class="params">simulator, u_sequence, real_trajectory, truncate_len=<span class="number">500</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    用截断反向传播避免梯度消失</span></span><br><span class="line"><span class="string">    truncate_len = 500 步 ≈ 2 秒 (500Hz)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    loss_total = <span class="number">0</span></span><br><span class="line">    state = simulator.initial_state()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> t <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(u_sequence), truncate_len):</span><br><span class="line">        segment = u_sequence[t:t+truncate_len]</span><br><span class="line">        real_seg = real_trajectory[t:t+truncate_len]</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 只对当前段构建计算图</span></span><br><span class="line">        state = state.detach()  <span class="comment"># 切断上一个段的梯度</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(segment)):</span><br><span class="line">            state = simulator.step(state, segment[step])</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 计算当前段的损失</span></span><br><span class="line">        loss = F.mse_loss(state.position, real_seg[-<span class="number">1</span>])</span><br><span class="line">        loss_total += loss</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 反传当前段的梯度</span></span><br><span class="line">        loss.backward()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> loss_total</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、边界条件：什么时候可微仿真没用？"><a href="#六、边界条件：什么时候可微仿真没用？" class="headerlink" title="六、边界条件：什么时候可微仿真没用？"></a>六、边界条件：什么时候可微仿真没用？</h2><p>为了确保方法论完整性，也需要诚实地说清楚可微仿真的局限。</p>
+<h3 id="❌-边界一：动力学模型本身精度不够（误差-30-）"><a href="#❌-边界一：动力学模型本身精度不够（误差-30-）" class="headerlink" title="❌ 边界一：动力学模型本身精度不够（误差 &gt; 30%）"></a>❌ 边界一：动力学模型本身精度不够（误差 &gt; 30%）</h3><p>如果你的 6DOF 模型缺失了重要物理效应（例如忽略诱导速度、忽略地面效应），梯度方向本身就是错的。可微仿真只会让你<strong>更快地收敛到一个错误参数</strong>。</p>
+<p><strong>诊断标准</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用当前参数跑一次仿真</span></span><br><span class="line">initial_params = (C_T_est, C_D_est, I_xx_est)</span><br><span class="line">trajectory_sim = forward_sim(initial_params, u_real)</span><br><span class="line">trajectory_real = get_flight_data()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算仿真与实飞的偏差</span></span><br><span class="line">rmse = np.sqrt(np.mean((trajectory_sim - trajectory_real)**<span class="number">2</span>))</span><br><span class="line"><span class="comment"># 如果 rmse / 轨迹尺度 &gt; 30%，先改进动力学模型本身</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="❌-边界二：模型中含有硬不可微的操作"><a href="#❌-边界二：模型中含有硬不可微的操作" class="headerlink" title="❌ 边界二：模型中含有硬不可微的操作"></a>❌ 边界二：模型中含有硬不可微的操作</h3><p>以下操作会阻断梯度流：</p>
+<ul>
+<li><strong>碰撞检测 + 速度重置</strong>（接触瞬间速度不连续）</li>
+<li><strong>饱和 + clamp 的联合效应</strong>（在边界处导数&#x3D;0，梯度消失）</li>
+<li><strong>离散事件</strong>（模式切换、脱离判定、降落检测）</li>
+</ul>
+<p><strong>解决方案</strong>：用平滑近似替代。例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ❌ 不可微</span></span><br><span class="line">pwm_clipped = np.clip(pwm_raw, <span class="number">1000</span>, <span class="number">2000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ 可微（tanh 近似）</span></span><br><span class="line">pwm_clipped = <span class="number">1500</span> + <span class="number">500</span> * torch.tanh((pwm_raw - <span class="number">1500</span>) / <span class="number">500</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="❌-边界三：动力学太慢或气动效应不显著"><a href="#❌-边界三：动力学太慢或气动效应不显著" class="headerlink" title="❌ 边界三：动力学太慢或气动效应不显著"></a>❌ 边界三：动力学太慢或气动效应不显著</h3><p>低速悬停时的四旋翼参数辨识，可微方法和传统扫参的差距不大（参数少、耦合弱、线性度高）。不值得为此投入工程资源。</p>
+<h3 id="❌-边界四：已经有精确的-CFD-风洞数据"><a href="#❌-边界四：已经有精确的-CFD-风洞数据" class="headerlink" title="❌ 边界四：已经有精确的 CFD + 风洞数据"></a>❌ 边界四：已经有精确的 CFD + 风洞数据</h3><p>如果气动参数已经通过高精度 CFD 或风洞试验获取到 ±1% 以内，那不需要做可微辨识。可微参数辨识的灵魂在于<strong>从实飞数据中提取风洞不可能覆盖的、飞行状态相关的动态参数</strong>。</p>
+<hr>
+<h2 id="七、总结与展望"><a href="#七、总结与展望" class="headerlink" title="七、总结与展望"></a>七、总结与展望</h2><h3 id="7-1-核心结论"><a href="#7-1-核心结论" class="headerlink" title="7.1 核心结论"></a>7.1 核心结论</h3><table>
+<thead>
+<tr>
+<th align="left">无人机类型</th>
+<th align="left">是否适用可微仿真</th>
+<th align="left">最佳用途</th>
+<th align="left">技术成熟度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">🚁 截击机</td>
+<td align="left">✅ 最佳适配</td>
+<td align="left">参数辨识 + 制导律优化</td>
+<td align="left">TRL 3-4（实飞验证中）</td>
+</tr>
+<tr>
+<td align="left">✈️ 高速固定翼</td>
+<td align="left">✅ 强烈推荐</td>
+<td align="left">气动系数极曲线辨识</td>
+<td align="left">TRL 2-3（仿真验证）</td>
+</tr>
+<tr>
+<td align="left">🏎️ 穿越机</td>
+<td align="left">✅ 强烈推荐</td>
+<td align="left">桨效衰减 + 机身阻力辨识</td>
+<td align="left">TRL 2-3</td>
+</tr>
+<tr>
+<td align="left">🦅 复合翼&#x2F;VTOL</td>
+<td align="left">✅ 收益最大</td>
+<td align="left">过渡段参数 + 干扰因子</td>
+<td align="left">TRL 1-2（概念验证）</td>
+</tr>
+<tr>
+<td align="left">🚁 低速悬停四旋翼</td>
+<td align="left">⚠️ 收益有限</td>
+<td align="left">域随机化搜索</td>
+<td align="left">TRL 4-5（成熟）</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-下一步：截击机场景的可微仿真路线图"><a href="#7-2-下一步：截击机场景的可微仿真路线图" class="headerlink" title="7.2 下一步：截击机场景的可微仿真路线图"></a>7.2 下一步：截击机场景的可微仿真路线图</h3><p>如果你在自己当前的截击机 + ULog 参数辨识项目上想做可微化，推荐的路径是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Phase 1 (1-2 周): JAX/PyTorch 包裹当前 6DOF 引擎</span><br><span class="line">    → 验证可微方法能否收敛 C_T, C_D</span><br><span class="line">    → 对比可微 vs 遗传算法的收敛速度</span><br><span class="line"></span><br><span class="line">Phase 2 (2-4 周): 引入截断反向传播</span><br><span class="line">    → 处理梯度消失问题</span><br><span class="line">    → 扩展到 30 秒全轨迹</span><br><span class="line"></span><br><span class="line">Phase 3 (4-8 周): 端到端制导律优化</span><br><span class="line">    → 将制导律参数也设为可训练</span><br><span class="line">    → 直接从脱靶量反向传播梯度到 N, lambda 等制导参数</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-更大的图景"><a href="#7-3-更大的图景" class="headerlink" title="7.3 更大的图景"></a>7.3 更大的图景</h3><p>可微仿真正在重塑整个机器人学仿真-学习的范式。从 2016 年第一篇可微物理引擎论文（Degrave et al.）到 2026 年的 E2E-Fly，这个领域在十年间完成了从概念验证到产品级系统的跨越。</p>
+<p>在高速无人机的场景下，可微仿真的统一方法论意味着：</p>
+<blockquote>
+<p>无论你飞的是截击机、固定翼、穿越机还是 VTOL，底层数学框架是一样的。区别只在于具体的参数化形式不同，而这恰是工程实现中最容易标准化的部分。</p>
+</blockquote>
+<p><strong>我们或许正站在一个转折点</strong>——就像 2015 年深度学习统一了计算机视觉一样，可微仿真有望在 2026-2028 年统一高速无人机的参数标定、策略优化和 Sim-to-Real 迁移。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><h3 id="可微仿真与四旋翼控制"><a href="#可微仿真与四旋翼控制" class="headerlink" title="可微仿真与四旋翼控制"></a>可微仿真与四旋翼控制</h3><ol>
+<li><p>Heeg, J., Song, Y., &amp; Scaramuzza, D. (2024). Learning Quadrotor Control From Visual Features Using Differentiable Simulation. <em>arXiv preprint arXiv:2410.15979</em>.</p>
+</li>
+<li><p>Zhang, X., Wang, R., Ren, Y., Sun, J., Fang, H., Chen, J., &amp; Wang, G. (2025). DiffAero: A GPU-Accelerated Differentiable Simulation Framework for Efficient Quadrotor Policy Learning. <em>IEEE Robotics and Automation Letters</em>. arXiv:2509.10247.</p>
+</li>
+<li><p>E2E-Fly Team. (2026). E2E-Fly: End-to-End Quadrotor Autonomous Flight from Simulation to Zero-Shot Deployment. <em>arXiv preprint arXiv:2604.12916</em>.</p>
+</li>
+<li><p>Romero, A., Aljalbout, E., Song, Y., &amp; Scaramuzza, D. (2023). Actor-Critic Model Predictive Control: Differentiable Optimization meets Reinforcement Learning for Agile Flight. <em>arXiv preprint arXiv:2306.09852</em>.</p>
+</li>
+</ol>
+<h3 id="可微物理引擎"><a href="#可微物理引擎" class="headerlink" title="可微物理引擎"></a>可微物理引擎</h3><ol start="5">
+<li><p>Howell, T. A., Le Cleac’h, S., Brüdigam, J., Chen, Q., Sun, J., Kolter, J. Z., Schwager, M., &amp; Manchester, Z. (2022). Dojo: A Differentiable Physics Engine for Robotics. <em>arXiv preprint arXiv:2203.00806</em>.</p>
+</li>
+<li><p>Degrave, J., Hermans, M., Dambre, J., &amp; wyffels, F. (2016). A Differentiable Physics Engine for Deep Learning in Robotics. <em>arXiv preprint arXiv:1611.01652</em>.</p>
+</li>
+<li><p>Le Lidec, Q., Montaut, L., de Mont-Marin, Y., Schramm, F., &amp; Carpentier, J. (2024). End-to-End and Highly-Efficient Differentiable Simulation for Robotics. <em>arXiv preprint arXiv:2409.07107</em>.</p>
+</li>
+<li><p>Freeman, C. D., et al. (2021). Brax — A Differentiable Physics Engine for Large Scale Rigid Body Simulation. <em>arXiv preprint arXiv:2106.13281</em>.</p>
+</li>
+</ol>
+<h3 id="可微参数辨识"><a href="#可微参数辨识" class="headerlink" title="可微参数辨识"></a>可微参数辨识</h3><ol start="9">
+<li><p>Wang, K., Aanjaneya, M., &amp; Bekris, K. (2020). Spring-Rod System Identification via Differentiable Physics Engine. <em>arXiv preprint arXiv:2011.04910</em>.</p>
+</li>
+<li><p>Wang, K., Aanjaneya, M., &amp; Bekris, K. (2022). Parameter Identification and Motion Control for Articulated Rigid Body Robots Using Differentiable Position-based Dynamics. <em>arXiv preprint arXiv:2201.05753</em>.</p>
+</li>
+<li><p>Wang, K., Johnson, W. R., Lu, S., Huang, X., Booth, J., Kramer-Bottiglio, R., Aanjaneya, M., &amp; Bekris, K. (2022). Real2Sim2Real Transfer for Control of Cable-driven Robots via a Differentiable Physics Engine. <em>arXiv preprint arXiv:2209.06261</em>.</p>
+</li>
+<li><p>Model Identification of a Low-Cost Wheeled Mobile Robot Using Differentiable Physics. (2020). <em>arXiv preprint arXiv:2009.11465</em>.</p>
+</li>
+</ol>
+<h3 id="固定翼飞行动力学"><a href="#固定翼飞行动力学" class="headerlink" title="固定翼飞行动力学"></a>固定翼飞行动力学</h3><ol start="13">
+<li><p>Jarry, G., Dalmau, R., Olive, X., &amp; Very, P. (2025). A Neural ODE Approach to Aircraft Flight Dynamics Modelling. <em>arXiv preprint arXiv:2509.23307</em>.</p>
+</li>
+<li><p>Marzouk, O. A. (2024). Coupled differential-algebraic equations framework for modeling six-degree-of-freedom flight dynamics of asymmetric fixed-wing aircraft. <em>arXiv preprint arXiv:2412.17280</em>.</p>
+</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/">https://goodisok.github.io/2026/02/26/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E4%BB%BF%E7%9C%9F%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA-%E4%BB%8E%E6%88%AA%E5%87%BB%E6%9C%BA%E5%88%B0%E5%9B%BA%E5%AE%9A%E7%BF%BC%E7%A9%BF%E8%B6%8A%E6%9C%BA%E7%9A%84%E7%BB%9F%E4%B8%80%E6%96%B9%E6%B3%95%E8%AE%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%AB%AF%E5%88%B0%E7%AB%AF/">端到端</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F/">可微仿真</a><a class="post-meta__tags" href="/tags/%E6%88%AA%E5%87%BB%E6%9C%BA/">截击机</a><a class="post-meta__tags" href="/tags/%E5%8F%82%E6%95%B0%E8%BE%A8%E8%AF%86/">参数辨识</a><a class="post-meta__tags" href="/tags/%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA/">高速无人机</a><a class="post-meta__tags" href="/tags/%E5%9B%BA%E5%AE%9A%E7%BF%BC/">固定翼</a><a class="post-meta__tags" href="/tags/%E7%A9%BF%E8%B6%8A%E6%9C%BA/">穿越机</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/" title="可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</div></div><div class="info-2"><div class="info-item-1"> 本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真完全入门 讲名词，本篇讲引擎本身。    一、先把”可微物理引擎”这五个字拆开1.1 什么是物理引擎？任何物理仿真本质上是一个状态递推： st+1=f(st, ut, θ)s_{t+1} = f(s_t,\, u_t,\, \theta)st+1​=f(st​,ut​,θ)   sts_tst​：当前状态（位置、速度、姿态、角速度……） utu_tut​：当前控制输入（电机指令、舵面偏转……） θ\thetaθ：物理参数（质量、惯量、摩擦、空气阻力、电机系数……） fff：物理引擎本身——给定当前状态和输入，告诉你下一时刻的状态  PhysX、Bullet、ODE、MuJoCo、Drak...</div></div></div></a><a class="pagination-related" href="/2026/02/25/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E8%87%AA%E5%8A%A8%E4%BC%98%E5%8C%96-%E6%A2%AF%E5%BA%A6%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/" title="可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">可微仿真完全入门：梯度、损失函数、域随机化、端到端——这些名词到底在说什么？</div></div><div class="info-2"><div class="info-item-1"> 本文目标：让完全没有机器学习或数值优化背景的读者，从零开始理解”可微仿真”相关的核心名词。   无人机仿真就是用计算机模拟无人机的飞行——给定一组参数（质量、推力系数等），计算机算出无人机怎么飞。     一、从一道最简单的数学题说起想象你要解一个问题：  找一个数 xxx，使得 x2=9x^2 = 9x2=9。  很简单，x=3x = 3x=3 或 x=−3x = -3x=−3，心算就行。 现在换个问题：  找一个数 xxx，使得 x3−2x2+5x−17=0x^3 - 2x^2 + 5x - 17 = 0x3−2x2+5x−17=0。  你还能心算吗？不能了。你需要试：  试 x=2x = 2x=2：8−8+10−17=−78 - 8 + 10 - 17 = -78−8+10−17=−7（太小了） 试 x=3x = 3x=3：27−18+15−17=727 - 18 + 15 - 17 = 727−18+15−17=7（太大了）  介于 222 和 333 之间。 再试 x=2.5x = 2.5x=2.5：15.625−12.5+12.5−17=−1.37515.625 -...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/02/06/E2E-Fly-%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%9B%9B%E6%97%8B%E7%BF%BC%E8%87%AA%E4%B8%BB%E8%AE%AD%E7%BB%83%E9%83%A8%E7%BD%B2%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-06</div><div class="info-item-2">E2E-Fly深度解析：端到端四旋翼自主飞行从仿真训练到真机部署的全链路系统</div></div><div class="info-2"><div class="info-item-1"> 摘要：E2E-Fly（arXiv:2604.12916）是2026年4月由上海交大团队提出的端到端四旋翼自主飞行全链路系统，首次将可微物理仿真、一阶策略优化、域随机化与零样本部署整合为统一平台。相比传统方法，E2E-Fly将策略训练的样本效率提升了1-2个数量级，实现了从仿真训练到真机飞行的零样本迁移。本文从方法论角度系统解析E2E-Fly的技术架构、核心算法设计与工程实现。    一、引言：端到端四旋翼自主飞行面临的核心挑战四旋翼自主飞行系统的传统开发范式是模块化流水线： 1感知（视觉/IMU）→ 状态估计 → 轨迹规划 → 控制（PID/MPC）→ 执行  每个模块由独立团队开发，通过人工定义的接口传递信息。这种架构存在根本性缺陷：  信息损失：图像→边界框→轨迹→控制指令，每步都在压缩信息 误差传递：感知的微小偏差经过规划和控制放大，最终表现为飞行性能退化 接口僵硬：人工定义的中间表示限制了系统性能上限 开发成本：模块间调试、调参、适配耗费大量工程时间  端到端学习试图用单一可微模型替代整个流水线，但应用到四旋翼领域面临三大难题：    难题 具体表现 传统解决    �...</div></div></div></a><a class="pagination-related" href="/2026/02/07/Gazebo-PX4%E8%87%AA%E5%AE%9A%E4%B9%89%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%BB%BA%E6%A8%A1%E4%B8%8ESim-to-Real%E5%AE%8C%E6%95%B4%E6%8C%87%E5%8D%97/" title="Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="info-item-2">Gazebo + PX4 自定义截击机仿真建模与 Sim-to-Real 完整指南：从推力台架到蒙特卡洛验证</div></div><div class="info-2"><div class="info-item-1"> 当你的截击机是一款全新设计——Gazebo 里没有现成模型、没有气动数据、没有飞行记录——如何从零构建高保真仿真模型，并系统性地缩小 Sim-to-Real Gap？本文给出从推力台架实测到蒙特卡洛验证的完整工程流程。  适用场景：基于 PX4 飞控的自定义多旋翼&#x2F;VTOL&#x2F;Tailsitter 截击无人机，使用 Gazebo Harmonic&#x2F;Jetty + PX4 SITL 进行制导算法验证。  一、为什么截击机仿真的 Sim-to-Real 问题特别棘手普通无人机（航拍、物流）的仿真容错度很高：悬停或低速巡航时，气动阻力可忽略、电机工作在线性区、控制增益有大量安全裕度。截击机的工况完全不同：    维度 普通无人机 截击机 对仿真精度的影响    速度范围 0~15 m&#x2F;s 0~100+ m&#x2F;s 气动阻力 ∝v2\propto v^2∝v2，100 m&#x2F;s 时阻力可达推力的 30-50%   电机工况 30~70% 油门 0~100% 全范围 推力曲线的非线性区间必须精确建模   机动过载 &lt;1g 5~15...</div></div></div></a><a class="pagination-related" href="/2026/05/10/shanghai-jiaotong-e2e-fly-5/" title="上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</div></div><div class="info-2"><div class="info-item-1"> 一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤立的工作——它们是一套逐渐完善的技术栈：    论文 arXiv 核心贡献    E2E-Fly 2604.12916 完整训练-部署系统：可微物理→渲染→域随机化→真机   High-Fidelity Diff Sim 2604.10548 深度图直接映射体速率，替代传统感知→规划→控制管线   VisFly-Lab 2603.21123 统一可微框架：悬停&#x2F;追踪&#x2F;着陆&#x2F;竞速，修正 BPTT 梯度   Gap Traversal 2604.02779 SE(3) 可微仿真，零样本穿越不规则缝隙   下面逐一拆解。  二、E2E-Fly：从可微物理到真机部署...</div></div></div></a><a class="pagination-related" href="/2026/05/09/VLA-%E8%A7%86%E8%A7%89%E8%AF%AD%E8%A8%80%E5%8A%A8%E4%BD%9C%E6%A8%A1%E5%9E%8B-%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B/" title="VLA（Vision-Language-Action）模型深度解析：从RT-2到端到端机器人基础模型的范式革命"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">VLA（Vision-Language-Action）模型深度解析：从RT-2到端到端机器人基础模型的范式革命</div></div><div class="info-2"><div class="info-item-1">VLA（Vision-Language-Action）模型深度解析：从RT-2到端到端机器人基础模型的范式革命一、VLA 解决了什么问题1.1 传统机器人栈的三重困境传统机器人系统由三个独立模块串联：感知（CV模型输出检测框）→ 规划（路径规划器）→ 控制（PID&#x2F;MPC）。这种架构有三重结构性缺陷：    问题 根因 定量影响    信息瓶颈 感知输出”检测框（4个float）”，丢弃像素级纹理&#x2F;姿态 遮挡场景成功率下降 40%+   误差累积 感知误差 → 规划偏移 → 控制超调，无跨模块梯度 定位误差每经过一个模块放大约 2.3×   分布偏移脆弱性 模块间接口是手工定义的语义抽象，换场景即失效 新环境需 50-200 条新数据重调   1.2 VLA 的结构性答案 VLA 用一个 Transformer 替代三个模块。损失函数直通输入层： LVLA=E(ot,at)∼D[−∑k=1Klog⁡pθ(at(k)∣ot,at(&lt;k))]\mathcal{L}_{\text{VLA}} = \mathbb{E}_{(o_t, a_t) \sim \mat...</div></div></div></a><a class="pagination-related" href="/2026/03/08/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正</div></div><div class="info-2"><div class="info-item-1"> 本文做了什么：在没有实机的前提下，用纯仿真（Gazebo+PX4）把 Sim-to-Real 动力学验证的完整工具链跑通——验证方法本身是否可行、找到方法的能力边界、修复仿真平台在高速下的结构性缺陷。 三层递进：  方法验证（0-12 m&#x2F;s）：用 twin experiment（x500 当”真值”、interceptor 当”仿真”）验证 setpoint replay + k_f 辨识 + 迭代修正这套流程能收敛——4 轮后 Vz RMSE 下降 48%，Pitch RMSE 下降 45%。 高速极限诊断（50-97 m&#x2F;s）：用 x500_hp 和 Gobi 模型把速度推到 97 m&#x2F;s，发现 Gazebo 线性阻力模型在 50+ m&#x2F;s 完全失效（97 m&#x2F;s 时误差达 4 倍），桨盘前进比效应在 70+ m&#x2F;s 引入 20-50% 推力偏差。 缺陷修复：开发 QuadraticDrag 自定义插件实现物理正确的 v² 阻力，gobi_v2 验证了修复效果（最高速降低 14 m&#x2F;s，符合推力-阻力平...</div></div></div></a><a class="pagination-related" href="/2026/04/12/Stevens%E9%A3%9E%E8%A1%8C%E5%99%A8%E6%8E%A7%E5%88%B6%E4%B8%8E%E4%BB%BF%E7%9C%9F%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E8%AE%B2-%E5%88%B6%E5%AF%BC%E5%BE%8B%E4%B8%8E%E8%BD%A8%E8%BF%B9%E8%B7%9F%E8%B8%AA/" title="Stevens《飞行器控制与仿真》读书笔记（五）：制导律与轨迹跟踪——从纯追踪到比例导引"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-12</div><div class="info-item-2">Stevens《飞行器控制与仿真》读书笔记（五）：制导律与轨迹跟踪——从纯追踪到比例导引</div></div><div class="info-2"><div class="info-item-1"> 本文是 Stevens《Aircraft Control and Simulation》读书笔记系列的第五篇，覆盖教材第5章的制导律与轨迹跟踪部分。这是连接”飞控”和”任务”的桥梁——给定一个目标位置或目标轨迹，飞控如何产生参考指令？   第五篇：制导律与轨迹跟踪——从纯追踪到比例导引一、概念引入——“往哪飞”的问题1.1 三层结构完整的飞控系统从任务到执行分为三层： 12任务规划 ──→ 制导律 (Guidance) ──→ 飞行控制 ──→ 执行机构(飞哪)        (飞控指令)           (内环控制)  你之前写的截击机核心算法文章就涉及制导律——但那是工程实现视角。Stevens教材第5章提供了制导律的完整理论体系。 1.2 历史的五分钟   时间 人物 贡献    1940s 二战末期 纯追踪法——最早的制导律（德国V1飞弹）   1943 比例导引法发明 美国海军研究实验室提出PN制导   1960s 线性化制导理论 将制导问题纳入控制理论的框架   1980s 增广比例导引 APN（考虑目标加速度的扩展版本）   2000s 模型预测控制 在线轨迹...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BC%95%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E5%80%BC%E5%BE%97%E9%97%AE%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">一、引言：为什么这个问题值得问？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9D%E9%AB%98%E9%80%9F%E2%80%9D%E6%98%AF%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E7%9A%84%E5%A4%A9%E7%84%B6%E9%80%82%E9%85%8D%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">二、底层原理：为什么”高速”是可微仿真的天然适配场景？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%89%A9%E7%90%86%E5%8F%82%E6%95%B0%E7%9A%84%E6%95%8F%E6%84%9F%E5%BA%A6%E9%9A%8F%E9%80%9F%E5%BA%A6%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%A2%9E%E9%95%BF"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 物理参数的敏感度随速度非线性增长</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A2%AF%E5%BA%A6%E6%9B%BF%E4%BB%A3%E6%9A%B4%E5%8A%9B%E6%89%AB%E5%8F%82%EF%BC%9A%E5%8F%AF%E5%BE%AE%E6%96%B9%E6%B3%95%E7%9A%84%E9%80%9F%E5%BA%A6%E4%BC%98%E5%8A%BF"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 梯度替代暴力扫参：可微方法的速度优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%B8%E5%BF%83%E6%B4%9E%E5%AF%9F%EF%BC%9A%E8%AF%A5%E7%BB%9F%E4%B8%80%E6%80%A7%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 核心洞察：该统一性的数学基础</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%9B%9B%E7%B1%BB%E9%AB%98%E9%80%9F%E6%97%A0%E4%BA%BA%E6%9C%BA%E7%9A%84%E5%85%B7%E4%BD%93%E8%90%BD%E5%9C%B0%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">三、四类高速无人机的具体落地分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%88%AA%E5%87%BB%E6%9C%BA%EF%BC%88%E5%85%B8%E5%9E%8B%E4%BB%A3%E8%A1%A8%EF%BC%9AThunder-STD100-SKYctrl-Coyote%EF%BC%89"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 截击机（典型代表：Thunder STD100&#x2F;SKYctrl&#x2F;Coyote）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%AB%98%E9%80%9F%E5%9B%BA%E5%AE%9A%E7%BF%BC%EF%BC%88%E5%85%B8%E5%9E%8B%E6%97%B6%E9%80%9F-200-km-h%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 高速固定翼（典型时速 &gt; 200 km&#x2F;h）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%A9%BF%E8%B6%8A%E6%9C%BA-%E6%9A%B4%E5%8A%9B%E5%9B%9B%E6%97%8B%E7%BF%BC%EF%BC%88%E5%85%B8%E5%9E%8B%E6%97%B6%E9%80%9F-150-km-h%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 穿越机&#x2F;暴力四旋翼（典型时速 &gt; 150 km&#x2F;h）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%A4%8D%E5%90%88%E7%BF%BC-VTOL"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 复合翼&#x2F;VTOL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AD%A6%E6%9C%AF%E7%95%8C%E4%B8%8E%E5%BC%80%E6%BA%90%E7%94%9F%E6%80%81%EF%BC%9A%E5%85%A8%E6%99%AF%E5%9B%BE"><span class="toc-number">4.</span> <span class="toc-text">四、学术界与开源生态：全景图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E6%96%B9%E5%90%91%EF%BC%88%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E6%9B%BF%E4%BB%A3-RL%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 端到端训练方向（可微仿真替代 RL）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%8F%82%E6%95%B0%E8%BE%A8%E8%AF%86%E6%96%B9%E5%90%91%EF%BC%88%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E6%9B%BF%E4%BB%A3%E6%89%AB%E5%8F%82%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 参数辨识方向（可微仿真替代扫参）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%EF%BC%88%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%EF%BC%89"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 可微物理引擎（开源框架）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81%EF%BC%9A%E6%88%AA%E5%87%BB%E6%9C%BA%E7%9A%84%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E6%9C%89%E6%B2%A1%E6%9C%89%E5%B7%A5%E4%BD%9C%EF%BC%9F"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 交叉验证：截击机的可微仿真有没有工作？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%B7%A5%E7%A8%8B%E8%90%BD%E5%9C%B0%E6%8C%87%E5%8D%97%EF%BC%9A%E6%90%AD%E5%BB%BA%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E8%BE%A8%E8%AF%86%E7%AE%A1%E7%BA%BF"><span class="toc-number">5.</span> <span class="toc-text">五、工程落地指南：搭建可微仿真参数辨识管线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%B7%AF%E5%BE%84%E4%B8%80%EF%BC%9AJAX-PyTorch-%E5%8C%85%E8%A3%B9%E7%8E%B0%E6%9C%89%E5%BC%95%E6%93%8E%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 路径一：JAX&#x2F;PyTorch 包裹现有引擎（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%B7%AF%E5%BE%84%E4%BA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%8E%B0%E6%88%90%E5%8F%AF%E5%BE%AE%E6%A1%86%E6%9E%B6%EF%BC%88Warp-Brax%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 路径二：使用现成可微框架（Warp&#x2F;Brax）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%B7%AF%E5%BE%84%E4%B8%89%EF%BC%9A%E9%87%8D%E5%86%99-6DOF-%E5%BC%95%E6%93%8E%E4%B8%BA%E7%BA%AF-PyTorch%EF%BC%88%E9%80%82%E5%90%88%E6%96%B0%E9%A1%B9%E7%9B%AE%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 路径三：重写 6DOF 引擎为纯 PyTorch（适合新项目）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%88%AA%E6%96%AD%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%E7%A4%BA%E4%BE%8B"><span class="toc-number">5.3.1.</span> <span class="toc-text">截断反向传播示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%EF%BC%9A%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E6%B2%A1%E7%94%A8%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">六、边界条件：什么时候可微仿真没用？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9D%8C-%E8%BE%B9%E7%95%8C%E4%B8%80%EF%BC%9A%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%A8%A1%E5%9E%8B%E6%9C%AC%E8%BA%AB%E7%B2%BE%E5%BA%A6%E4%B8%8D%E5%A4%9F%EF%BC%88%E8%AF%AF%E5%B7%AE-30-%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">❌ 边界一：动力学模型本身精度不够（误差 &gt; 30%）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9D%8C-%E8%BE%B9%E7%95%8C%E4%BA%8C%EF%BC%9A%E6%A8%A1%E5%9E%8B%E4%B8%AD%E5%90%AB%E6%9C%89%E7%A1%AC%E4%B8%8D%E5%8F%AF%E5%BE%AE%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="toc-number">6.2.</span> <span class="toc-text">❌ 边界二：模型中含有硬不可微的操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9D%8C-%E8%BE%B9%E7%95%8C%E4%B8%89%EF%BC%9A%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%A4%AA%E6%85%A2%E6%88%96%E6%B0%94%E5%8A%A8%E6%95%88%E5%BA%94%E4%B8%8D%E6%98%BE%E8%91%97"><span class="toc-number">6.3.</span> <span class="toc-text">❌ 边界三：动力学太慢或气动效应不显著</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9D%8C-%E8%BE%B9%E7%95%8C%E5%9B%9B%EF%BC%9A%E5%B7%B2%E7%BB%8F%E6%9C%89%E7%B2%BE%E7%A1%AE%E7%9A%84-CFD-%E9%A3%8E%E6%B4%9E%E6%95%B0%E6%8D%AE"><span class="toc-number">6.4.</span> <span class="toc-text">❌ 边界四：已经有精确的 CFD + 风洞数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="toc-number">7.</span> <span class="toc-text">七、总结与展望</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%A0%B8%E5%BF%83%E7%BB%93%E8%AE%BA"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 核心结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%B8%8B%E4%B8%80%E6%AD%A5%EF%BC%9A%E6%88%AA%E5%87%BB%E6%9C%BA%E5%9C%BA%E6%99%AF%E7%9A%84%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 下一步：截击机场景的可微仿真路线图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%9B%B4%E5%A4%A7%E7%9A%84%E5%9B%BE%E6%99%AF"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 更大的图景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">8.</span> <span class="toc-text">参考文献</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E4%B8%8E%E5%9B%9B%E6%97%8B%E7%BF%BC%E6%8E%A7%E5%88%B6"><span class="toc-number">8.1.</span> <span class="toc-text">可微仿真与四旋翼控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E"><span class="toc-number">8.2.</span> <span class="toc-text">可微物理引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E5%BE%AE%E5%8F%82%E6%95%B0%E8%BE%A8%E8%AF%86"><span class="toc-number">8.3.</span> <span class="toc-text">可微参数辨识</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BA%E5%AE%9A%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6"><span class="toc-number">8.4.</span> <span class="toc-text">固定翼飞行动力学</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

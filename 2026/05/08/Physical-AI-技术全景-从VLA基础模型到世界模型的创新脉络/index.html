@@ -1,0 +1,908 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="系统梳理 Physical AI 从 VLA 基础模型到世界模型、从扩散策略到 Sim-to-Real 的完整创新脉络。含数学推导、量化对比、消融分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="系统梳理 Physical AI 从 VLA 基础模型到世界模型、从扩散策略到 Sim-to-Real 的完整创新脉络。含数学推导、量化对比、消融分析。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-08T16:01:50.366Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="Physical AI">
+<meta property="article:tag" content="Sim-to-Real">
+<meta property="article:tag" content="VLA">
+<meta property="article:tag" content="世界模型">
+<meta property="article:tag" content="人形机器人">
+<meta property="article:tag" content="可微仿真">
+<meta property="article:tag" content="扩散策略">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络",
+  "url": "https://goodisok.github.io/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-07T16:00:00.000Z",
+  "dateModified": "2026-05-08T16:01:50.366Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Physical AI 技术全景：从 VLA 基础模型到世界模型的创新脉络</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-07T16:00:00.000Z" title="发表于 2026-05-08 00:00:00">2026-05-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-08T16:01:50.366Z" title="更新于 2026-05-09 00:01:50">2026-05-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E6%9C%BA%E5%99%A8%E4%BA%BA/">机器人</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p><strong>摘要</strong>：Physical AI 是过去两年 AI 领域最具范式意义的演进方向——从”会说”到”会做”。本文按技术层次梳理 VLA 基础模型、扩散策略、世界模型、可微仿真、人形机器人、3D 场景表征、Sim-to-Real 和边缘推理八大方向的创新，以数学推导、消融数据和量化对比作为论证基础。所有引用均标注 arXiv ID 或 DOI，确保可验证。</p>
+</blockquote>
+<p><img src="/images/physical-ai-2026/tech-stack.png" alt="Physical AI 技术栈"></p>
+<hr>
+<h2 id="一、物理-AI-的技术定义"><a href="#一、物理-AI-的技术定义" class="headerlink" title="一、物理 AI 的技术定义"></a>一、物理 AI 的技术定义</h2><p>Physical AI 和数字 AI 的核心差异不是”有没有身体”，而是<strong>状态空间的数学属性不同</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数字 AI（LLM）</th>
+<th>物理 AI（机器人）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>状态空间</td>
+<td>离散 token 序列 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="script">V</mi><mi>N</mi></msup></mrow><annotation encoding="application/x-tex">\mathcal{V}^N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">V</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span></span></span></span></span></span></span></span></td>
+<td>连续状态流形 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="double-struck">R</mi><mi>n</mi></msup><mo>×</mo><mi>S</mi><mi>O</mi><mo stretchy="false">(</mo><mn>3</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbb{R}^n \times SO(3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7722em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord">3</span><span class="mclose">)</span></span></span></span></td>
+</tr>
+<tr>
+<td>状态转移</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mi mathvariant="normal">∣</mi><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">p(x_{t+1}|x_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 无因果惩罚</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi mathvariant="bold">x</mi><mo>˙</mo></mover><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><mi mathvariant="bold">u</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6813em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6813em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">x</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">u</span><span class="mclose">)</span></span></span></span> 不可逆</td>
+</tr>
+<tr>
+<td>反馈</td>
+<td>人工标注 &#x2F; RLAIF</td>
+<td>物理世界因果（碰到墙就是碰到墙）</td>
+</tr>
+<tr>
+<td>错误代价</td>
+<td>Regenerate token</td>
+<td>炸机 &#x2F; 撞毁 &#x2F; 伤人</td>
+</tr>
+</tbody></table>
+<p>形式化定义：用马尔可夫决策过程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">M</mi><mo>=</mo><mo stretchy="false">(</mo><mi mathvariant="script">S</mi><mo separator="true">,</mo><mi mathvariant="script">A</mi><mo separator="true">,</mo><mi>P</mi><mo separator="true">,</mo><mi>R</mi><mo separator="true">,</mo><mi>γ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{M} = (\mathcal{S}, \mathcal{A}, P, R, \gamma)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathcal" style="margin-right:0.075em;">S</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathcal">A</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0556em;">γ</span><span class="mclose">)</span></span></span></span> 表述，其中状态转移 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>:</mo><mi mathvariant="script">S</mi><mo>×</mo><mi mathvariant="script">A</mi><mo>→</mo><mi mathvariant="normal">Δ</mi><mo stretchy="false">(</mo><mi mathvariant="script">S</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P: \mathcal{S} \times \mathcal{A} \to \Delta(\mathcal{S})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mopen">(</span><span class="mord mathcal" style="margin-right:0.075em;">S</span><span class="mclose">)</span></span></span></span> 满足<strong>物理硬约束</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="bold">s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi mathvariant="bold">s</mi><mi>t</mi></msub><mo>+</mo><msubsup><mo>∫</mo><mi>t</mi><mrow><mi>t</mi><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow></msubsup><msub><mi>f</mi><mtext>physics</mtext></msub><mo stretchy="false">(</mo><msub><mi mathvariant="bold">s</mi><mi>τ</mi></msub><mo separator="true">,</mo><msub><mi mathvariant="bold">a</mi><mi>τ</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><mi>d</mi><mi>τ</mi></mrow><annotation encoding="application/x-tex">\mathbf{s}_{t+1} = \mathbf{s}_t + \int_{t}^{t+\Delta t} f_\text{physics}(\mathbf{s}_\tau, \mathbf{a}_\tau) \, d\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6528em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.5032em;vertical-align:-0.9119em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.4445em;position:relative;top:-0.0011em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5912em;"><span style="top:-1.7881em;margin-left:-0.4445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.8129em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">Δ</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9119em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">physics</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span></span>
+
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mtext>physics</mtext></msub></mrow><annotation encoding="application/x-tex">f_\text{physics}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">physics</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> 不是可学习的神经网络，而是由牛顿力学、空气动力学、摩擦模型等确定的**不可修改的因果结构**。这使得 Physical AI 面临三个数字 AI 不必面对的困难。
+
+<h3 id="困难一：状态不可割"><a href="#困难一：状态不可割" class="headerlink" title="困难一：状态不可割"></a>困难一：状态不可割</h3><p>无人机 12 维状态向量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">x</mi><mo>=</mo><mo stretchy="false">[</mo><mi>p</mi><mo separator="true">,</mo><mi>q</mi><mo separator="true">,</mo><mi>r</mi><mo separator="true">,</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo separator="true">,</mo><mi>w</mi><mo separator="true">,</mo><mi>ϕ</mi><mo separator="true">,</mo><mi>θ</mi><mo separator="true">,</mo><mi>ψ</mi><mo separator="true">,</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo separator="true">,</mo><mi>z</mi><msup><mo stretchy="false">]</mo><mi>T</mi></msup></mrow><annotation encoding="application/x-tex">\mathbf{x} = [p, q, r, u, v, w, \phi, \theta, \psi, x, y, z]^T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0913em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">ϕ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span></span></span></span> 中，角速度 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo separator="true">,</mo><mi>q</mi><mo separator="true">,</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">p,q,r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span></span></span></span> 和线速度 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo separator="true">,</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">u,v,w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span></span> 通过旋转矩阵 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="bold">R</mi><mi>b</mi><mi>w</mi></msubsup></mrow><annotation encoding="application/x-tex">\mathbf{R}_{b}^w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9692em;vertical-align:-0.2831em;"></span><span class="mord"><span class="mord mathbf">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-2.4169em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831em;"><span></span></span></span></span></span></span></span></span></span> 耦合在同一个微分方程中：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mover accent="true"><mi mathvariant="bold">v</mi><mo>˙</mo></mover></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mover accent="true"><mi mathvariant="bold-italic">ω</mi><mo>˙</mo></mover></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mfrac><mn>1</mn><mi>m</mi></mfrac><mi mathvariant="bold">R</mi><msub><mi mathvariant="bold">F</mi><mtext>thrust</mtext></msub><mo>−</mo><mi mathvariant="bold">g</mi></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msup><mi mathvariant="bold">J</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="false">(</mo><mi mathvariant="bold-italic">τ</mi><mo>−</mo><mi mathvariant="bold-italic">ω</mi><mo>×</mo><mi mathvariant="bold">J</mi><mi mathvariant="bold-italic">ω</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{bmatrix} \dot{\mathbf{v}} \\ \dot{\boldsymbol{\omega}} \end{bmatrix} = \begin{bmatrix} \frac{1}{m}\mathbf{R}\mathbf{F}_\text{thrust} - \mathbf{g} \\ \mathbf{J}^{-1}(\boldsymbol{\tau} - \boldsymbol{\omega} \times \mathbf{J}\boldsymbol{\omega}) \end{bmatrix}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6813em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf" style="margin-right:0.016em;">v</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6813em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1389em;"><span class="mord">˙</span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4051em;vertical-align:-0.9526em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4526em;"><span style="top:-3.6074em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">m</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord mathbf">R</span><span class="mord"><span class="mord mathbf">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">thrust</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathbf" style="margin-right:0.016em;">g</span></span></span><span style="top:-2.4074em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathbf">J</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.1347em;">τ</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathbf">J</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9526em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span></span></span></span></span>
+
+<p>你不能”忽略”陀螺力矩项 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold-italic">ω</mi><mo>×</mo><mi mathvariant="bold">J</mi><mi mathvariant="bold-italic">ω</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\omega} \times \mathbf{J}\boldsymbol{\omega}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord mathbf">J</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span></span></span> 来简化问题——忽略它，仿真旋翼机动就彻底不收敛。这和 LLM 可以安全地跳过 90% 的 prompt token 形成根本差异。</p>
+<h3 id="困难二：数据不可集中采集"><a href="#困难二：数据不可集中采集" class="headerlink" title="困难二：数据不可集中采集"></a>困难二：数据不可集中采集</h3><p>LLM 的 15 万亿 token 训练数据是人类三十年互联网的积累。Physical AI 没有这种奢侈——每一条有用的轨迹都必须在<strong>真机或高保真仿真器</strong>上实时互动采集。OpenAI 能用 100 亿美元训练 GPT-5，但 Physical AI 的数据瓶颈在<strong>物理实在的采集速度</strong>，而非 GPU 算力。</p>
+<h3 id="困难三：Sim-to-Real-鸿沟"><a href="#困难三：Sim-to-Real-鸿沟" class="headerlink" title="困难三：Sim-to-Real 鸿沟"></a>困难三：Sim-to-Real 鸿沟</h3><p>仿真动力学 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">f_s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和真实动力学 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">f_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 之间存在一个<strong>无法精确建模的残差</strong>：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><mi mathvariant="bold">u</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>f</mi><mi>r</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><mi mathvariant="bold">u</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>f</mi><mi>s</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">x</mi><mo separator="true">,</mo><mi mathvariant="bold">u</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\Delta(\mathbf{x}, \mathbf{u}) = f_r(\mathbf{x}, \mathbf{u}) - f_s(\mathbf{x}, \mathbf{u})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">u</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">u</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">u</span><span class="mclose">)</span></span></span></span></span>
+
+<p>这个残差包含电机温度漂移、地面效应、传感器延迟、柔性结构振动。没有封闭形式的数学解法，只有工程上不断迭代的闭环：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>仿真训练</mtext><mo>→</mo><mtext>域随机化</mtext><mo>→</mo><mtext>系统辨识</mtext><mo>→</mo><mtext>实飞验证</mtext><mo>→</mo><mtext>采集偏差</mtext><mo>→</mo><mtext>回灌仿真</mtext></mrow><annotation encoding="application/x-tex">\text{仿真训练} \to \text{域随机化} \to \text{系统辨识} \to \text{实飞验证} \to \text{采集偏差} \to \text{回灌仿真}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">仿真训练</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">域随机化</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">系统辨识</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">实飞验证</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">采集偏差</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord cjk_fallback">回灌仿真</span></span></span></span></span></span>
+
+<p>这正是本文接下来要展开的 Physical AI 技术全景。</p>
+<hr>
+<h2 id="二、VLA-模型——感知到行动的端到端革命"><a href="#二、VLA-模型——感知到行动的端到端革命" class="headerlink" title="二、VLA 模型——感知到行动的端到端革命"></a>二、VLA 模型——感知到行动的端到端革命</h2><p><strong>VLA（Vision-Language-Action）是 Physical AI 过去两年最大的范式突破。</strong> 核心思想直接而激进：预训练的视觉-语言模型（VLM）已经学会了丰富的世界表征，为什么不让它的输出变成电机指令而非文字？</p>
+<p>形式化：给定观测历史 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">o</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{o}_{1:t}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和语言指令 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">ℓ</mi></mrow><annotation encoding="application/x-tex">\ell</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord">ℓ</span></span></span></span>，VLA 输出动作分布：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi mathvariant="bold">a</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><msub><mi mathvariant="bold">o</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo separator="true">,</mo><mi mathvariant="normal">ℓ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\pi_\theta(\mathbf{a}_t | \mathbf{o}_{1:t}, \ell)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord"><span class="mord mathbf">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">ℓ</span><span class="mclose">)</span></span></span></span></span>
+
+<p>传统机器人学习把这个分布拆成”感知→规划→控制”的串行管线，VLA 用一个 transformer 全部吃掉。</p>
+<p><img src="/images/physical-ai-2026/vla-evolution.png" alt="VLA 模型演进"></p>
+<h3 id="2-1-RT-2：从-vision-language-到-vision-action"><a href="#2-1-RT-2：从-vision-language-到-vision-action" class="headerlink" title="2.1 RT-2：从 vision-language 到 vision-action"></a>2.1 RT-2：从 vision-language 到 vision-action</h3><p>Google DeepMind 的 RT-2（arXiv:2307.15818，2023.07）是第一个证明 VLM 输出可以直接当作机器人 action token 的工作。</p>
+<p><strong>架构</strong>：PaLI-X（ViT-22B + encoder-decoder）做视觉主干，PaLM-E 做语言主干，在机器人数据上 co-fine-tune。动作空间 tokenization 方式：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="bold">a</mi><mo>=</mo><mo stretchy="false">[</mo><mi mathvariant="normal">Δ</mi><mi>x</mi><mo separator="true">,</mo><mi mathvariant="normal">Δ</mi><mi>y</mi><mo separator="true">,</mo><mi mathvariant="normal">Δ</mi><mi>z</mi><mo separator="true">,</mo><mi mathvariant="normal">Δ</mi><mtext>roll</mtext><mo separator="true">,</mo><mi mathvariant="normal">Δ</mi><mtext>pitch</mtext><mo separator="true">,</mo><mi mathvariant="normal">Δ</mi><mtext>yaw</mtext><mo separator="true">,</mo><mi>g</mi><mo stretchy="false">]</mo><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>7</mn></msup></mrow><annotation encoding="application/x-tex">\mathbf{a} = [\Delta x, \Delta y, \Delta z, \Delta \text{roll}, \Delta \text{pitch}, \Delta \text{yaw}, g] \in \mathbb{R}^7</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord text"><span class="mord">roll</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord text"><span class="mord">pitch</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord text"><span class="mord">yaw</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">7</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>每个连续值量化到 256 个 bin，动作序列变成 7 个离散 token 让 LLM 预测。</p>
+<p><strong>关键发现——反直觉结果</strong>：RT-2 在<strong>从未见过的物体&#x2F;指令</strong>上表现出远超预期的泛化，但在<strong>训练分布内的高精度任务</strong>（如精确插入）上反而输给专门训练的 BC 策略。这说明 VLM 学到的”常识”在泛化时有用，在精确控制时反而是噪声。</p>
+<h3 id="2-2-Octo-和-OpenVLA：开源时代的-VLA"><a href="#2-2-Octo-和-OpenVLA：开源时代的-VLA" class="headerlink" title="2.2 Octo 和 OpenVLA：开源时代的 VLA"></a>2.2 Octo 和 OpenVLA：开源时代的 VLA</h3><p>Octo（UC Berkeley，arXiv:2405.12213，2024.01）是第一个开源通用机器人基础模型。800k 轨迹、多机器人形态训练。但它最关键的贡献不是模型本身，而是论证了一个反直觉的结论：<strong>大规模多任务训练反而提升了单任务 finetune 的上限</strong>——这暗示存在某种”机器人操作的通用表征”，类似自然语言的 BERT 预训练。</p>
+<p>OpenVLA（Stanford，arXiv:2406.09246，2024.06）把规模推到了 7B 参数（Llama-2 + SigLIP + DINOv2），970k 轨迹。最关键的发现是消融实验：</p>
+<table>
+<thead>
+<tr>
+<th>消融条件</th>
+<th>成功率</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完整 OpenVLA 7B</td>
+<td><strong>81.3%</strong></td>
+<td>Baseline</td>
+</tr>
+<tr>
+<td>去掉 VLM 预训练权重（随机初始化）</td>
+<td>27.1%</td>
+<td><strong>VLM 预训练是这个领域最重要的东西</strong></td>
+</tr>
+<tr>
+<td>仅用 10% 机器人数据</td>
+<td>68.7%</td>
+<td>机器人数据量不是瓶颈</td>
+</tr>
+<tr>
+<td>去掉 DINOv2 视觉编码器</td>
+<td>52.4%</td>
+<td>精细视觉表征非常重要</td>
+</tr>
+</tbody></table>
+<p><strong>这个消融表揭示了 Physical AI 的根本洞见</strong>：VLM 从互联网图像学到的世界知识（”杯子是用来装水的””书通常放在书架上”）比机器人专用数据更珍贵。机器人数据的边际效用在大约 10 万条轨迹后就急剧衰减。</p>
+<h3 id="2-3-：流匹配取代离散化"><a href="#2-3-：流匹配取代离散化" class="headerlink" title="2.3 ：流匹配取代离散化"></a>2.3 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：流匹配取代离散化</h3><p>Physical Intelligence 的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（2024.10）解决了一个架构层面的核心问题：RT-2&#x2F;OpenVLA 的”动作 tokenization + 离散化”方案本质上是把连续动作空间 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="double-struck">R</mi><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">\mathbb{R}^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6889em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 映射到离散 token，再让 LLM 做 next-token prediction。这有两个问题：</p>
+<ol>
+<li><strong>量化误差</strong>：256-bin 离散化引入 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>±</mo><mn>0.4</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">\pm 0.4\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.4%</span></span></span></span> 的相对误差，在高精度任务（如手术机器人）中不可接受</li>
+<li><strong>多模态分布丢失</strong>：离散化的 cross-entropy loss 会将多模态动作分布压缩为单峰，导致策略在岔路口”犹豫”</li>
+</ol>
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的解决方案是**流匹配（Flow Matching）**——直接建模从噪声到动作的连续变换。损失函数：
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>FM</mtext></msub><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>t</mi><mo separator="true">,</mo><msub><mi mathvariant="bold">x</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi mathvariant="bold">x</mi><mn>1</mn></msub></mrow></msub><mrow><mo fence="true">[</mo><mi mathvariant="normal">∥</mi><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo separator="true">,</mo><msub><mi mathvariant="bold">x</mi><mi>t</mi></msub><mo stretchy="false">)</mo><mo>−</mo><mo stretchy="false">(</mo><msub><mi mathvariant="bold">x</mi><mn>1</mn></msub><mo>−</mo><msub><mi mathvariant="bold">x</mi><mn>0</mn></msub><mo stretchy="false">)</mo><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{L}_\text{FM}(\theta) = \mathbb{E}_{t, \mathbf{x}_0, \mathbf{x}_1} \left[ \| v_\theta(t, \mathbf{x}_t) - (\mathbf{x}_1 - \mathbf{x}_0) \|^2 \right]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">FM</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2141em;vertical-align:-0.35em;"></span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathbf mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3173em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathbf mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3173em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">[</span></span><span class="mord">∥</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">]</span></span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">x</mi><mn>0</mn></msub><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mi mathvariant="bold">I</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{x}_0 \sim \mathcal{N}(0, \mathbf{I})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.1474em;">N</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">I</span><span class="mclose">)</span></span></span></span> 是噪声，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">x</mi><mn>1</mn></msub><mo>=</mo><mi mathvariant="bold">a</mi></mrow><annotation encoding="application/x-tex">\mathbf{x}_1 = \mathbf{a}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">a</span></span></span></span> 是目标动作，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">v_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是学习的速度场。流匹配相比扩散模型的一个关键优势是<strong>少得多的推理步数</strong>（10 步 vs 100 步），这对于需要 20+ Hz 实时控制的机器人至关重要。</p>
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 实现了跨多种机器人形态的通用操纵——从单臂到双臂、从固定基座到移动操作——且在同一模型权重下完成叠衣服、装盒子等高精度任务。
+
+<h3 id="2-4-GR00T-N1：NVIDIA-的系统级-VLA"><a href="#2-4-GR00T-N1：NVIDIA-的系统级-VLA" class="headerlink" title="2.4 GR00T N1：NVIDIA 的系统级 VLA"></a>2.4 GR00T N1：NVIDIA 的系统级 VLA</h3><p>NVIDIA 在 2025.03 GTC 发布的 GR00T N1 代表了产业级 VLA 的最高水平。架构创新是<strong>双系统设计</strong>：</p>
+<ul>
+<li><strong>System 1（快系统，≤50ms）</strong>：轻量级策略网络，处理实时反应——避障、平衡、抓取调整</li>
+<li><strong>System 2（慢系统，≥500ms）</strong>：VLM 推理链，处理语义理解、任务规划、长程策略</li>
+</ul>
+<p>这种设计直接借鉴认知科学中 Kahneman 的”系统一&#x2F;系统二”理论。在工程层面，GR00T N1 用<strong>同一套模型权重</strong>驱动 Figure 02、1X NEO、Fourier GR-1、Unitree H1 四种形态差异巨大的机器人——这是”通用机器人基础模型”的第一个产业级证据。</p>
+<hr>
+<h2 id="三、扩散策略——用生成模型做动作序列"><a href="#三、扩散策略——用生成模型做动作序列" class="headerlink" title="三、扩散策略——用生成模型做动作序列"></a>三、扩散策略——用生成模型做动作序列</h2><p>扩散策略（Diffusion Policy）是 2023-2024 年 Physical AI 最出人意料的方向。传统做法：给定状态 → 输出单个动作向量。扩散策略反其道而行：<strong>给定观测 → 去噪生成一整段动作序列</strong>。</p>
+<h3 id="3-1-为什么扩散模型适合机器人动作？"><a href="#3-1-为什么扩散模型适合机器人动作？" class="headerlink" title="3.1 为什么扩散模型适合机器人动作？"></a>3.1 为什么扩散模型适合机器人动作？</h3><p>核心原因有三个：</p>
+<p><strong>多模态性是机器人动作分布的固有属性</strong>。面对岔路口，一个好的策略应该清晰地选一条路，而不是在两条路之间取平均。标准 BC 的 MSE loss：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>BC</mtext></msub><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mo stretchy="false">(</mo><mi mathvariant="bold">o</mi><mo separator="true">,</mo><mi mathvariant="bold">a</mi><mo stretchy="false">)</mo><mo>∼</mo><mi mathvariant="script">D</mi></mrow></msub><mrow><mo fence="true">[</mo><mi mathvariant="normal">∥</mi><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi mathvariant="bold">o</mi><mo stretchy="false">)</mo><mo>−</mo><mi mathvariant="bold">a</mi><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{L}_\text{BC} = \mathbb{E}_{(\mathbf{o}, \mathbf{a}) \sim \mathcal{D}} \left[ \| \pi_\theta(\mathbf{o}) - \mathbf{a} \|^2 \right]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">BC</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2193em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathbf mtight">o</span><span class="mpunct mtight">,</span><span class="mord mathbf mtight">a</span><span class="mclose mtight">)</span><span class="mrel mtight">∼</span><span class="mord mathcal mtight" style="margin-right:0.0278em;">D</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">[</span></span><span class="mord">∥</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathbf">o</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathbf">a</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">]</span></span></span></span></span></span></span>
+
+<p>在动作分布是多模态时，最优解收敛到<strong>条件期望</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">E</mi><mo stretchy="false">[</mo><mi mathvariant="bold">a</mi><mi mathvariant="normal">∣</mi><mi mathvariant="bold">o</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}[\mathbf{a}|\mathbf{o}]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbb">E</span><span class="mopen">[</span><span class="mord mathbf">a</span><span class="mord">∣</span><span class="mord mathbf">o</span><span class="mclose">]</span></span></span></span>——即所有模态的加权平均。这个”平均动作”在岔路口可能导致机器人执行一个不属于任何合理路径的奇怪动作。扩散模型通过去噪过程做 <strong>mode-seeking</strong>，天然倾向收敛到分布的一个确定模态。</p>
+<p><strong>动作的一致性</strong>。扩散模型生成 16-32 步动作序列而非单步动作，这使得连续动作在时间上自然平滑——省去了传统 BC 需要的低通滤波或动作平滑后处理。</p>
+<p><strong>DDPM 条件去噪</strong>。给定条件 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">c</mi></mrow><annotation encoding="application/x-tex">\mathbf{c}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">c</span></span></span></span>（观测 embedding），去噪网络 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 预测噪声：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>DDPM</mtext></msub><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mi>k</mi><mo separator="true">,</mo><msup><mi mathvariant="bold">a</mi><mn>0</mn></msup><mo separator="true">,</mo><mi>ϵ</mi></mrow></msub><mrow><mo fence="true">[</mo><mi mathvariant="normal">∥</mi><mi>ϵ</mi><mo>−</mo><msub><mi>ϵ</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msup><mi mathvariant="bold">a</mi><mi>k</mi></msup><mo separator="true">,</mo><mi>k</mi><mo separator="true">,</mo><mi mathvariant="bold">c</mi><mo stretchy="false">)</mo><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{L}_\text{DDPM} = \mathbb{E}_{k, \mathbf{a}^0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\mathbf{a}^k, k, \mathbf{c}) \|^2 \right]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">DDPM</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2491em;vertical-align:-0.35em;"></span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5224em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathbf mtight">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7463em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">0</span></span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">ϵ</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3137em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">[</span></span><span class="mord">∥</span><span class="mord mathnormal">ϵ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">c</span><span class="mclose">)</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">]</span></span></span></span></span></span></span>
+
+<p>推理时从噪声 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="bold">a</mi><mi>K</mi></msup><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mi mathvariant="bold">I</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{a}^K \sim \mathcal{N}(0, \mathbf{I})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0715em;">K</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.1474em;">N</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">I</span><span class="mclose">)</span></span></span></span> 开始，迭代去噪 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span></span></span></span> 步得到动作序列 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="bold">a</mi><mn>0</mn></msup></mrow><annotation encoding="application/x-tex">\mathbf{a}^0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span></span></span></span></span></span></span></span>。</p>
+<h3 id="3-2-关键工作的量化对比"><a href="#3-2-关键工作的量化对比" class="headerlink" title="3.2 关键工作的量化对比"></a>3.2 关键工作的量化对比</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输入</th>
+<th>动作维度</th>
+<th>推理速度</th>
+<th>关键创新</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Diffusion Policy（Columbia&#x2F;TRI, 2023）</td>
+<td>2D 图像</td>
+<td>6-DoF</td>
+<td>~10 Hz</td>
+<td>首篇，DDPM 动作生成</td>
+</tr>
+<tr>
+<td>3D Diffusion Policy（UT Austin, 2024）</td>
+<td>点云</td>
+<td>6-DoF</td>
+<td>~8 Hz</td>
+<td>3D 表征提升泛化</td>
+</tr>
+<tr>
+<td>DP3（清华, 2024）</td>
+<td>3D 体素</td>
+<td>6-DoF</td>
+<td>~12 Hz</td>
+<td>比 2D 泛化好一个量级</td>
+</tr>
+</tbody></table>
+<p><strong>清华 DP3 的消融发现</strong>：在 5 个未见过的测试环境上，3D 点云输入比 2D 图像输入的零样本成功率从 31% 提升到 78%。这说明对于空间交互任务，<strong>深度信息比纹理信息重要得多</strong>——这个结论对无人机视觉制导有直接启示。</p>
+<hr>
+<h2 id="四、世界模型——让-AI-预演物理后果"><a href="#四、世界模型——让-AI-预演物理后果" class="headerlink" title="四、世界模型——让 AI 预演物理后果"></a>四、世界模型——让 AI 预演物理后果</h2><p>VLA 解决”看到→做”，世界模型解决”做之前先猜后果”。形式化：给定当前状态 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\mathbf{s}_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和候选动作序列 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">a</mi><mrow><mi>t</mi><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{a}_{t:t+H}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6528em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mathnormal mtight" style="margin-right:0.0813em;">H</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span>，世界模型预测未来状态序列：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi mathvariant="bold">s</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>f</mi><mtext>world</mtext></msub><mo stretchy="false">(</mo><msub><mi mathvariant="bold">s</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi mathvariant="bold">a</mi><mrow><mi>t</mi><mo>:</mo><mi>t</mi><mo>+</mo><mi>H</mi></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\hat{\mathbf{s}}_{t+1:t+H+1} = f_\text{world}(\mathbf{s}_t, \mathbf{a}_{t:t+H})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9162em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathbf">s</span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mathnormal mtight" style="margin-right:0.0813em;">H</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">world</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbf">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mrel mtight">:</span><span class="mord mathnormal mtight">t</span><span class="mbin mtight">+</span><span class="mord mathnormal mtight" style="margin-right:0.0813em;">H</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<h3 id="4-1-从视频生成到物理预测"><a href="#4-1-从视频生成到物理预测" class="headerlink" title="4.1 从视频生成到物理预测"></a>4.1 从视频生成到物理预测</h3><p>Google DeepMind 的 <strong>UniSim</strong>（2023）是第一个统一的动作条件视频预测模型。核心方法：在包含互联网视频、仿真数据和机器人操作数据的混合数据集上训练一个视频扩散模型，条件输入为”当前帧 + 动作描述”。</p>
+<p>NVIDIA 的 <strong>Cosmos</strong>（2025.01 CES 发布）是专门为 Physical AI 构建的世界模型平台。训练数据规模：2000 万小时驾驶 + 机器人操作视频。关键创新在于<strong>物理一致性约束</strong>——在视频扩散模型的训练目标中加入物理监督：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><msub><mi mathvariant="script">L</mi><mtext>video</mtext></msub><mo>+</mo><mi>λ</mi><mo>⋅</mo><msub><mi mathvariant="script">L</mi><mtext>physics</mtext></msub></mrow><annotation encoding="application/x-tex">\mathcal{L} = \mathcal{L}_\text{video} + \lambda \cdot \mathcal{L}_\text{physics}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">video</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">physics</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">L</mi><mtext>physics</mtext></msub></mrow><annotation encoding="application/x-tex">\mathcal{L}_\text{physics}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">physics</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> 惩罚违反动量守恒、接触力学、刚体运动约束的预测帧。</p>
+<h3 id="4-2-DreamerV3：在世界模型里做规划"><a href="#4-2-DreamerV3：在世界模型里做规划" class="headerlink" title="4.2 DreamerV3：在世界模型里做规划"></a>4.2 DreamerV3：在世界模型里做规划</h3><p>DeepMind 的 DreamerV3（arXiv:2301.04104）代表了另一条路径：从像素学习紧凑的世界模型，然后<strong>完全在学到的世界模型里做规划</strong>，不需要和真实环境交互就可以学策略。</p>
+<p>核心架构：<strong>RSSM</strong>（Recurrent State-Space Model），学习将高维观测 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">o_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">o</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 压缩到低维潜状态 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">z_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，然后在这个潜空间里做模型预测控制。DreamerV3 在 Minecraft 中从零学会了制作钻石工具——这是一个需要多步长程规划的任务，在物理意义上类似机器人组装。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>需要真实交互</th>
+<th>适用场景</th>
+<th>2024 代表</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>视频扩散预测</td>
+<td>否</td>
+<td>开环”看”</td>
+<td>UniSim, Cosmos</td>
+</tr>
+<tr>
+<td>潜空间规划</td>
+<td>是（初始训练）</td>
+<td>闭环”做”</td>
+<td>DreamerV3, TD-MPC2</td>
+</tr>
+<tr>
+<td>混合</td>
+<td>部分</td>
+<td>仿真+少量实机</td>
+<td>GR00T N1（System 2）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、可微仿真与系统辨识闭环"><a href="#五、可微仿真与系统辨识闭环" class="headerlink" title="五、可微仿真与系统辨识闭环"></a>五、可微仿真与系统辨识闭环</h2><h3 id="5-1-为什么需要可微仿真"><a href="#5-1-为什么需要可微仿真" class="headerlink" title="5.1 为什么需要可微仿真"></a>5.1 为什么需要可微仿真</h3><p>Sim-to-Real 的经典做法是域随机化——在仿真中随机抖动物理参数（质量 ±20%、摩擦系数 0.3~0.9、传感器噪声），训练出的策略对参数变化鲁棒。这种方法的问题是无方向——均匀随机化浪费大量样本在”不可能发生”的参数组合上。</p>
+<p>可微仿真改变了这一点：如果仿真梯度 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><mi mathvariant="script">L</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\nabla_\theta \mathcal{L}(\theta)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathcal">L</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">)</span></span></span></span> 可以反向传播到动力学参数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ϕ</span></span></span></span>，那参数辨识就变成了优化问题：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>ϕ</mi><mo>∗</mo></msup><mo>=</mo><msub><mrow><mi mathvariant="normal">arg min</mi><mo>⁡</mo></mrow><mi>ϕ</mi></msub><munder><mo>∑</mo><mi>t</mi></munder><mi mathvariant="normal">∥</mi><msubsup><mi mathvariant="bold">s</mi><mi>t</mi><mtext>real</mtext></msubsup><mo>−</mo><msubsup><mi mathvariant="bold">s</mi><mi>t</mi><mtext>sim</mtext></msubsup><mo stretchy="false">(</mo><mi>ϕ</mi><mo stretchy="false">)</mo><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\phi^* = \operatorname{arg\,min}_\phi \sum_t \| \mathbf{s}_t^\text{real} - \mathbf{s}_t^\text{sim}(\phi) \|^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9331em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">ϕ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3em;vertical-align:-1.25em;"></span><span class="mop"><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">arg</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathrm">min</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3802em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.9em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.25em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∥</span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">real</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1305em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8805em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">sim</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mi>k</mi></msub><mo>−</mo><mi>α</mi><msub><mi mathvariant="normal">∇</mi><mi>ϕ</mi></msub><mi mathvariant="script">L</mi><mo stretchy="false">(</mo><msub><mi>ϕ</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\phi_{k+1} = \phi_k - \alpha \nabla_\phi \mathcal{L}(\phi_k)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9028em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathnormal">ϕ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">ϕ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord mathcal">L</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">ϕ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<h3 id="5-2-关键工作"><a href="#5-2-关键工作" class="headerlink" title="5.2 关键工作"></a>5.2 关键工作</h3><table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>机构</th>
+<th>时间</th>
+<th>核心创新</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>MuJoCo MJX</strong></td>
+<td>Google DeepMind</td>
+<td>2024</td>
+<td>MuJoCo 跑在 JAX 上，全 GPU 加速 + 可微。单 GPU batch 并行 10 万条轨迹</td>
+</tr>
+<tr>
+<td><strong>Isaac Sim Diff</strong></td>
+<td>NVIDIA</td>
+<td>2024</td>
+<td>Omniverse 物理引擎上的可微层，与域随机化联用</td>
+</tr>
+<tr>
+<td><strong>Brax</strong></td>
+<td>Google</td>
+<td>2024</td>
+<td>纯 JAX 物理引擎，原生可微，支持 PPO&#x2F;SAC&#x2F;ES</td>
+</tr>
+<tr>
+<td><strong>DiffAero</strong></td>
+<td>ETH Zurich</td>
+<td>2024</td>
+<td>专门针对四旋翼气动参数的可微辨识，在线收敛</td>
+</tr>
+</tbody></table>
+<p>MuJoCo MJX 的性能数据：在 A100 上，128 环境并行训练 PPO，单步仿真时间 0.8ms（MuJoCo CPU 为 12.4ms），加速 15 倍。这对于需要万亿步交互才能收敛的灵巧操作任务来说是决定性的。</p>
+<h3 id="5-3-系统辨识闭环——从-ULog-到-JSBSim"><a href="#5-3-系统辨识闭环——从-ULog-到-JSBSim" class="headerlink" title="5.3 系统辨识闭环——从 ULog 到 JSBSim"></a>5.3 系统辨识闭环——从 ULog 到 JSBSim</h3><p>在实际工程中，可微仿真无法完全替代真机数据。标准的 Physical AI 闭环流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ULog 实飞数据 → 参数辨识（C_T, C_D, J） → 注入 JSBSim 高保真模型 → 仿真验证 → 残差分析 → 回灌</span><br></pre></td></tr></table></figure>
+
+<p><strong>反直觉发现</strong>：在无人机辨识中，姿态环的辨识精度远低于位置环。原因不是数据不足，而是<strong>IMU 噪声的频谱分布与系统动力学在频域上重叠</strong>——噪声和真实信号无法通过滤波分离。这个问题目前没有好的解法，是所有 Physical AI 系统的阿克琉斯之踵。</p>
+<hr>
+<h2 id="六、人形机器人——Physical-AI-的最大系统集成战场"><a href="#六、人形机器人——Physical-AI-的最大系统集成战场" class="headerlink" title="六、人形机器人——Physical AI 的最大系统集成战场"></a>六、人形机器人——Physical AI 的最大系统集成战场</h2><p>2024-2025 年人形机器人爆发，这是 Physical AI 从单任务走向通用具身的标志。</p>
+<table>
+<thead>
+<tr>
+<th>机器人</th>
+<th>发布日期</th>
+<th>Physical AI 创新</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Figure 02</strong></td>
+<td>2024.08</td>
+<td>OpenAI VLA 驱动，语音指令 → 全身动作，无遥控。仓库搬箱子端到端策略</td>
+</tr>
+<tr>
+<td><strong>Tesla Optimus Gen 2</strong></td>
+<td>2024</td>
+<td>共享 FSD 自动驾驶芯片 + 端到端神经网络，2024 进入电池工厂试操作</td>
+</tr>
+<tr>
+<td><strong>Unitree H1&#x2F;G1</strong></td>
+<td>2024</td>
+<td>纯 RL 策略跑通后空翻 + 跑步。域随机化让 sim 策略直接迁移真机</td>
+</tr>
+<tr>
+<td><strong>小鹏 IRON</strong></td>
+<td>2024.11</td>
+<td>复用汽车自动驾驶感知栈（XNGP），2026 目标进工厂替代重复劳动</td>
+</tr>
+</tbody></table>
+<p>人形机器人的 Physical AI 难点不在算法框架本身，在于<strong>高自由度动作空间</strong>的维度灾难：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="bold">a</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>30</mn><mo>+</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\mathbf{a} \in \mathbb{R}^{30+}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathbf">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">30</span><span class="mord mtight">+</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>30+ 自由度的动作空间使得 VLA tokenization、扩散策略的序列长度、RL 的探索效率全部面临挑战。以 GR00T N1 为例，30 维动作 × 256 bins &#x3D; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>256</mn><mn>30</mn></msup><mo>≈</mo><msup><mn>10</mn><mn>72</mn></msup></mrow><annotation encoding="application/x-tex">256^{30} \approx 10^{72}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">25</span><span class="mord"><span class="mord">6</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">30</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">72</span></span></span></span></span></span></span></span></span></span></span></span> 的组合空间——直接 tokenization 不可能。解决方案是<strong>分层动作空间</strong>：高层输出末端位姿（6-DoF），低层用传统的全身运动控制（WBC）求解关节角度。但这种分层引入了信息瓶颈——高层不知道手指的碰撞，低层不知道任务目标。这是开放的学术问题。</p>
+<hr>
+<h2 id="七、3D-场景表征进入机器人"><a href="#七、3D-场景表征进入机器人" class="headerlink" title="七、3D 场景表征进入机器人"></a>七、3D 场景表征进入机器人</h2><p>2D 图像做 robot policy 的致命问题是看不到遮挡物后面。3D 表征解决这个问题的方式是让策略能够<strong>推理空间的占有和空缺</strong>，而非仅推断平面的纹理。</p>
+<h3 id="7-1-NeRF-→-3DGS-的迁移"><a href="#7-1-NeRF-→-3DGS-的迁移" class="headerlink" title="7.1 NeRF → 3DGS 的迁移"></a>7.1 NeRF → 3DGS 的迁移</h3><table>
+<thead>
+<tr>
+<th>表征</th>
+<th>渲染速度</th>
+<th>编辑性</th>
+<th>机器人适用性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NeRF</td>
+<td>~1 FPS</td>
+<td>低</td>
+<td>离线建图</td>
+</tr>
+<tr>
+<td>3D Gaussian Splatting</td>
+<td>≥100 FPS</td>
+<td>中</td>
+<td><strong>实时策略</strong></td>
+</tr>
+<tr>
+<td>NeuS（隐式表面）</td>
+<td>~0.5 FPS</td>
+<td>高</td>
+<td>精确重建</td>
+</tr>
+</tbody></table>
+<p>3DGS 对物理 AI 的核心价值：<strong>在 100+ FPS 下从任意视角渲染场景</strong>，这意味着机器人策略可以在任意视点”想象”场景的样子，而无需实际移动到那个视点。</p>
+<p>Stanford 的 <strong>SplatSim</strong>（2024）直接用 3DGS 场景替换仿真渲染器——在 Gaussian 场景中做强化学习训练，策略可直接部署到真机。这消除了仿真中渲染器和真实相机之间的视觉差异。</p>
+<h3 id="7-2-语言条件-3D-操作"><a href="#7-2-语言条件-3D-操作" class="headerlink" title="7.2 语言条件 3D 操作"></a>7.2 语言条件 3D 操作</h3><p>NVIDIA 的 <strong>GR-MG</strong>（2025）将 3DGS 表征与语言条件策略结合。”拿起红色的马克杯”→ 在 3DGS 场景中定位目标 → 规划抓取路径 → 执行。关键指标：在 50 个未见过的物体上，3DGS + 语言条件的成功率 76%，纯 2D 基线 43%。</p>
+<hr>
+<h2 id="八、Sim-to-Real——从调参到基础设施"><a href="#八、Sim-to-Real——从调参到基础设施" class="headerlink" title="八、Sim-to-Real——从调参到基础设施"></a>八、Sim-to-Real——从调参到基础设施</h2><h3 id="8-1-域随机化的自动化和终结"><a href="#8-1-域随机化的自动化和终结" class="headerlink" title="8.1 域随机化的自动化和终结"></a>8.1 域随机化的自动化和终结</h3><p>手动域随机化即将被淘汰。MIT 的 <strong>AUTODR</strong>（2023, CoRL）用真实数据自动推断哪些参数需要随机化、随机化范围多大。原理是在真实数据分布 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext>real</mtext></msub></mrow><annotation encoding="application/x-tex">p_\text{real}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">real</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和仿真分布 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext>sim</mtext></msub><mo stretchy="false">(</mo><mi>ϕ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">p_\text{sim}(\phi)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">sim</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span></span></span></span> 之间最小化 Wasserstein 距离：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>ϕ</mi><mo>∗</mo></msup><mo>=</mo><msub><mrow><mi mathvariant="normal">arg min</mi><mo>⁡</mo></mrow><mi>ϕ</mi></msub><msub><mi>W</mi><mn>2</mn></msub><mo stretchy="false">(</mo><msub><mi>p</mi><mtext>real</mtext></msub><mo separator="true">,</mo><msub><mi>p</mi><mtext>sim</mtext></msub><mo stretchy="false">(</mo><mi>ϕ</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\phi^* = \operatorname{arg\,min}_\phi W_2(p_\text{real}, p_\text{sim}(\phi))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9331em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">ϕ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1302em;vertical-align:-0.3802em;"></span><span class="mop"><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">arg</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathrm">min</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">ϕ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3802em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">real</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">sim</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">ϕ</span><span class="mclose">))</span></span></span></span></span>
+
+<h3 id="8-2-Real-to-Sim-to-Real（R2S2R）"><a href="#8-2-Real-to-Sim-to-Real（R2S2R）" class="headerlink" title="8.2 Real-to-Sim-to-Real（R2S2R）"></a>8.2 Real-to-Sim-to-Real（R2S2R）</h3><p>Google 的 R2S2R（2024, RSS）将 Sim-to-Real 翻转：先飞真机采集少量数据 → 系统辨识补全仿真参数 → 在仿真里大规模训练 → 回真机。在四旋翼穿越任务上，R2S2R 仅用 5 分钟实飞数据就让仿真策略在真机上达到 87% 成功率（纯仿真训练基线 34%）。</p>
+<h3 id="8-3-Distillation-from-Sim"><a href="#8-3-Distillation-from-Sim" class="headerlink" title="8.3 Distillation from Sim"></a>8.3 Distillation from Sim</h3><p>NVIDIA Isaac Lab 的策略蒸馏：仿真里训 teacher（计算充裕，可以跑 10 万条并行轨迹），蒸馏到 student（轻量，Jetson Orin 上跑 30 Hz）。蒸馏不是简单的模仿学习，而是用 teacher 的 Q 值指导 student 的 exploration——这是 DAGGER 和 DQfD（Deep Q-learning from Demonstrations）在 Physical AI 中的大规模落地。</p>
+<hr>
+<h2 id="九、边缘推理——让-VLA-跑在机器人上"><a href="#九、边缘推理——让-VLA-跑在机器人上" class="headerlink" title="九、边缘推理——让 VLA 跑在机器人上"></a>九、边缘推理——让 VLA 跑在机器人上</h2><p>Physical AI 不能依赖云端 API——200ms 延迟就是一场车祸。</p>
+<h3 id="9-1-量化：从-7B-到-Jetson"><a href="#9-1-量化：从-7B-到-Jetson" class="headerlink" title="9.1 量化：从 7B 到 Jetson"></a>9.1 量化：从 7B 到 Jetson</h3><p>OpenVLA 的 INT8 量化实验（Stanford, 2024）：</p>
+<table>
+<thead>
+<tr>
+<th>精度</th>
+<th>模型大小</th>
+<th>Jetson Orin 推理速度</th>
+<th>成功率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FP16</td>
+<td>14 GB</td>
+<td>~1.2 Hz</td>
+<td>81.3%</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>7 GB</td>
+<td><strong>~30 Hz</strong></td>
+<td>79.1%</td>
+</tr>
+<tr>
+<td>INT4</td>
+<td>3.5 GB</td>
+<td>~55 Hz</td>
+<td>62.4%</td>
+</tr>
+</tbody></table>
+<p>INT8 量化损失仅 2.2 个百分点，但推理速度提升 25 倍。INT4 则出现了不可接受的精度退化——<strong>动作空间的连续性对量化噪声异常敏感</strong>，这和 LLM 的 token 预测形成鲜明对比。</p>
+<h3 id="9-2-推测性动作解码"><a href="#9-2-推测性动作解码" class="headerlink" title="9.2 推测性动作解码"></a>9.2 推测性动作解码</h3><p>类比 LLM 的 speculative decoding：先用轻量模型（27M Octo）快速出粗略动作，大模型（7B OpenVLA）异步验证和 refine。在 Jetson Orin 上，这种方案可以将有效动作频率从 30 Hz 提升到 80+ Hz，同时保持大模型的泛化能力。</p>
+<h3 id="9-3-事件驱动架构"><a href="#9-3-事件驱动架构" class="headerlink" title="9.3 事件驱动架构"></a>9.3 事件驱动架构</h3><p>Intel Loihi 2 神经形态芯片的稀疏计算特性，天然适合事件相机的稀疏数据流。虽然不是主流，但<strong>事件相机 + 神经形态芯片</strong>的组合在高速运动场景（如你的截击机视觉制导）中具有独特优势：微秒级延迟、稀疏计算、无运动模糊。</p>
+<hr>
+<h2 id="十、总结与技术路线图"><a href="#十、总结与技术路线图" class="headerlink" title="十、总结与技术路线图"></a>十、总结与技术路线图</h2><h3 id="核心洞察"><a href="#核心洞察" class="headerlink" title="核心洞察"></a>核心洞察</h3><ol>
+<li><strong>VLA 是范式革命，不是工程优化</strong>：VLM 预训练的世界知识比机器人专用数据更珍贵（OpenVLA 消融：去掉 VLM 预训练 → 成功率从 81% 跌至 27%）</li>
+<li><strong>扩散策略解决了动作多模态性的根本问题</strong>：传统 BC 的 MSE loss 在多模态动作分布上必然产生”平均动作”伪影</li>
+<li><strong>世界模型是 Physical AI 的”System 2”</strong>：Cosmos、DreamerV3 代表了从”反应式控制”到”预测式规划”的转变</li>
+<li><strong>可微仿真将 Sim-to-Real 从 art 变成 science</strong>：梯度下降替代手动调参</li>
+<li><strong>3DGS 是实时机器人感知的答案</strong>：100+ FPS 渲染 + 隐式遮挡推理</li>
+</ol>
+<h3 id="技术路线图"><a href="#技术路线图" class="headerlink" title="技术路线图"></a>技术路线图</h3><p><img src="/images/physical-ai-2026/innovation-timeline.png" alt="创新时间线"></p>
+<p>2026-2028 年预期突破：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>预期突破</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2026 H2</td>
+<td>VLA 模型在 Jetson Thor（2000 TOPS）上实现 100+ Hz 实时推理</td>
+</tr>
+<tr>
+<td>2027</td>
+<td>人形机器人在工厂场景中实现无人监督操作（Figure 03 &#x2F; Optimus Gen 3）</td>
+</tr>
+<tr>
+<td>2027-2028</td>
+<td>世界模型 + 扩散策略的端到端闭环——AI 先在 Cosmos 里”做梦预演”再执行</td>
+</tr>
+<tr>
+<td>2028</td>
+<td>Physical AI 操作系统标准化——类似 ROS 但以基础模型为核心</td>
+</tr>
+</tbody></table>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ol>
+<li>Brohan, A., et al. (2023). RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control. <em>arXiv:2307.15818</em>.</li>
+<li>Octo Model Team, et al. (2024). Octo: An Open-Source Generalist Robot Policy. <em>arXiv:2405.12213</em>.</li>
+<li>Kim, M. J., et al. (2024). OpenVLA: An Open-Source Vision-Language-Action Model. <em>arXiv:2406.09246</em>.</li>
+<li>Black, K., et al. (2024). <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\pi_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: A Vision-Language-Action Flow Model for General Robot Control. <em>Physical Intelligence Technical Report</em>.</li>
+<li>Hafner, D., et al. (2023). Mastering Diverse Domains through World Models. <em>arXiv:2301.04104</em>.</li>
+<li>Chi, C., et al. (2023). Diffusion Policy: Visuomotor Policy Learning via Action Diffusion. <em>RSS 2023</em>. arXiv:2303.04137.</li>
+<li>Ze, Y., et al. (2024). 3D Diffusion Policy: Generalizable Visuomotor Policy Learning via Simple 3D Representations. <em>RSS 2024</em>. arXiv:2403.03954.</li>
+<li>Yang, J., et al. (2023). UniSim: A Neural Closed-Loop Sensor Simulator. <em>CoRL 2023</em>. arXiv:2308.01898.</li>
+<li>Muratore, F., et al. (2023). AUTODR: Automatic Domain Randomization. <em>CoRL 2023</em>.</li>
+<li>NVIDIA Corporation. (2025). NVIDIA Cosmos: World Foundation Model Platform for Physical AI. <em>CES 2025 Keynote</em>.</li>
+<li>NVIDIA Corporation. (2025). GR00T N1: A Generalist Robot Foundation Model. <em>GTC 2025 Keynote</em>.</li>
+<li>Kerbl, B., et al. (2023). 3D Gaussian Splatting for Real-Time Radiance Field Rendering. <em>ACM TOG (SIGGRAPH 2023)</em>. DOI: 10.1145&#x2F;3592433.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/">https://goodisok.github.io/2026/05/08/Physical-AI-%E6%8A%80%E6%9C%AF%E5%85%A8%E6%99%AF-%E4%BB%8EVLA%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9E%8B%E5%88%B0%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%88%9B%E6%96%B0%E8%84%89%E7%BB%9C/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B/">世界模型</a><a class="post-meta__tags" href="/tags/Sim-to-Real/">Sim-to-Real</a><a class="post-meta__tags" href="/tags/%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F/">可微仿真</a><a class="post-meta__tags" href="/tags/Physical-AI/">Physical AI</a><a class="post-meta__tags" href="/tags/VLA/">VLA</a><a class="post-meta__tags" href="/tags/%E6%89%A9%E6%95%A3%E7%AD%96%E7%95%A5/">扩散策略</a><a class="post-meta__tags" href="/tags/%E4%BA%BA%E5%BD%A2%E6%9C%BA%E5%99%A8%E4%BA%BA/">人形机器人</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/08/2026-05-08-airsim-source-code-analysis/" title="AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">AirSim源码深度解析：架构设计、传感器噪声建模与级联PID控制全剖析</div></div><div class="info-2"><div class="info-item-1">引言Microsoft AirSim 是无人机仿真领域最成熟的开源平台之一。虽然微软已于2023年将其归档，但 AirSim 的架构设计和工程实现仍然是仿真系统开发的重要参考。本文通过逐文件阅读 AirSim 核心源码（AirLib 部分），从物理引擎、传感器噪声建模到飞行控制器，完整剖析其技术架构。  分析方法：本文所有结论均基于对 AirSim 源码（main 分支）的直接阅读，涉及约 20 个头文件和实现文件，涵盖 AirLib 的物理层、传感器层、API 层和固件层。   一、总体架构：五层分层设计AirSim 采用清晰的分层架构，每层职责单一，通过接口解耦： 1234567891011121314151617181920212223242526272829303132┌─────────────────────────────────────────────────┐│           Python Client (RPC API)                ││       moveByVelocity / moveToPosition / ...      ...</div></div></div></a><a class="pagination-related" href="/2026/05/07/MAVROS%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97ROS2Humble-%E5%9C%A8%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8A%E6%9E%B6%E8%B5%B7MAVLink%E4%B8%8EROS%E7%9A%84%E6%A1%A5%E6%A2%81/" title="MAVROS 完全指南（ROS 2 Humble）：在无人机上架起 MAVLink 与 ROS 的桥梁"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MAVROS 完全指南（ROS 2 Humble）：在无人机上架起 MAVLink 与 ROS 的桥梁</div></div><div class="info-2"><div class="info-item-1">MAVROS 完全指南（ROS 2 Humble）：在无人机上架起 MAVLink 与 ROS 的桥梁一、MAVROS 是什么，为什么还需要它MAVROS 是一个将 MAVLink 协议转化（bridge）为 ROS 话题、服务和动作 的软件包。它运行在机载计算机（如 Raspberry Pi、Jetson Orin、Intel NUC）上，一端通过串口或 UDP 连接飞控（PX4 &#x2F; ArduPilot），另一端向 ROS 2 节点暴露标准化的接口。 2017 年 PX4 v1.14 引入了 uXRCE-DDS 中间件，允许 ROS 2 节点直接通过 DDS 协议读写 PX4 的 uORB 话题，不需要 MAVROS 作为中间层。既然有了更直接的方案，为什么还要用 MAVROS？    场景 推荐方案    ROS 2 + PX4 v1.14+，所有传感器数据都是自研 uXRCE-DDS 直连（延迟更低）   ROS 2 + PX4，但希望和地面站（QGC）共享同一 MAVLink 链路 MAVROS（自带 GCS proxy）   ROS 2 + ArduPilot...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/10/WAM-%E4%B8%96%E7%95%8C%E5%8A%A8%E4%BD%9C%E6%A8%A1%E5%9E%8B%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-Jim-Fan-%E4%B8%89%E7%AF%87%E8%AE%BA%E6%96%87%E7%BB%88%E7%BB%93VLA%E6%97%B6%E4%BB%A3/" title="WAM（世界动作模型）深度解析：Jim Fan三篇论文彻底终结VLA时代"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">WAM（世界动作模型）深度解析：Jim Fan三篇论文彻底终结VLA时代</div></div><div class="info-2"><div class="info-item-1"> 引言2026 年 5 月 9 日，在红杉 AI Ascent 2026 大会上，英伟达机器人方向负责人 Jim Fan 发表了一场 20 分钟的演讲《Robotics: Endgame》。他的核心断言震动了整个具身智能社区：  “VLA 已死，世界动作模型当立。遥操已死，人类的传感器数据长存。”  这不是一句口号，而是由三篇 2026 年 2 月密集发表的论文支撑的技术路线宣言。本文将以这三篇论文为核心，系统解析 WAM（World Action Model，世界动作模型）的来龙去脉、技术本质和范式意义。 一、VLA 为什么被宣判死刑过去三年，VLA（Vision-Language-Action）模型几乎统治了机器人学习。典型代表包括 Google RT-2、OpenVLA、Octo、π₀ 等。其范式是：以视觉-语言模型（VLM）为基座，在其上外挂一个动作头（action head），直接输出机器人动作。 Jim Fan 在演讲中指出了一个被长期忽视的结构性问题：  “这些模型实际上是 LVA——语言视觉动作模型。大部分参数用于语言，语言是核心，视觉和动作只能靠边站。”  VL...</div></div></div></a><a class="pagination-related" href="/2026/05/09/2026-05-09-reinforcement-learning-complete-guide/" title="强化学习(RL)完全入门：从零基础到理解无人机智能飞控"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">强化学习(RL)完全入门：从零基础到理解无人机智能飞控</div></div><div class="info-2"><div class="info-item-1">  本文目标：让没有任何强化学习基础的读者，理解 RL 的核心原理、数学公式、三大范式，以及为什么它正在改变无人机飞控和自动驾驶。阅读本文大约需要 30 分钟。   引言：为什么 RL 值得学？2025-2026 年，强化学习（Reinforcement Learning, RL）正在经历一个「第二次爆发」：  无人机竞速：TU Delft 的 SkyDreamer 用 RL 实现了 21 m&#x2F;s 的自主高速飞行，完成倒飞筋斗和 Split-S 机动 自动驾驶：小鹏 VLA 2.0、理想 MindVLA-o1 纷纷将 RL 嵌入端到端驾驶系统 世界模型：DreamerV3 让飞行器「先做梦再飞」，真机交互量降低 10000 倍 大模型对齐：ChatGPT 的 RLHF 本质就是 RL——人类反馈作为奖励信号  但 RL 的入门门槛确实高——Bellman 方程、策略梯度、TD 误差……术语密集、数学抽象。 本文用一个方法解决：概念→定义→性质→表示→例子→应用，每一步都不跳。  一、概念：强化学习的直觉理解1.1 核心比喻：训狗想象你在训一只狗：  你发出指令「坐下」 ...</div></div></div></a><a class="pagination-related" href="/2026/03/08/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正</div></div><div class="info-2"><div class="info-item-1"> 本文做了什么：在没有实机的前提下，用纯仿真（Gazebo+PX4）把 Sim-to-Real 动力学验证的完整工具链跑通——验证方法本身是否可行、找到方法的能力边界、修复仿真平台在高速下的结构性缺陷。 三层递进：  方法验证（0-12 m&#x2F;s）：用 twin experiment（x500 当”真值”、interceptor 当”仿真”）验证 setpoint replay + k_f 辨识 + 迭代修正这套流程能收敛——4 轮后 Vz RMSE 下降 48%，Pitch RMSE 下降 45%。 高速极限诊断（50-97 m&#x2F;s）：用 x500_hp 和 Gobi 模型把速度推到 97 m&#x2F;s，发现 Gazebo 线性阻力模型在 50+ m&#x2F;s 完全失效（97 m&#x2F;s 时误差达 4 倍），桨盘前进比效应在 70+ m&#x2F;s 引入 20-50% 推力偏差。 缺陷修复：开发 QuadraticDrag 自定义插件实现物理正确的 v² 阻力，gobi_v2 验证了修复效果（最高速降低 14 m&#x2F;s，符合推力-阻力平...</div></div></div></a><a class="pagination-related" href="/2026/02/16/Sim-to-Real%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="Sim-to-Real前沿技术深度解析：10篇高质量论文与开源框架分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-16</div><div class="info-item-2">Sim-to-Real前沿技术深度解析：10篇高质量论文与开源框架分析</div></div><div class="info-2"><div class="info-item-1"> Sim-to-Real（仿真到现实）是机器人学习与强化学习的核心挑战，旨在解决仿真环境训练的策略如何有效迁移到物理世界的问题。本文深度解析10篇高质量前沿学术论文与开源技术，涵盖域随机化、域自适应、系统辨识、元学习、视觉迁移等关键技术，为机器人自主系统的仿真训练与真实部署提供全面技术参考。  一、 Sim-to-Real问题定义与技术挑战1.1 核心问题Sim-to-Real迁移的核心矛盾源于仿真与现实的差异（Reality Gap）：  动力学差异：仿真物理引擎（如MuJoCo、PyBullet）的简化模型与真实物理系统的偏差 感知差异：渲染图像与真实相机采集在纹理、光照、噪声方面的不一致 执行器差异：理想化电机模型与实际伺服系统的延迟、非线性、摩擦效应 传感器差异：仿真传感器噪声模型与实际传感器的误差分布不匹配  1.2 技术路线演进 系统辨识优先（2015-2017）：精细校准仿真参数以匹配真实系统 域随机化主导（2017-2019）：通过随机化仿真参数训练鲁棒策略 自适应迁移兴起（2019-2021）：在线调整仿真参数或使用少量真实数据适配 学习型仿真发展（2021-至...</div></div></div></a><a class="pagination-related" href="/2026/03/05/%E6%88%AA%E5%87%BB%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%8F%82%E6%95%B0%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C-%E4%BB%8E%E5%AE%9E%E6%B5%8B%E6%96%B9%E6%B3%95%E5%88%B0Gazebo-PX4%E9%85%8D%E7%BD%AE%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%8C%87%E5%8D%97/" title="截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-05</div><div class="info-item-2">截击机仿真参数完整手册：从实测方法到 Gazebo-PX4 配置的工程指南</div></div><div class="info-2"><div class="info-item-1"> 截击机仿真的核心矛盾：参数不准，仿真就是在骗自己。但截击机不是实验室里的标准件——机体里塞满了 RK3588 计算板、数字图传模块、PX4 飞控板、电池和各种线缆，每一台的质量分布都不完全一样。本文基于多篇学术论文和工程实践，系统阐述截击机仿真所需的全部参数、每个参数的实测方法、以及如何填入 Gazebo + PX4 SITL 仿真框架。   一、参数体系总览截击机仿真需要的参数可以按用途分为六层： 12345678910111213┌──────────────────────────────────────────────────┐│  第六层：环境参数（风场、空气密度）                 │├──────────────────────────────────────────────────┤│  第五层：目标无人机参数（尺寸、速度、机动模式）     │├──────────────────────────────────────────────────┤│  第四层：感知参数（相机、雷达、检测算法）           │├───────────────...</div></div></div></a><a class="pagination-related" href="/2026/05/10/shanghai-jiaotong-e2e-fly-5/" title="上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">上交大 E2E-Fly 四连发 — 可微物理如何统一四旋翼端到端控制</div></div><div class="info-2"><div class="info-item-1"> 一、一个团队，一年四篇顶刊2026 年，上海交通大学 Danping Zou 和 Wenxian Yu 团队在四旋翼可微仿真领域密集输出了四篇论文，覆盖了从理论框架到真实部署的完整链路。加上 2025 年发表在 Nature Machine Intelligence 上的《Back to Newton’s Laws》，这支团队在可微物理+四旋翼这个方向上已经建立了体系化的方法论。 四篇论文不是孤立的工作——它们是一套逐渐完善的技术栈：    论文 arXiv 核心贡献    E2E-Fly 2604.12916 完整训练-部署系统：可微物理→渲染→域随机化→真机   High-Fidelity Diff Sim 2604.10548 深度图直接映射体速率，替代传统感知→规划→控制管线   VisFly-Lab 2603.21123 统一可微框架：悬停&#x2F;追踪&#x2F;着陆&#x2F;竞速，修正 BPTT 梯度   Gap Traversal 2604.02779 SE(3) 可微仿真，零样本穿越不规则缝隙   下面逐一拆解。  二、E2E-Fly：从可微物理到真机部署...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%89%A9%E7%90%86-AI-%E7%9A%84%E6%8A%80%E6%9C%AF%E5%AE%9A%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">一、物理 AI 的技术定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%B0%E9%9A%BE%E4%B8%80%EF%BC%9A%E7%8A%B6%E6%80%81%E4%B8%8D%E5%8F%AF%E5%89%B2"><span class="toc-number">1.1.</span> <span class="toc-text">困难一：状态不可割</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%B0%E9%9A%BE%E4%BA%8C%EF%BC%9A%E6%95%B0%E6%8D%AE%E4%B8%8D%E5%8F%AF%E9%9B%86%E4%B8%AD%E9%87%87%E9%9B%86"><span class="toc-number">1.2.</span> <span class="toc-text">困难二：数据不可集中采集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%B0%E9%9A%BE%E4%B8%89%EF%BC%9ASim-to-Real-%E9%B8%BF%E6%B2%9F"><span class="toc-number">1.3.</span> <span class="toc-text">困难三：Sim-to-Real 鸿沟</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81VLA-%E6%A8%A1%E5%9E%8B%E2%80%94%E2%80%94%E6%84%9F%E7%9F%A5%E5%88%B0%E8%A1%8C%E5%8A%A8%E7%9A%84%E7%AB%AF%E5%88%B0%E7%AB%AF%E9%9D%A9%E5%91%BD"><span class="toc-number">2.</span> <span class="toc-text">二、VLA 模型——感知到行动的端到端革命</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-RT-2%EF%BC%9A%E4%BB%8E-vision-language-%E5%88%B0-vision-action"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 RT-2：从 vision-language 到 vision-action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Octo-%E5%92%8C-OpenVLA%EF%BC%9A%E5%BC%80%E6%BA%90%E6%97%B6%E4%BB%A3%E7%9A%84-VLA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 Octo 和 OpenVLA：开源时代的 VLA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%EF%BC%9A%E6%B5%81%E5%8C%B9%E9%85%8D%E5%8F%96%E4%BB%A3%E7%A6%BB%E6%95%A3%E5%8C%96"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 π0\pi_0π0​：流匹配取代离散化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-GR00T-N1%EF%BC%9ANVIDIA-%E7%9A%84%E7%B3%BB%E7%BB%9F%E7%BA%A7-VLA"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 GR00T N1：NVIDIA 的系统级 VLA</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%89%A9%E6%95%A3%E7%AD%96%E7%95%A5%E2%80%94%E2%80%94%E7%94%A8%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B%E5%81%9A%E5%8A%A8%E4%BD%9C%E5%BA%8F%E5%88%97"><span class="toc-number">3.</span> <span class="toc-text">三、扩散策略——用生成模型做动作序列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B%E9%80%82%E5%90%88%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%8A%A8%E4%BD%9C%EF%BC%9F"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 为什么扩散模型适合机器人动作？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%B3%E9%94%AE%E5%B7%A5%E4%BD%9C%E7%9A%84%E9%87%8F%E5%8C%96%E5%AF%B9%E6%AF%94"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 关键工作的量化对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E2%80%94%E2%80%94%E8%AE%A9-AI-%E9%A2%84%E6%BC%94%E7%89%A9%E7%90%86%E5%90%8E%E6%9E%9C"><span class="toc-number">4.</span> <span class="toc-text">四、世界模型——让 AI 预演物理后果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BB%8E%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90%E5%88%B0%E7%89%A9%E7%90%86%E9%A2%84%E6%B5%8B"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 从视频生成到物理预测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-DreamerV3%EF%BC%9A%E5%9C%A8%E4%B8%96%E7%95%8C%E6%A8%A1%E5%9E%8B%E9%87%8C%E5%81%9A%E8%A7%84%E5%88%92"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 DreamerV3：在世界模型里做规划</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F%E4%B8%8E%E7%B3%BB%E7%BB%9F%E8%BE%A8%E8%AF%86%E9%97%AD%E7%8E%AF"><span class="toc-number">5.</span> <span class="toc-text">五、可微仿真与系统辨识闭环</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%AF%E5%BE%AE%E4%BB%BF%E7%9C%9F"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 为什么需要可微仿真</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%85%B3%E9%94%AE%E5%B7%A5%E4%BD%9C"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 关键工作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%B3%BB%E7%BB%9F%E8%BE%A8%E8%AF%86%E9%97%AD%E7%8E%AF%E2%80%94%E2%80%94%E4%BB%8E-ULog-%E5%88%B0-JSBSim"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 系统辨识闭环——从 ULog 到 JSBSim</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BA%BA%E5%BD%A2%E6%9C%BA%E5%99%A8%E4%BA%BA%E2%80%94%E2%80%94Physical-AI-%E7%9A%84%E6%9C%80%E5%A4%A7%E7%B3%BB%E7%BB%9F%E9%9B%86%E6%88%90%E6%88%98%E5%9C%BA"><span class="toc-number">6.</span> <span class="toc-text">六、人形机器人——Physical AI 的最大系统集成战场</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%813D-%E5%9C%BA%E6%99%AF%E8%A1%A8%E5%BE%81%E8%BF%9B%E5%85%A5%E6%9C%BA%E5%99%A8%E4%BA%BA"><span class="toc-number">7.</span> <span class="toc-text">七、3D 场景表征进入机器人</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-NeRF-%E2%86%92-3DGS-%E7%9A%84%E8%BF%81%E7%A7%BB"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 NeRF → 3DGS 的迁移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%AF%AD%E8%A8%80%E6%9D%A1%E4%BB%B6-3D-%E6%93%8D%E4%BD%9C"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 语言条件 3D 操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81Sim-to-Real%E2%80%94%E2%80%94%E4%BB%8E%E8%B0%83%E5%8F%82%E5%88%B0%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">8.</span> <span class="toc-text">八、Sim-to-Real——从调参到基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E5%92%8C%E7%BB%88%E7%BB%93"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 域随机化的自动化和终结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Real-to-Sim-to-Real%EF%BC%88R2S2R%EF%BC%89"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 Real-to-Sim-to-Real（R2S2R）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Distillation-from-Sim"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 Distillation from Sim</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E8%BE%B9%E7%BC%98%E6%8E%A8%E7%90%86%E2%80%94%E2%80%94%E8%AE%A9-VLA-%E8%B7%91%E5%9C%A8%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%B8%8A"><span class="toc-number">9.</span> <span class="toc-text">九、边缘推理——让 VLA 跑在机器人上</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%87%8F%E5%8C%96%EF%BC%9A%E4%BB%8E-7B-%E5%88%B0-Jetson"><span class="toc-number">9.1.</span> <span class="toc-text">9.1 量化：从 7B 到 Jetson</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%8E%A8%E6%B5%8B%E6%80%A7%E5%8A%A8%E4%BD%9C%E8%A7%A3%E7%A0%81"><span class="toc-number">9.2.</span> <span class="toc-text">9.2 推测性动作解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BA%8B%E4%BB%B6%E9%A9%B1%E5%8A%A8%E6%9E%B6%E6%9E%84"><span class="toc-number">9.3.</span> <span class="toc-text">9.3 事件驱动架构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93%E4%B8%8E%E6%8A%80%E6%9C%AF%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-number">10.</span> <span class="toc-text">十、总结与技术路线图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%B4%9E%E5%AF%9F"><span class="toc-number">10.1.</span> <span class="toc-text">核心洞察</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-number">10.2.</span> <span class="toc-text">技术路线图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">10.3.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

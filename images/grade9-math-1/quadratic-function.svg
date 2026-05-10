@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
+<style>text{font-family:"WenQuanYi Zen Hei","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}</style>
+<rect width="720" height="480" fill="#ffffff"/>
+<text x="360" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">二次函数 y = ax² + bx + c</text>
+<rect x="25" y="48" width="320" height="415" rx="8" fill="#f0fdf4" stroke="#d1d5db" stroke-width="1"/>
+<text x="185" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#16a34a">a &gt; 0 开口向上</text>
+<line x1="70" y1="250" x2="295" y2="250" stroke="#9ca3af" stroke-width="0.8"/>
+<line x1="160" y1="380" x2="160" y2="75" stroke="#9ca3af" stroke-width="0.8"/>
+<polygon points="295,250 290,247 290,253" fill="#9ca3af"/>
+<polygon points="160,75 157,80 163,80" fill="#9ca3af"/>
+<text x="300" y="254" font-size="10" fill="#6b7280">x</text>
+<text x="154" y="82" font-size="10" fill="#6b7280">y</text>
+<path d="M 100,340 Q 190,280 220,340 Q 250,280 340,340" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+<circle cx="220" cy="340" r="4" fill="#16a34a"/>
+<text x="230" y="345" font-size="12" font-weight="700" fill="#16a34a">顶点(2,−3)</text>
+<line x1="220" y1="80" x2="220" y2="370" stroke="#16a34a" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="208" y="90" font-size="10" fill="#16a34a">x=2</text>
+<circle cx="160" cy="220" r="3" fill="#16a34a"/>
+<text x="142" y="215" font-size="10" fill="#374151">(0,1)</text>
+<circle cx="280" cy="220" r="3" fill="#16a34a"/>
+<text x="285" y="215" font-size="10" fill="#374151">(4,1)</text>
+<rect x="375" y="48" width="320" height="415" rx="8" fill="#fef2f2" stroke="#d1d5db" stroke-width="1"/>
+<text x="535" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#dc2626">a &lt; 0 开口向下</text>
+<line x1="420" y1="250" x2="645" y2="250" stroke="#9ca3af" stroke-width="0.8"/>
+<line x1="510" y1="380" x2="510" y2="75" stroke="#9ca3af" stroke-width="0.8"/>
+<polygon points="645,250 640,247 640,253" fill="#9ca3af"/>
+<polygon points="510,75 507,80 513,80" fill="#9ca3af"/>
+<text x="650" y="254" font-size="10" fill="#6b7280">x</text>
+<text x="504" y="82" font-size="10" fill="#6b7280">y</text>
+<path d="M 450,340 Q 540,220 570,160 Q 600,220 690,340" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+<circle cx="570" cy="160" r="4" fill="#dc2626"/>
+<text x="580" y="155" font-size="12" font-weight="700" fill="#dc2626">顶点(2,3)</text>
+<line x1="570" y1="80" x2="570" y2="370" stroke="#dc2626" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="558" y="90" font-size="10" fill="#dc2626">x=2</text>
+<circle cx="510" cy="280" r="3" fill="#dc2626"/>
+<text x="492" y="285" font-size="10" fill="#374151">(0,−1)</text>
+<circle cx="630" cy="280" r="3" fill="#dc2626"/>
+<text x="635" y="285" font-size="10" fill="#374151">(4,−1)</text>
+</svg>

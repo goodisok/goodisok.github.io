@@ -1,0 +1,876 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="摘要：JSBSim 是 NASA 主导开发的开源飞行动力学仿真库，被 F-16、X-15、X-38 等多个航空航天项目采用。本文从架构设计、核心概念到 WSL 安装部署与 Python API 实战，完整覆盖 JSBSim 的使用全链路。最后对比 JSBSim、Gazebo、X-Plane 三大仿真器的适用场景，为飞行器建模与仿真应用提供技术选型参考。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战">
+<meta property="og:url" content="https://goodisok.github.io/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="摘要：JSBSim 是 NASA 主导开发的开源飞行动力学仿真库，被 F-16、X-15、X-38 等多个航空航天项目采用。本文从架构设计、核心概念到 WSL 安装部署与 Python API 实战，完整覆盖 JSBSim 的使用全链路。最后对比 JSBSim、Gazebo、X-Plane 三大仿真器的适用场景，为飞行器建模与仿真应用提供技术选型参考。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-02-11T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-10T16:00:00.000Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="JSBSim">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="WSL">
+<meta property="article:tag" content="仿真">
+<meta property="article:tag" content="飞行仿真">
+<meta property="article:tag" content="飞行动力学">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战",
+  "url": "https://goodisok.github.io/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-02-11T02:00:00.000Z",
+  "dateModified": "2026-02-10T16:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-11T02:00:00.000Z" title="发表于 2026-02-11 10:00:00">2026-02-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T16:00:00.000Z" title="更新于 2026-02-11 00:00:00">2026-02-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="https://img.shields.io/badge/FlightDynamics-JSBSim-blue?style=for-the-badge" alt="Badge"></p>
+<blockquote>
+<p><strong>摘要</strong>：JSBSim 是 NASA 主导开发的开源飞行动力学仿真库，被 F-16、X-15、X-38 等多个航空航天项目采用。本文从架构设计、核心概念到 WSL 安装部署与 Python API 实战，完整覆盖 JSBSim 的使用全链路。最后对比 JSBSim、Gazebo、X-Plane 三大仿真器的适用场景，为飞行器建模与仿真应用提供技术选型参考。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="一、什么是-JSBSim"><a href="#一、什么是-JSBSim" class="headerlink" title="一、什么是 JSBSim"></a>一、什么是 JSBSim</h2><h3 id="1-1-历史起源"><a href="#1-1-历史起源" class="headerlink" title="1.1 历史起源"></a>1.1 历史起源</h3><p>JSBSim 起源于 1996 年，由 Jon Berndt 在美国 NASA Langley 研究中心开始开发。它的核心目标是创建一个<strong>模块化、可扩展的开源飞行动力学仿真框架</strong>，用于替代当时昂贵的商业仿真软件（如 MATLAB&#x2F;Simulink Aerospace Toolbox）。</p>
+<p><strong>关键时间线：</strong></p>
+<ul>
+<li><strong>1996</strong>：Jon Berndt 在 NASA Langley 开始 JSBSim 的早期开发</li>
+<li><strong>2000</strong>：首次公开发布，用于飞行控制系统验证</li>
+<li><strong>2004</strong>：被 X-38（NASA&#x2F;ESA 乘员返回飞行器）项目用于再入轨迹仿真验证</li>
+<li><strong>2010</strong>：成为 FlightGear 飞行模拟器的默认飞行动力学引擎</li>
+<li><strong>2018</strong>：Python 绑定（pyJSBSim）正式发布</li>
+<li><strong>2020-2025</strong>：社区活跃，发布 v1.2-v1.3 版本，支持 Python 3.10-3.12</li>
+</ul>
+<p><strong>NASA 应用案例：</strong><br>JSBSim 虽然从未直接用于载人飞行器的飞行关键系统中，但被广泛用于以下研究和验证场景：</p>
+<ul>
+<li><strong>X-38 乘员返回飞行器</strong>：再入段轨迹仿真（2004）</li>
+<li><strong>F-16 飞行品质研究</strong>：荷兰 NLR 使用 JSBSim 进行 F-16 的飞行品质分析</li>
+<li><strong>无人机自主着陆</strong>：NASA 使用 JSBSim 验证小型无人机的精确着陆控制系统</li>
+</ul>
+<h3 id="1-2-核心定位"><a href="#1-2-核心定位" class="headerlink" title="1.2 核心定位"></a>1.2 核心定位</h3><p>JSBSim 不是通用游戏引擎，不是物理引擎，也不是可视化仿真器。它的定位非常精确：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">JSBSim = 飞行动力学求解器 + 飞行器模型定义语言</span><br><span class="line">         (FDE solver)     (XML-based aircraft definition)</span><br></pre></td></tr></table></figure>
+
+<p>对比：</p>
+<table>
+<thead>
+<tr>
+<th>软件</th>
+<th>核心能力</th>
+<th>可视化</th>
+<th>碰撞检测</th>
+<th>传感器仿真</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSBSim</td>
+<td>六自由度气动求解</td>
+<td>❌ 需外接 FlightGear</td>
+<td>❌</td>
+<td>❌ 需自行添加</td>
+</tr>
+<tr>
+<td>Gazebo</td>
+<td>通用机器人仿真</td>
+<td>✅ OGRE</td>
+<td>✅ Bullet&#x2F;ODE</td>
+<td>✅ 传感器插件</td>
+</tr>
+<tr>
+<td>X-Plane</td>
+<td>完整飞行仿真</td>
+<td>✅ 3D场景</td>
+<td>✅</td>
+<td>✅ 仪表系统</td>
+</tr>
+</tbody></table>
+<p>JSBSim 的优势在于<strong>气动建模的深度和灵活性</strong>，而不是功能的广度。</p>
+<hr>
+<h2 id="二、JSBSim-架构设计"><a href="#二、JSBSim-架构设计" class="headerlink" title="二、JSBSim 架构设计"></a>二、JSBSim 架构设计</h2><h3 id="2-1-整体架构"><a href="#2-1-整体架构" class="headerlink" title="2.1 整体架构"></a>2.1 整体架构</h3><p>JSBSim 采用<strong>分层模块化设计</strong>，每个层次负责独立的物理子模型：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────┐</span><br><span class="line">│              JSBSim 执行引擎 (FGFDMExec)      │</span><br><span class="line">│                                              │</span><br><span class="line">│  ┌─────────┐  ┌─────────┐  ┌─────────────┐  │</span><br><span class="line">│  │ 飞行器    │  │ 环境     │  │ 属性树       │  │</span><br><span class="line">│  │ 模型      │  │ 模型     │  │ (Property   │  │</span><br><span class="line">│  │          │  │         │  │  Tree)      │  │</span><br><span class="line">│  │ .xml 定义 │  │ 大气     │  │             │  │</span><br><span class="line">│  │ 所有参数  │  │ 风场     │  │ 所有状态     │  │</span><br><span class="line">│  │          │  │ 重力     │  │ 可读可写     │  │</span><br><span class="line">│  └─────┬────┘  └────┬────┘  └──────┬──────┘  │</span><br><span class="line">│        └────────────┴──────────────┘          │</span><br><span class="line">│                        │                      │</span><br><span class="line">│  ┌─────────────────────▼──────────────────┐   │</span><br><span class="line">│  │          步进循环（每帧一次）              │   │</span><br><span class="line">│  │                                         │   │</span><br><span class="line">│  │  1. 气动力计算（查表插值）                  │   │</span><br><span class="line">│  │  2. 发动机推力计算（螺旋桨/喷气/电动）       │   │</span><br><span class="line">│  │  3. 起落架/地面反力                        │   │</span><br><span class="line">│  │  4. 合计力 + 力矩 → 刚体六自由度方程         │   │</span><br><span class="line">│  │  5. 数值积分 → 更新状态                     │   │</span><br><span class="line">│  │  6. 更新传感器模型输出                       │   │</span><br><span class="line">│  │  7. 调用自动驾驶仪/FCS                      │   │</span><br><span class="line">│  └─────────────────────────────────────────┘   │</span><br><span class="line">└─────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>执行流程：</strong> 每个仿真步长中，<code>FGFDMExec::Run()</code> 依次调用各子模型的计算函数，最终通过刚体动力学方程积分得到下一时刻的状态。</p>
+<h3 id="2-2-飞行器模型定义（XML）"><a href="#2-2-飞行器模型定义（XML）" class="headerlink" title="2.2 飞行器模型定义（XML）"></a>2.2 飞行器模型定义（XML）</h3><p>JSBSim 不对飞行器施加任何固定的动力学模板。<strong>每架飞机都由一组 XML 文件定义</strong>，放在 <code>aircraft/&lt;model_name&gt;/</code> 目录下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">aircraft/f16/</span><br><span class="line">├── f16.xml               ← 主配置文件</span><br><span class="line">├── f16_aero.xml          ← 气动系数表</span><br><span class="line">├── f16_engine.xml        ← 发动机模型</span><br><span class="line">├── f16_mass.xml          ← 质量/惯量</span><br><span class="line">└── f16_ground.xml        ← 起落架</span><br></pre></td></tr></table></figure>
+
+<p><strong>主配置文件示例：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">fdm_config</span> <span class="attr">name</span>=<span class="string">&quot;My Aircraft&quot;</span> <span class="attr">version</span>=<span class="string">&quot;2.0&quot;</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">metrics</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wingarea</span> <span class="attr">unit</span>=<span class="string">&quot;M2&quot;</span>&gt;</span>1.2<span class="tag">&lt;/<span class="name">wingarea</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wingspan</span> <span class="attr">unit</span>=<span class="string">&quot;M&quot;</span>&gt;</span>2.8<span class="tag">&lt;/<span class="name">wingspan</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">chord</span> <span class="attr">unit</span>=<span class="string">&quot;M&quot;</span>&gt;</span>0.43<span class="tag">&lt;/<span class="name">chord</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">htailarea</span> <span class="attr">unit</span>=<span class="string">&quot;M2&quot;</span>&gt;</span>0.25<span class="tag">&lt;/<span class="name">htailarea</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">htailarm</span> <span class="attr">unit</span>=<span class="string">&quot;M&quot;</span>&gt;</span>1.5<span class="tag">&lt;/<span class="name">htailarm</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">vtailarea</span> <span class="attr">unit</span>=<span class="string">&quot;M2&quot;</span>&gt;</span>0.18<span class="tag">&lt;/<span class="name">vtailarea</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">vtailarm</span> <span class="attr">unit</span>=<span class="string">&quot;M&quot;</span>&gt;</span>1.4<span class="tag">&lt;/<span class="name">vtailarm</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">metrics</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">mass_balance</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ixx</span> <span class="attr">unit</span>=<span class="string">&quot;KG*M2&quot;</span>&gt;</span>0.15<span class="tag">&lt;/<span class="name">ixx</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">iyy</span> <span class="attr">unit</span>=<span class="string">&quot;KG*M2&quot;</span>&gt;</span>0.85<span class="tag">&lt;/<span class="name">iyy</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">izz</span> <span class="attr">unit</span>=<span class="string">&quot;KG*M2&quot;</span>&gt;</span>0.92<span class="tag">&lt;/<span class="name">izz</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">emptywt</span> <span class="attr">unit</span>=<span class="string">&quot;KG&quot;</span>&gt;</span>12.5<span class="tag">&lt;/<span class="name">emptywt</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">mass_balance</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">ground_reactions</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 起落架定义 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ground_reactions</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">propulsion</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 发动机/螺旋桨定义 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">propulsion</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">flight_control</span> <span class="attr">name</span>=<span class="string">&quot;FCS&quot;</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 舵面混控定义 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">flight_control</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">aerodynamics</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 引用气动系数文件 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">function</span> <span class="attr">name</span>=<span class="string">&quot;aero/coefficient/CL&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">table</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">independentVar</span>&gt;</span>aero/alpha-rad<span class="tag">&lt;/<span class="name">independentVar</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tableData</span>&gt;</span></span><br><span class="line">          0.00  0.0</span><br><span class="line">          0.05  0.4</span><br><span class="line">          0.10  0.8</span><br><span class="line">          0.15  1.2</span><br><span class="line">          0.20  1.4</span><br><span class="line">          0.25  1.1  <span class="comment">&lt;!-- 失速后下降 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">tableData</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">function</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">aerodynamics</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">output</span> <span class="attr">name</span>=<span class="string">&quot;data.csv&quot;</span> <span class="attr">type</span>=<span class="string">&quot;CSV&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span>position/h-sl-meters<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span>velocities/vt-mps<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span>aero/alpha-deg<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">output</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">fdm_config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-属性树（Property-Tree）"><a href="#2-3-属性树（Property-Tree）" class="headerlink" title="2.3 属性树（Property Tree）"></a>2.3 属性树（Property Tree）</h3><p>JSBSim 中最核心的概念是<strong>属性树</strong>。所有飞行器状态、控制量、环境参数都挂在这个全局树上，通过<strong>字符串路径</strong>访问：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">position/h-sl-meters          → 海拔高度（m）</span><br><span class="line">position/lat-geo-deg          → 纬度（deg）</span><br><span class="line">position/lon-geo-deg          → 经度（deg）</span><br><span class="line">velocities/vc-mps             → 校正空速（m/s）</span><br><span class="line">velocities/vt-mps             → 真空速（m/s）</span><br><span class="line">velocities/u-mps              → 体轴 x 向速度（m/s）</span><br><span class="line">aero/alpha-deg                → 迎角（deg）</span><br><span class="line">aero/beta-deg                 → 侧滑角（deg）</span><br><span class="line">forces/fbx-lbs                → 体轴 x 力</span><br><span class="line">moments/l-nm                  → 滚转力矩（Nm）</span><br><span class="line">fcs/aileron-cmd-norm          → 副翼指令 [-1, 1]</span><br><span class="line">fcs/elevator-cmd-norm         → 升降舵指令 [-1, 1]</span><br><span class="line">fcs/rudder-cmd-norm           → 方向舵指令 [-1, 1]</span><br><span class="line">fcs/throttle-cmd-norm         → 油门指令 [0, 1]</span><br><span class="line">attitude/phi-rad              → 滚转角（rad）</span><br><span class="line">attitude/theta-rad            → 俯仰角（rad）</span><br><span class="line">attitude/psi-rad              → 偏航角（rad）</span><br></pre></td></tr></table></figure>
+
+<p><strong>属性树的设计哲学：</strong></p>
+<ul>
+<li>所有状态统一通过字符串路径访问——不再需要记忆 C++ API</li>
+<li>支持运行时读写——可以在仿真过程中动态修改任何属性</li>
+<li>便于调试和日志——属性路径本身就有自解释性</li>
+</ul>
+<h3 id="2-4-气动模型：基于表格插值"><a href="#2-4-气动模型：基于表格插值" class="headerlink" title="2.4 气动模型：基于表格插值"></a>2.4 气动模型：基于表格插值</h3><p>JSBSim 的气动模型通过<strong>配置</strong>而非<strong>代码</strong>来定义。气动系数（CL、CD、Cm 等）都是通过表格（<code>&lt;table&gt;</code> 元素）定义的，支持：</p>
+<ul>
+<li><strong>一维插值</strong>：CL &#x3D; CL(α)</li>
+<li><strong>二维插值</strong>：CL &#x3D; CL(α, Ma)</li>
+<li><strong>函数组合</strong>：多个函数的加、减、乘、除</li>
+<li><strong>调度增益</strong>：ScheduledGain（根据高度&#x2F;Mach 自动调整增益）</li>
+</ul>
+<p><strong>二维插表示例（Mach 数 + 迎角影响升力系数）：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">function</span> <span class="attr">name</span>=<span class="string">&quot;aero/coefficient/CL&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">table</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">independentVar</span> <span class="attr">lookup</span>=<span class="string">&quot;row&quot;</span>&gt;</span>aero/alpha-rad<span class="tag">&lt;/<span class="name">independentVar</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">independentVar</span> <span class="attr">lookup</span>=<span class="string">&quot;column&quot;</span>&gt;</span>velocities/mach<span class="tag">&lt;/<span class="name">independentVar</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tableData</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!-- α↓ \ Ma→   0.0    0.1    0.2    0.3 --&gt;</span></span><br><span class="line">                        0.00   0.00   0.00   0.00   0.00</span><br><span class="line">                        0.05   0.40   0.39   0.37   0.34</span><br><span class="line">                        0.10   0.80   0.78   0.74   0.68</span><br><span class="line">                        0.15   1.20   1.17   1.11   1.02</span><br><span class="line">                        0.20   1.40   1.37   1.30   1.19</span><br><span class="line">                        0.25   1.10   1.08   1.02   0.94</span><br><span class="line">        <span class="tag">&lt;/<span class="name">tableData</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">function</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>这意味着：</strong></p>
+<p>你现有的 <code>aero.cpp</code> 中的 CL、CD、Cm 计算公式，<strong>不需要重写</strong>。只需要将公式计算出的值按不同的 α 和 Ma 组合输出为表格，JSBSim 就能直接加载为气动模型。一张表格 &#x3D; 一个 <code>aero/coefficient/CL</code> 函数，完全解耦。</p>
+<h3 id="2-5-控制面与执行机构"><a href="#2-5-控制面与执行机构" class="headerlink" title="2.5 控制面与执行机构"></a>2.5 控制面与执行机构</h3><p>JSBSim 通过 <code>&lt;channel&gt;</code> 定义控制面的偏转逻辑：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">channel</span> <span class="attr">name</span>=<span class="string">&quot;elevator&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span>&gt;</span>fcs/elevator-cmd-norm<span class="tag">&lt;/<span class="name">input</span>&gt;</span>   <span class="comment">&lt;!-- 输入：归一化指令 [-1,1] --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">rate_limit</span> <span class="attr">unit</span>&quot;<span class="attr">DEG</span>/<span class="attr">SEC</span>&quot;&gt;</span>60<span class="tag">&lt;/<span class="name">rate_limit</span>&gt;</span>  <span class="comment">&lt;!-- 偏转速率限制 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">output</span>&gt;</span>fcs/elevator-pos-deg<span class="tag">&lt;/<span class="name">output</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">function</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">table</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">independentVar</span>&gt;</span>fcs/elevator-cmd-norm<span class="tag">&lt;/<span class="name">independentVar</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">tableData</span>&gt;</span></span><br><span class="line">                -1.0  -25.0    <span class="comment">&lt;!-- 拉到最大：舵面偏转 -25° --&gt;</span></span><br><span class="line">                 0.0    0.0</span><br><span class="line">                 1.0   25.0    <span class="comment">&lt;!-- 推到底：舵面偏转 +25° --&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">tableData</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">function</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">channel</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>同样支持：<code>&lt;actuator&gt;</code>（一阶延迟模型）、<code>&lt;lag_filter&gt;</code>（信号滤波）、<code>&lt;pid&gt;</code>（PID 控制器）。</p>
+<h3 id="2-6-发动机与螺旋桨模型"><a href="#2-6-发动机与螺旋桨模型" class="headerlink" title="2.6 发动机与螺旋桨模型"></a>2.6 发动机与螺旋桨模型</h3><p>JSBSim 的推进系统支持多种类型：</p>
+<p><strong>直接推力模型（最简单）：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">propulsion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">engine</span> <span class="attr">file</span>=<span class="string">&quot;my_engine&quot;</span> <span class="attr">type</span>=<span class="string">&quot;electric&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">thrust</span> <span class="attr">unit</span>=<span class="string">&quot;N&quot;</span>&gt;</span>85.0<span class="tag">&lt;/<span class="name">thrust</span>&gt;</span>  <span class="comment">&lt;!-- 最大推力 85N --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">engine</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">propulsion</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>螺旋桨模型（更真实）：</strong></p>
+<ul>
+<li>支持桨叶变距（可控螺距）</li>
+<li>支持进距比（J &#x3D; V&#x2F;(n·D)）对推力&#x2F;扭矩的修正</li>
+<li>支持电动&#x2F;活塞&#x2F;涡轮三种动力源</li>
+</ul>
+<p><strong>这对多旋翼建模特别有用：</strong><br>对于高速前飞的多旋翼，转子前进风阻力矩会显著变化。JSBSim 的螺旋桨模型中的 <code>CT_J</code> 和 <code>CP_J</code> 表格正好对应前进比推力修正，可以直接复用。</p>
+<hr>
+<h2 id="三、WSL-安装与配置"><a href="#三、WSL-安装与配置" class="headerlink" title="三、WSL 安装与配置"></a>三、WSL 安装与配置</h2><h3 id="3-1-环境要求"><a href="#3-1-环境要求" class="headerlink" title="3.1 环境要求"></a>3.1 环境要求</h3><p>在 WSL（Windows Subsystem for Linux）上运行 JSBSim 没有任何特殊要求——JSBSim 是纯粹的 CPU 数值计算库，不需要 GPU、OpenGL 或任何图形硬件。</p>
+<p><strong>已验证环境（2026年5月）：</strong></p>
+<ul>
+<li><strong>WSL 版本</strong>：WSL2</li>
+<li><strong>Linux 发行版</strong>：Ubuntu 22.04 LTS</li>
+<li><strong>Python 版本</strong>：3.10.12</li>
+<li><strong>JSBSim 版本</strong>：1.3.0（2026年4月发布）</li>
+</ul>
+<h3 id="3-2-安装步骤"><a href="#3-2-安装步骤" class="headerlink" title="3.2 安装步骤"></a>3.2 安装步骤</h3><p><strong>第1步：确认 Python 环境</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python3 --version</span><br><span class="line"><span class="comment"># 确保 &gt;= 3.8</span></span><br><span class="line"></span><br><span class="line">pip3 --version</span><br><span class="line"><span class="comment"># 确保 pip 已安装</span></span><br></pre></td></tr></table></figure>
+
+<p>如果 pip 缺失，先安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install python3-pip -y</span><br></pre></td></tr></table></figure>
+
+<p><strong>第2步：直接 pip 安装</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install jsbsim</span><br></pre></td></tr></table></figure>
+
+<p>安装过程极快——JSBSim 的 Python 包是预编译的 wheel（.whl），无需本地编译：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Collecting jsbsim</span><br><span class="line">  Downloading jsbsim-1.3.0-cp310-cp310-manylinux2014_x86_64.whl (2.2 MB)</span><br><span class="line">     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 0.5s</span><br><span class="line">Installing collected packages: jsbsim</span><br><span class="line">Successfully installed jsbsim-1.3.0</span><br></pre></td></tr></table></figure>
+
+<p><strong>第3步：验证安装</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">python3 -c <span class="string">&quot;import jsbsim; print(jsbsim.__version__)&quot;</span></span><br><span class="line"><span class="comment"># 输出：1.3.0</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-验证第一个仿真（Cessna-172）"><a href="#3-3-验证第一个仿真（Cessna-172）" class="headerlink" title="3.3 验证第一个仿真（Cessna 172）"></a>3.3 验证第一个仿真（Cessna 172）</h3><p>JSBSim 自带 70+ 个飞机模型。用默认的 Cessna 172 验证仿真管道：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jsbsim</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取 JSBSim 安装路径（内含 aircraft/ 目录）</span></span><br><span class="line">root = os.path.dirname(jsbsim.__file__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建仿真管理器</span></span><br><span class="line">fdm = jsbsim.FGFDMExec(root)</span><br><span class="line">fdm.load_model(<span class="string">&#x27;c172x&#x27;</span>)</span><br><span class="line">fdm.set_dt(<span class="number">0.001</span>)  <span class="comment"># 1ms 步长</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置初始条件（起飞前：高度 1000ft，空速 80ft/s）</span></span><br><span class="line">fdm[<span class="string">&#x27;ic/h-sl-ft&#x27;</span>] = <span class="number">1000</span></span><br><span class="line">fdm[<span class="string">&#x27;ic/u-fps&#x27;</span>] = <span class="number">80</span></span><br><span class="line">fdm.run_ic()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置油门 60%</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/throttle-cmd-norm&#x27;</span>] = <span class="number">0.6</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行 100 步</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    fdm.run()</span><br><span class="line">    <span class="keyword">if</span> i % <span class="number">20</span> == <span class="number">0</span>:</span><br><span class="line">        h = fdm[<span class="string">&#x27;position/h-sl-ft&#x27;</span>] * <span class="number">0.3048</span>      <span class="comment"># ft → m</span></span><br><span class="line">        vt = fdm[<span class="string">&#x27;velocities/vt-fps&#x27;</span>] * <span class="number">0.3048</span>     <span class="comment"># ft/s → m/s</span></span><br><span class="line">        alpha = fdm[<span class="string">&#x27;aero/alpha-deg&#x27;</span>]</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;step <span class="subst">&#123;i:3d&#125;</span>: h=<span class="subst">&#123;h:<span class="number">.1</span>f&#125;</span>m  vt=<span class="subst">&#123;vt:<span class="number">.1</span>f&#125;</span>m/s  α=<span class="subst">&#123;alpha:<span class="number">.2</span>f&#125;</span>°&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">step   0: h=304.8m  vt=24.4m/s  α=5.23°</span><br><span class="line">step  20: h=304.8m  vt=24.4m/s  α=5.23°</span><br><span class="line">step  40: h=304.8m  vt=24.4m/s  α=5.23°</span><br><span class="line">step  60: h=304.8m  vt=24.4m/s  α=5.23°</span><br><span class="line">step  80: h=304.8m  vt=24.4m/s  α=5.23°</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Cessna 172 在 60% 油门、1000ft 高度、80ft&#x2F;s 空速下处于稳态飞行。这验证了 JSBSim 在 WSL 上运行正常。</p>
+</blockquote>
+<h3 id="3-4-WSL-中的路径说明"><a href="#3-4-WSL-中的路径说明" class="headerlink" title="3.4 WSL 中的路径说明"></a>3.4 WSL 中的路径说明</h3><p>JSBSim 的 FGFDMExec 构造函数需要传入<strong>包含 <code>aircraft/</code> 目录的根路径</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># JSBSim 安装在 site-packages/jsbsim/ 下</span></span><br><span class="line"><span class="comment"># aircraft/ 目录在此目录内</span></span><br><span class="line">root = os.path.dirname(jsbsim.__file__)</span><br><span class="line"><span class="comment"># root = /home/user/.local/lib/python3.10/site-packages/jsbsim/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 aircraft 目录存在</span></span><br><span class="line"><span class="built_in">print</span>(os.path.isdir(os.path.join(root, <span class="string">&#x27;aircraft&#x27;</span>)))  <span class="comment"># True</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 所有可用机型列表</span></span><br><span class="line">models = os.listdir(os.path.join(root, <span class="string">&#x27;aircraft&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Available models: <span class="subst">&#123;<span class="built_in">len</span>(models)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="comment"># 包含: c172x, f16, f15, x15, 737, B747, A320, Concorde 等 70+ 机型</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-常见安装问题"><a href="#3-5-常见安装问题" class="headerlink" title="3.5 常见安装问题"></a>3.5 常见安装问题</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pip install jsbsim</code> 超时</td>
+<td>网络问题</td>
+<td><code>pip install jsbsim -i https://pypi.tuna.tsinghua.edu.cn/simple</code></td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: No module named &#39;jsbsim&#39;</code></td>
+<td>pip 安装在 user site</td>
+<td>检查 <code>pip list | grep jsbsim</code>，确认安装路径</td>
+</tr>
+<tr>
+<td><code>FGFDMExec</code> 加载模型失败</td>
+<td>根路径错误</td>
+<td>传入正确的根路径（包含 aircraft&#x2F; 目录的父目录）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、Python-API-实战"><a href="#四、Python-API-实战" class="headerlink" title="四、Python API 实战"></a>四、Python API 实战</h2><h3 id="4-1-核心类与用法"><a href="#4-1-核心类与用法" class="headerlink" title="4.1 核心类与用法"></a>4.1 核心类与用法</h3><p>JSBSim 的 Python API 围绕三个核心类：</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>作用</th>
+<th>关键方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FGFDMExec</code></td>
+<td>仿真管理器（一个实例&#x3D;一架飞机）</td>
+<td><code>load_model()</code>, <code>run_ic()</code>, <code>run()</code>, <code>set_dt()</code></td>
+</tr>
+<tr>
+<td><code>FGPropertyNode</code></td>
+<td>通过属性树访问状态</td>
+<td><code>__getitem__()</code>, <code>__setitem__()</code></td>
+</tr>
+<tr>
+<td>（绑定层）</td>
+<td>Python ↔ C++ 转换</td>
+<td>自动处理</td>
+</tr>
+</tbody></table>
+<p><strong>创建与配置：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">fdm = jsbsim.FGFDMExec(root_dir)</span><br><span class="line">fdm.load_model(<span class="string">&#x27;f16&#x27;</span>)        <span class="comment"># 加载 F-16 模型</span></span><br><span class="line">fdm.set_dt(<span class="number">0.005</span>)             <span class="comment"># 5ms 步长</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置初始条件</span></span><br><span class="line">fdm[<span class="string">&#x27;ic/h-sl-ft&#x27;</span>] = <span class="number">10000</span>     <span class="comment"># 初始高度 10000ft</span></span><br><span class="line">fdm[<span class="string">&#x27;ic/u-fps&#x27;</span>] = <span class="number">500</span>         <span class="comment"># 初始速度 500ft/s</span></span><br><span class="line">fdm[<span class="string">&#x27;ic/theta-deg&#x27;</span>] = <span class="number">2.0</span>     <span class="comment"># 初始俯仰角 2°</span></span><br><span class="line">fdm.run_ic()                  <span class="comment"># 应用初始条件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置控制量</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/throttle-cmd-norm&#x27;</span>] = <span class="number">0.8</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/elevator-cmd-norm&#x27;</span>] = -<span class="number">0.05</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 步进仿真</span></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    fdm.run()</span><br><span class="line">    <span class="comment"># 读取状态</span></span><br><span class="line">    h = fdm[<span class="string">&#x27;position/h-sl-meters&#x27;</span>]</span><br><span class="line">    vt = fdm[<span class="string">&#x27;velocities/vt-mps&#x27;</span>]</span><br><span class="line">    alpha = fdm[<span class="string">&#x27;aero/alpha-deg&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<p><strong>读写属性示例：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 读</span></span><br><span class="line">altitude = fdm[<span class="string">&#x27;position/h-sl-ft&#x27;</span>]</span><br><span class="line">airspeed = fdm[<span class="string">&#x27;velocities/vt-fps&#x27;</span>]</span><br><span class="line">roll_angle = fdm[<span class="string">&#x27;attitude/phi-rad&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 写</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/throttle-cmd-norm&#x27;</span>] = <span class="number">0.9</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/aileron-cmd-norm&#x27;</span>] = <span class="number">0.1</span>  <span class="comment"># 向右滚转</span></span><br><span class="line">fdm[<span class="string">&#x27;fcs/rudder-cmd-norm&#x27;</span>] = <span class="number">0.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 支持的属性范围</span></span><br><span class="line"><span class="comment"># 完整的属性列表可以通过 fdm.query_property_catalog() 获取</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-多飞行器仿真（靶机-截击机）"><a href="#4-2-多飞行器仿真（靶机-截击机）" class="headerlink" title="4.2 多飞行器仿真（靶机 + 截击机）"></a>4.2 多飞行器仿真（靶机 + 截击机）</h3><p>同一 Python 进程中可以创建多个 <code>FGFDMExec</code> 实例，分别控制不同的飞机：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jsbsim</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line">root = os.path.dirname(jsbsim.__file__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建两架飞机</span></span><br><span class="line">target = jsbsim.FGFDMExec(root)</span><br><span class="line">interceptor = jsbsim.FGFDMExec(root)</span><br><span class="line"></span><br><span class="line">target.load_model(<span class="string">&#x27;c172x&#x27;</span>)</span><br><span class="line">interceptor.load_model(<span class="string">&#x27;c172x&#x27;</span>)</span><br><span class="line"></span><br><span class="line">target.set_dt(<span class="number">0.001</span>)</span><br><span class="line">interceptor.set_dt(<span class="number">0.001</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置初始位置</span></span><br><span class="line"><span class="comment"># 靶机：位置 (0, 0, 500m)，速度 30m/s 向东</span></span><br><span class="line"><span class="comment"># 截击机：位置 (-2000, 0, 600m)，静止</span></span><br><span class="line">target[<span class="string">&#x27;ic/h-sl-ft&#x27;</span>] = <span class="number">500</span> / <span class="number">0.3048</span></span><br><span class="line">target[<span class="string">&#x27;ic/u-fps&#x27;</span>] = <span class="number">30</span> / <span class="number">0.3048</span></span><br><span class="line">target.run_ic()</span><br><span class="line"></span><br><span class="line">interceptor[<span class="string">&#x27;ic/h-sl-ft&#x27;</span>] = <span class="number">600</span> / <span class="number">0.3048</span></span><br><span class="line">interceptor[<span class="string">&#x27;ic/u-fps&#x27;</span>] = <span class="number">0</span></span><br><span class="line">interceptor.run_ic()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 靶机航路：固定向东，高度不变</span></span><br><span class="line">target[<span class="string">&#x27;fcs/throttle-cmd-norm&#x27;</span>] = <span class="number">0.5</span></span><br><span class="line"><span class="comment"># 设置靶机水平飞行（平飞）</span></span><br><span class="line">target[<span class="string">&#x27;fcs/elevator-cmd-norm&#x27;</span>] = -<span class="number">0.02</span>  <span class="comment"># 轻微推杆补偿推力</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 仿真主循环</span></span><br><span class="line">dt = <span class="number">0.001</span></span><br><span class="line"><span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">50000</span>):  <span class="comment"># 50s 仿真</span></span><br><span class="line">    t = step * dt</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># ---- 靶机步进 ----</span></span><br><span class="line">    target.run()</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 读取靶机状态</span></span><br><span class="line">    t_pos = (</span><br><span class="line">        target[<span class="string">&#x27;position/lat-geo-deg&#x27;</span>],</span><br><span class="line">        target[<span class="string">&#x27;position/lon-geo-deg&#x27;</span>],</span><br><span class="line">        target[<span class="string">&#x27;position/h-sl-meters&#x27;</span>]</span><br><span class="line">    )</span><br><span class="line">    t_vel = target[<span class="string">&#x27;velocities/vt-mps&#x27;</span>]</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># ---- 截击机制导 ----</span></span><br><span class="line">    i_pos = (</span><br><span class="line">        interceptor[<span class="string">&#x27;position/lat-geo-deg&#x27;</span>],</span><br><span class="line">        interceptor[<span class="string">&#x27;position/lon-geo-deg&#x27;</span>],</span><br><span class="line">        interceptor[<span class="string">&#x27;position/h-sl-meters&#x27;</span>]</span><br><span class="line">    )</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 计算视线方向 → 制导指令</span></span><br><span class="line">    dx = t_pos[<span class="number">0</span>] - i_pos[<span class="number">0</span>]</span><br><span class="line">    dy = t_pos[<span class="number">1</span>] - i_pos[<span class="number">1</span>]</span><br><span class="line">    dz = t_pos[<span class="number">2</span>] - i_pos[<span class="number">2</span>]</span><br><span class="line">    distance = math.sqrt(dx*dx + dy*dy + dz*dz)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> distance &lt; <span class="number">10</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;拦截成功！t=<span class="subst">&#123;t:<span class="number">.1</span>f&#125;</span>s, 距离=<span class="subst">&#123;distance:<span class="number">.1</span>f&#125;</span>m&quot;</span>)</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 纯追踪制导（速度方向指向目标）</span></span><br><span class="line">    <span class="comment"># 升降舵控制俯仰，方向舵/副翼控制航向</span></span><br><span class="line">    pitch_cmd = dz / distance * <span class="number">0.5</span></span><br><span class="line">    yaw_cmd = math.atan2(dy, dx) * <span class="number">0.3</span></span><br><span class="line">    </span><br><span class="line">    interceptor[<span class="string">&#x27;fcs/elevator-cmd-norm&#x27;</span>] = <span class="built_in">max</span>(-<span class="number">1</span>, <span class="built_in">min</span>(<span class="number">1</span>, pitch_cmd))</span><br><span class="line">    interceptor[<span class="string">&#x27;fcs/aileron-cmd-norm&#x27;</span>] = <span class="built_in">max</span>(-<span class="number">1</span>, <span class="built_in">min</span>(<span class="number">1</span>, yaw_cmd))</span><br><span class="line">    interceptor[<span class="string">&#x27;fcs/throttle-cmd-norm&#x27;</span>] = <span class="number">1.0</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># ---- 截击机步进 ----</span></span><br><span class="line">    interceptor.run()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> step % <span class="number">1000</span> == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;t=<span class="subst">&#123;t:<span class="number">.1</span>f&#125;</span>s  距离=<span class="subst">&#123;distance:<span class="number">.1</span>f&#125;</span>m&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-脚本自动化"><a href="#4-3-脚本自动化" class="headerlink" title="4.3 脚本自动化"></a>4.3 脚本自动化</h3><p>JSBSim 支持通过 XML 脚本文件定义自动化场景——包括初始条件、触发器、事件序列：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- scripts/my_simulation.xml --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">runscript</span> <span class="attr">name</span>=<span class="string">&quot;Interceptor Simulation&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">description</span>&gt;</span>Interception scenario<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">use</span> <span class="attr">aircraft</span>=<span class="string">&quot;my_aircraft&quot;</span> <span class="attr">initialize</span>=<span class="string">&quot;reset00&quot;</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">run</span> <span class="attr">start</span>=<span class="string">&quot;0&quot;</span> <span class="attr">end</span>=<span class="string">&quot;60&quot;</span> <span class="attr">dt</span>=<span class="string">&quot;0.001&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">event</span> <span class="attr">time</span>=<span class="string">&quot;0&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">&quot;position/h-sl-ft&quot;</span> <span class="attr">value</span>=<span class="string">&quot;2000&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">&quot;velocities/u-fps&quot;</span> <span class="attr">value</span>=<span class="string">&quot;300&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">&quot;attitude/theta-deg&quot;</span> <span class="attr">value</span>=<span class="string">&quot;2&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">event</span>&gt;</span></span><br><span class="line">        </span><br><span class="line">        <span class="tag">&lt;<span class="name">event</span> <span class="attr">time</span>=<span class="string">&quot;5.0&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">&quot;fcs/throttle-cmd-norm&quot;</span> <span class="attr">value</span>=<span class="string">&quot;0.8&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">&quot;fcs/elevator-cmd-norm&quot;</span> <span class="attr">value</span>=<span class="string">&quot;-0.03&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">event</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">run</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">runscript</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>但更灵活的方式是直接用 Python 控制仿真循环（如 4.2 节所示），因为制导算法需要实时读取目标状态并计算指令，XML 脚本无法满足这种动态控制需求。</p>
+<hr>
+<h2 id="五、选定飞机模型解析"><a href="#五、选定飞机模型解析" class="headerlink" title="五、选定飞机模型解析"></a>五、选定飞机模型解析</h2><p>JSBSim 自带的 70+ 模型中，对截击机仿真最有参考价值的是以下几个：</p>
+<h3 id="5-1-c172x（Cessna-172）"><a href="#5-1-c172x（Cessna-172）" class="headerlink" title="5.1 c172x（Cessna 172）"></a>5.1 c172x（Cessna 172）</h3><p>最稳定的入门模型，气动数据完整。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">气动导数：</span><br><span class="line">  CL(α, de) — 升力系数（迎角+升降舵二维）</span><br><span class="line">  CD(α, de) — 阻力系数</span><br><span class="line">  Cm(α, de) — 俯仰力矩</span><br><span class="line">  </span><br><span class="line">  CL(α, Ma) — 压缩性修正（12 个 Mach 断点 × 21 个迎角断点）</span><br><span class="line">  CD(α, Ma) — 压缩性修正</span><br><span class="line">  Cm(α, Ma) — 压缩性修正</span><br><span class="line">  </span><br><span class="line">发动机：活塞式 Lycoming IO-320（160HP）</span><br><span class="line">螺旋桨：定距 75 英寸（固定螺距 22°）</span><br></pre></td></tr></table></figure>
+
+<p>适合作为<strong>靶机模型</strong>——固定航路飞行、机动能力有限的低速目标。</p>
+<h3 id="5-2-f16（F-16-Fighting-Falcon）"><a href="#5-2-f16（F-16-Fighting-Falcon）" class="headerlink" title="5.2 f16（F-16 Fighting Falcon）"></a>5.2 f16（F-16 Fighting Falcon）</h3><p>最完整的战斗机模型，气动数据覆盖全包线。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">气动导数：</span><br><span class="line">  11 组 CL(α, de) 表格（覆盖迎角 -10° ~ 45°）</span><br><span class="line">  6 组 CL(α, Ma) 压缩性修正</span><br><span class="line">  完整横航向导数（Clβ, Cnβ, Clp, Cnr 等）</span><br><span class="line">  </span><br><span class="line">发动机：F100-PW-200 涡扇发动机（带加力燃烧室）</span><br><span class="line">控制系统：完整的 F-16 飞控系统模型（含俯仰/滚转速率限制）</span><br></pre></td></tr></table></figure>
+
+<p>适合作为<strong>截击机模型参考</strong>——战斗机气动导数结构与你的拦截机最接近，可作为模板修改。</p>
+<h3 id="5-3-x15（X-15-高超音速验证机）"><a href="#5-3-x15（X-15-高超音速验证机）" class="headerlink" title="5.3 x15（X-15 高超音速验证机）"></a>5.3 x15（X-15 高超音速验证机）</h3><p>特殊的高速飞行器模型。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">覆盖范围：</span><br><span class="line">  Ma = 0~6</span><br><span class="line">  高度 = 0~100km</span><br><span class="line">  非标准气动（翼身融合体）</span><br><span class="line">  </span><br><span class="line">支持：火箭发动机推力曲线</span><br></pre></td></tr></table></figure>
+
+<p>适合参考<strong>非标准气动布局的建模方式</strong>，例如折叠翼或管状布局可以参考其非标准建模思路。</p>
+<h3 id="5-4-模型文件结构参考"><a href="#5-4-模型文件结构参考" class="headerlink" title="5.4 模型文件结构参考"></a>5.4 模型文件结构参考</h3><p>所有模型都遵循相同的目录结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">aircraft/f16/</span><br><span class="line">├── f16.xml          ← 主配置文件（引用其余文件）</span><br><span class="line">├── f16_aero.xml     ← 气动系数（最大文件）</span><br><span class="line">├── f16_engine.xml   ← 发动机（F100-PW-200）</span><br><span class="line">├── f16_mass.xml     ← 质量/惯量</span><br><span class="line">├── f16_ground.xml   ← 起落架</span><br><span class="line">└── f16_system.xml   ← 系统（飞控、液压等）</span><br></pre></td></tr></table></figure>
+
+<p>新建你自己的飞行器模型时，<strong>最有效的方法</strong>是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> -r aircraft/f16 aircraft/my_aircraft</span><br><span class="line"><span class="comment"># 然后逐一修改 XML 文件中的参数</span></span><br><span class="line"><span class="comment"># 不需要从零写 XML</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、与其他仿真器的对比"><a href="#六、与其他仿真器的对比" class="headerlink" title="六、与其他仿真器的对比"></a>六、与其他仿真器的对比</h2><h3 id="6-1-JSBSim-vs-Gazebo-vs-X-Plane"><a href="#6-1-JSBSim-vs-Gazebo-vs-X-Plane" class="headerlink" title="6.1 JSBSim vs Gazebo vs X-Plane"></a>6.1 JSBSim vs Gazebo vs X-Plane</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>JSBSim</th>
+<th>Gazebo</th>
+<th>X-Plane</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>价格</strong></td>
+<td>完全免费</td>
+<td>免费</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>59.99</mn><mtext>（基础版）</mtext><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">59.99（基础版） |</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">59.99</span><span class="mord cjk_fallback">（基础版）</span><span class="mord">∣</span></span></span></span></td>
+</tr>
+<tr>
+<td><strong>气动精度</strong></td>
+<td>高（表格插值）</td>
+<td>低（近似公式）</td>
+<td>极高（叶片元法）</td>
+</tr>
+<tr>
+<td><strong>PX4 兼容</strong></td>
+<td>⚠️ 需桥接</td>
+<td>✅ 原生</td>
+<td>✅ 官方插件</td>
+</tr>
+<tr>
+<td><strong>Python API</strong></td>
+<td>✅ 原生</td>
+<td>⚠️ 通过 ROS</td>
+<td>❌ UDP 流</td>
+</tr>
+<tr>
+<td><strong>多飞行器</strong></td>
+<td>✅ 多 FGFDMExec</td>
+<td>✅ 原生</td>
+<td>⚠️ 多实例</td>
+</tr>
+<tr>
+<td><strong>碰撞检测</strong></td>
+<td>❌</td>
+<td>✅ Bullet&#x2F;ODE</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>可视化</strong></td>
+<td>❌ 需 FlightGear</td>
+<td>✅ OGRE 3D</td>
+<td>✅ 原生</td>
+</tr>
+<tr>
+<td><strong>传感器</strong></td>
+<td>❌ 需自建</td>
+<td>✅ 插件系统</td>
+<td>✅ 仪表系统</td>
+</tr>
+<tr>
+<td><strong>高速气动（Ma&gt;0.3）</strong></td>
+<td>✅ 支持压缩性修正</td>
+<td>❌ 不准</td>
+<td>✅ 准确</td>
+</tr>
+<tr>
+<td><strong>社区活跃度</strong></td>
+<td>⚠️ 低</td>
+<td>✅ 高</td>
+<td>✅ 高</td>
+</tr>
+<tr>
+<td><strong>学习曲线</strong></td>
+<td>中等</td>
+<td>陡峭</td>
+<td>平缓</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-选型建议"><a href="#6-2-选型建议" class="headerlink" title="6.2 选型建议"></a>6.2 选型建议</h3><p><strong>选 JSBSim 的场景：</strong></p>
+<ol>
+<li>需要精确的气动模型（特别是高亚音速&#x2F;跨音速）</li>
+<li>多飞行器同一进程仿真（靶机 + 截击机）</li>
+<li>Python 深度控制仿真循环（制导算法实时介入）</li>
+<li>不需要可视化&#x2F;碰撞检测</li>
+<li>仿真需要长时间运行（批量跑蒙特卡洛）</li>
+</ol>
+<p><strong>选 Gazebo 的场景：</strong></p>
+<ol>
+<li>需要完整仿真管道（PX4 → MAVLink → 传感器 → 可视化）</li>
+<li>需要碰撞检测和物理交互</li>
+<li>需要 ROS 集成和传感器插件</li>
+<li>固定翼不需要高保真气动（低速无人机）</li>
+</ol>
+<p><strong>选 X-Plane 的场景：</strong></p>
+<ol>
+<li>需要最高精度的气动模型（民航训练级别）</li>
+<li>需要完整的仪表系统和航电仿真</li>
+<li>预算充足</li>
+<li>不需要深度定制气动模型</li>
+</ol>
+<h3 id="6-3-对你项目的影响"><a href="#6-3-对你项目的影响" class="headerlink" title="6.3 对你项目的影响"></a>6.3 对你项目的影响</h3><p>对于飞行器拦截仿真项目，最合理的分层是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">制导算法验证（当前阶段）：</span><br><span class="line">  Python + JSBSim → 精确气动 + 多飞行器 + 快速迭代</span><br><span class="line">  </span><br><span class="line">PX4 闭环集成（下一阶段）：</span><br><span class="line">  Python + JSBSim + PX4 HIL 桥接</span><br><span class="line">  </span><br><span class="line">可视化与完整场景（最终阶段）：</span><br><span class="line">  Python + JSBSim + FlightGear 或 Gazebo</span><br><span class="line">  → JSBSim 算气动，Gazebo 做渲染</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么第一阶段选 JSBSim 而不是 Gazebo：</strong></p>
+<p>你现有的 <code>aero.cpp</code> 中已经包含了 CL、CD、Cm 的计算逻辑，以及 C_T(J) 前进比修正。这些公式可以直接导出为 JSBSim 的 XML 表格格式，无需重写。而 Gazebo 需要把同样的气动逻辑写成 C++ 插件才能达到同样的精度。</p>
+<hr>
+<h2 id="七、常见问题"><a href="#七、常见问题" class="headerlink" title="七、常见问题"></a>七、常见问题</h2><h3 id="Q1：JSBSim-能跑实时仿真吗？"><a href="#Q1：JSBSim-能跑实时仿真吗？" class="headerlink" title="Q1：JSBSim 能跑实时仿真吗？"></a>Q1：JSBSim 能跑实时仿真吗？</h3><p>A：取决于步长和模型复杂度。对于 c172x 级别（~50 个气动表格）的模型：</p>
+<ul>
+<li>dt&#x3D;0.001s：实时比 ≈ 1:1（1s 仿真 &#x3D; 1s 计算）</li>
+<li>dt&#x3D;0.005s：可以加速到 5x 以上<br>对于复杂战斗机模型（f16，数百个表格）：</li>
+<li>dt&#x3D;0.001s：略慢于实时</li>
+</ul>
+<h3 id="Q2：JSBSim-支持多核并行吗？"><a href="#Q2：JSBSim-支持多核并行吗？" class="headerlink" title="Q2：JSBSim 支持多核并行吗？"></a>Q2：JSBSim 支持多核并行吗？</h3><p>A：JSBSim 本身是单线程的。但如果你要批量跑蒙特卡洛仿真（如数百次拦截场景），Python 端可以用 <code>multiprocessing.Pool</code> 并行启动多个 FGFDMExec 实例。</p>
+<h3 id="Q3：JSBSim-可以接真实飞控吗？"><a href="#Q3：JSBSim-可以接真实飞控吗？" class="headerlink" title="Q3：JSBSim 可以接真实飞控吗？"></a>Q3：JSBSim 可以接真实飞控吗？</h3><p>A：可以，通过 MAVLink 桥接。原理是编写 Python 桥接代码，在 MAVLink 和 JSBSim 属性接口之间做双向映射：</p>
+<ol>
+<li>JSBSim 计算动力学 → 生成 HIL_SENSOR 数据</li>
+<li>桥接脚本转发给 PX4 SITL</li>
+<li>PX4 输出 HIL_ACTUATOR_CONTROLS</li>
+<li>桥接脚本把 actuator 映射为 JSBSim 控制面输入</li>
+</ol>
+<h3 id="Q4：JSBSim-的精度够用于飞行器设计吗？"><a href="#Q4：JSBSim-的精度够用于飞行器设计吗？" class="headerlink" title="Q4：JSBSim 的精度够用于飞行器设计吗？"></a>Q4：JSBSim 的精度够用于飞行器设计吗？</h3><p>A：取决于你填入的气动数据精度。JSBSim 求解器本身的六自由度方程精度是足够高的（双精度浮点，四阶龙格库塔积分）。气动精度完全取决于你提供的 CL&#x2F;CD&#x2F;Cm 表格——这就是为什么需要 CFD 数据或风洞数据打底。</p>
+<hr>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>JSBSim 是一个被 NASA 和多个航空航天项目验证过的、成熟的开源飞行动力学仿真引擎。它的核心价值在于：</p>
+<ol>
+<li><strong>气动建模灵活性</strong>——通过 XML 表格定义所有气动系数，不限制构型</li>
+<li><strong>属性树访问</strong>——所有状态通过字符串路径读写，Python API 简洁</li>
+<li><strong>多飞行器支持</strong>——同一进程多个 FGFDMExec 实例</li>
+<li><strong>无头运行</strong>——不需要 GPU 或显示器，WSL 上完美工作</li>
+<li><strong>PX4 可桥接</strong>——可通过 MAVLink 与 PX4 SITL 集成</li>
+</ol>
+<p>对于截击机拦截仿真项目，JSBSim + Python 的组合提供了一个<strong>快速迭代、精确气动、方便集成</strong>的仿真管道。后续可以逐步替换为标准 Gazebo + JSBSim 插件 + PX4 的完整链路。</p>
+<p><strong>验证过的环境：</strong></p>
+<ul>
+<li>操作系统：Windows 11 + WSL2（Ubuntu 22.04）</li>
+<li>Python：3.10.12</li>
+<li>JSBSim：1.3.0（2026年4月发布，可通过 pip 一键安装）</li>
+</ul>
+<p>下一步可以基于 JSBSim 搭建第一个拦截仿真场景：靶机（c172x）固定航路，截击机（c172x 或自定义模型）使用比例导引算法实施拦截，验证仿真管道和制导算法逻辑。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>Berndt, J. S. (2004). JSBSim: An Open Source Flight Dynamics Model in C++. <em>AIAA Modeling and Simulation Technologies Conference and Exhibit</em>. DOI: 10.2514&#x2F;6.2004-4923</li>
+<li>JSBSim Development Team. (2026). JSBSim Flight Dynamics Model v1.3.0 User Manual. <a target="_blank" rel="noopener" href="https://jsbsim-team.github.io/jsbsim/">https://jsbsim-team.github.io/jsbsim/</a></li>
+<li>Morelli, E. A., &amp; Klein, V. (2016). <em>Aircraft System Identification: Theory and Practice</em> (2nd ed.). Sunflyte Enterprises.</li>
+<li>PX4 Development Team. (2026). PX4 Autopilot User Guide: Simulation. <a target="_blank" rel="noopener" href="https://docs.px4.io/main/en/simulation/">https://docs.px4.io/main/en/simulation/</a></li>
+<li>Open Source Flight Simulator Community. (2025). FlightGear vs JSBSim vs X-Plane: A Technical Comparison.</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/">https://goodisok.github.io/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JSBSim/">JSBSim</a><a class="post-meta__tags" href="/tags/%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6/">飞行动力学</a><a class="post-meta__tags" href="/tags/%E4%BB%BF%E7%9C%9F/">仿真</a><a class="post-meta__tags" href="/tags/WSL/">WSL</a><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F/">飞行仿真</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/02/12/MAVEN%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-%E5%85%83%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%AE%9E%E7%8E%B0%E5%9B%9B%E6%97%8B%E7%BF%BC%E5%8F%98%E5%8A%A8%E5%8A%9B%E5%AD%A6%E6%95%8F%E6%8D%B7%E9%A3%9E%E8%A1%8C/" title="MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">MAVEN 深度解析：元强化学习如何让一架四旋翼适应所有动力学变化</div></div><div class="info-2"><div class="info-item-1"> 论文信息  标题: MAVEN: A Meta-Reinforcement Learning Framework for Varying-Dynamics Expertise in Agile Quadrotor Maneuvers 作者: Jin Zhou, Dongcheng Cao, Xian Wang, Shuo Li（浙江大学控制科学与工程学院） 发表: arXiv:2603.10714, 2026 年 3 月 链接: arXiv | 视频    一、为什么需要 MAVEN？1.1 标准 RL 的致命缺陷：动力学一变就崩近年来，深度强化学习在四旋翼敏捷飞行领域取得了令人瞩目的突破。2023 年 Kaufmann 等人在 Nature 上发表的工作证明，RL 策略可以在无人机竞速中击败世界冠军级别的人类飞手。然而，这些令人印象深刻的成果都建立在一个隐含假设之上：训练时的动力学模型与部署时完全一致。 现实世界远没有这么理想。一架四旋翼可能因为以下原因产生显著的动力学变化：  负载变化：挂载不同传感器、携带货物、电池电量变化导致质量改变 执行器故障：电机老化、螺旋桨损伤导致...</div></div></div></a><a class="pagination-related" href="/2026/02/10/Hexo%E5%8D%9A%E5%AE%A2%E4%B8%AD%E6%AD%A3%E7%A1%AE%E6%98%BE%E7%A4%BA%E6%95%B0%E5%AD%A6%E5%85%AC%E5%BC%8F/" title="Hexo 博客中正确显示数学公式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Hexo 博客中正确显示数学公式</div></div><div class="info-2"><div class="info-item-1">在 Hexo 里写带公式的文章时，经常会遇到公式显示成乱码、下标变成斜体、或整段 LaTeX 原样输出等问题。本文记录问题原因和用 hexo-filter-katex 在构建阶段渲染公式的完整做法。  一、为什么公式会显示不对1.1 Markdown 本身不支持公式标准 Markdown 没有「数学公式」语法。对 Hexo 来说：  $...$ 和 $$...$$ 只是普通字符，默认不会被任何引擎当成公式； 若不做额外处理，它们会原样出现在最终 HTML 里，浏览器不会渲染成数学符号。  1.2 默认渲染器会破坏公式里的符号Hexo 常用 hexo-renderer-marked（基于 marked.js）把 Markdown 转成 HTML。marked 会解析一些符号：  下划线 _ 会被当成强调（italic），例如 x_n 可能被变成 x&lt;em&gt;n&lt;/em&gt;； 公式里大量出现的 _{下标} 一旦被这样处理，整段 LaTeX 就坏了，再交给任何数学渲染器也无法恢复。  因此：不能只依赖「先 Markdown 再在浏览器里用 JS 渲染公式」，必须保证...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/18/%E8%A7%A3%E5%86%B3AirSim%E7%9B%B8%E6%9C%BA%E5%9B%BE%E5%83%8F%E4%BC%A0%E8%BE%93%E6%85%A2%E5%B8%A7%E7%8E%87%E4%BD%8E-JPEG%E5%8E%8B%E7%BC%A9/" title="AirSim 相机加速实战：JPEG 可调质量压缩实现 20× 帧率提升"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-18</div><div class="info-item-2">AirSim 相机加速实战：JPEG 可调质量压缩实现 20× 帧率提升</div></div><div class="info-2"><div class="info-item-1">在使用 Colosseum（AirSim 的继任仿真平台）做仿真时，相机图像通常通过 RPC（如 simGetImages）从 Unreal 端传到 Python 客户端。默认要么返回原始 RGB 像素，要么用 PNG 压缩。原始数据体积大（例如 1920×1080×3 ≈ 6MB&#x2F;帧），PNG 虽能压缩但仍有明显体积和编码开销，在 WSL 或 远程连接 场景下容易成为瓶颈，帧率上不去。本文在 Colosseum + Unreal Engine 5.7.2 环境下增加了 可调质量的 JPEG 压缩 支持，在保证画质可接受的前提下减小传输体积、提高帧率。下面记录需求背景、设计思路和具体实现，方便日后维护。  一、为什么需要 JPEG 压缩？1.1 问题场景 RPC 传输体积大：每帧图像若以原始 RGB 或 PNG 形式通过 msgpack-RPC 传输，在 1080p 下数据量可达数 MB，网络或进程间拷贝成本高。 帧率受限：传输时间占主导时，相机帧率上不去，影响实时控制、算法测试或数据采集。 WSL &#x2F; 远程：   WSL：AirSim 跑在 Windows，...</div></div></div></a><a class="pagination-related" href="/2026/03/14/%E7%AA%81%E7%A0%B4AirSim%E7%9B%B8%E6%9C%BA%E5%B8%A7%E7%8E%87%E7%93%B6%E9%A2%88-%E4%BB%8EJPEG%E5%88%B0NVENC%E5%A4%9A%E9%80%9A%E9%81%93%E7%BC%96%E7%A0%81%E7%9A%844%E5%80%8D%E5%8A%A0%E9%80%9F%E5%AE%9E%E6%88%98/" title="突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-14</div><div class="info-item-2">突破 AirSim 相机帧率瓶颈：从 JPEG 到 NVENC 多通道编码的 4× 加速实战</div></div><div class="info-2"><div class="info-item-1"> 本文介绍如何利用 NVENC（NVIDIA 硬件编码器）突破 AirSim 相机的帧率瓶颈。JPEG 让 1080p 单相机从 ~10 FPS 提到了 ~22 FPS，但双相机并发 + 像素级语义分割真值仍跑不到 30 FPS。本文把整个传输管线推进到 GPU 直接编码（NVENC），最终在 RTX 4090 上做到双相机 1080p 同时 41 FPS、语义分割 IoU &#x3D; 1.000。 文章会把整个工程过程完整复盘，重点讲三个容易踩、文档里没写的坑：  NVENC 多 session 在共享 ID3D11Device 上的 race condition——驱动不会报错，但所有 session 在 ~10 帧内永久性损坏。 snap_to_palette 在 256 色调色板上的 OOM 6GB 陷阱——一次 numpy 广播就把整机内存吃光。 运行期 palette discovery 的反模式——AirSim 早就给了规范调色板，根本不需要”自己探”。    一、背景：JPEG 之后，瓶颈到底在哪？JPEG 方案把 RPC 传输体积从 ~6 MB&#x2F;帧压...</div></div></div></a><a class="pagination-related" href="/2026/05/08/%E5%9B%9B%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BB%BA%E6%A8%A1-AirSim%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="四旋翼飞行动力学建模：AirSim 源码深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-08</div><div class="info-item-2">四旋翼飞行动力学建模：AirSim 源码深度解析</div></div><div class="info-2"><div class="info-item-1">四旋翼飞行动力学建模：AirSim 源码深度解析一、为什么要读 AirSim 的动力学代码Microsoft AirSim 是无人机仿真领域最知名的开源项目之一。它发布于 2017 年，核心动力学代码（AirLib 库）约 15 万行 C++，定位在 Unreal Engine&#x2F;Unity 之上，为多旋翼提供高保真物理仿真。 虽然 AirSim 已于 2022 年进入维护模式（不再新增功能），但其多旋翼飞行动力学实现——特别是转子推力模型、气动阻力和传感器噪声建模——至今仍是 C++ 开源仿真中相当完整的参考，值得逐行阅读。 本文聚焦 AirSim 动力学内核（AirLib），不涉及 Unreal Engine 渲染层、Python API 和 ROS 桥接，只看 AirLib/include/ 下的物理建模代码。 分析范围：    模块 所在文件 代码行数    物理引擎主循环 FastPhysicsEngine.hpp ~465 行   多旋翼动力学体 MultiRotorPhysicsBody.hpp ~230 行   螺旋桨参数 RotorParams.hpp ...</div></div></div></a><a class="pagination-related" href="/2026/04/13/Stevens%E9%A3%9E%E8%A1%8C%E5%99%A8%E6%8E%A7%E5%88%B6%E4%B8%8E%E4%BB%BF%E7%9C%9F%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%85%AD%E8%AE%B2-%E6%95%B0%E5%AD%97%E5%AE%9E%E7%8E%B0%E4%B8%8EHITL%E4%BB%BF%E7%9C%9F-%E4%BB%8E%E7%90%86%E8%AE%BA%E5%88%B0%E4%BB%A3%E7%A0%81/" title="Stevens《飞行器控制与仿真》读书笔记（六）：数字实现与HITL仿真——从理论到代码"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-13</div><div class="info-item-2">Stevens《飞行器控制与仿真》读书笔记（六）：数字实现与HITL仿真——从理论到代码</div></div><div class="info-2"><div class="info-item-1"> 本文是 Stevens《Aircraft Control and Simulation》读书笔记系列的第六篇（完结篇），覆盖教材第6-7章和附录中的数字实现部分：从连续域到离散域、数字PID、采样与零阶保持、实时仿真架构。本系列到此画上句号。   第六篇：数字实现与HITL仿真——从理论到代码一、概念引入——飞控芯片上运行的是离散时间方程1.1 问题前五篇中我们用的都是连续时域的微分方程和传递函数 x˙=Ax+Bu\dot{\mathbf{x}} = \mathbf{A}\mathbf{x} + \mathbf{B}\mathbf{u}x˙=Ax+Bu、Gc(s)G_c(s)Gc​(s)。 但真实飞控在STM32上运行的是离散时间的差分方程——每隔固定的时间间隔（1ms、4ms）读取传感器、执行控制律、输出PWM。 从连续到离散的桥梁就是本讲的核心内容。 1.2 历史的5分钟   时间 人物 贡献    1947 香农 采样定理——解决了”模拟信号以多快频率采样才能无损重建”的问题   1950s Z变换 离散时间控制的数学基础（拉普拉斯变换的离散对应）   1970s 微处理...</div></div></div></a><a class="pagination-related" href="/2026/02/13/PX4-PID%E8%B0%83%E5%8F%82%E5%8E%9F%E7%90%86%E4%B8%8E%E6%96%B9%E6%B3%95-AirSim%E8%81%94%E5%90%88%E4%BB%BF%E7%9C%9F%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="PX4 PID调参原理与方法：AirSim+PX4联合仿真实战指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-13</div><div class="info-item-2">PX4 PID调参原理与方法：AirSim+PX4联合仿真实战指南</div></div><div class="info-2"><div class="info-item-1"> 本文深入解析PX4飞控中的PID控制原理，提供在AirSim+PX4联合仿真环境中进行系统化PID调参的完整方法学。基于真实的仿真调试经验，包含从理论公式到实践验证的全流程，为无人机控制算法开发提供可复现的技术指南。  引言：为什么PID调参仍然是无人机飞控的核心挑战？尽管现代飞控系统引入了MPC、自适应控制等高级算法，PID控制器依然是PX4等开源飞控的核心控制策略。在AirSim+PX4联合仿真环境中，精确的PID参数不仅影响仿真稳定性，更直接关系到算法开发效率与真实飞行安全。本文基于PX4 v1.16.0与AirSim v1.8.0的实际调参经验，系统化地展示如何在高保真仿真环境中进行科学、高效的PID调参。 核心挑战 多环耦合：外环位置控制依赖内环姿态控制的精确性 非线性特性：四旋翼的欠驱动特性与空气动力学非线性 仿真-现实差距：仿真环境中的理想化假设 vs 真实物理约束 参数交互：PID参数间的相互影响与优化空间探索  一、PX4中的PID控制架构：从源码到数学模型1.1 多环PID控制结构PX4采用嵌套PID控制结构，典型控制链路如下： 12位置外环 → 速度中环 ...</div></div></div></a><a class="pagination-related" href="/2026/04/10/Stevens%E9%A3%9E%E8%A1%8C%E5%99%A8%E6%8E%A7%E5%88%B6%E4%B8%8E%E4%BB%BF%E7%9C%9F%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E8%AE%B2-PID%E6%8E%A7%E5%88%B6%E4%B8%8E%E9%A3%9E%E6%8E%A7%E5%AE%9E%E7%8E%B0/" title="Stevens《飞行器控制与仿真》读书笔记（三）：PID控制与飞控实现——从单环到串级"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-10</div><div class="info-item-2">Stevens《飞行器控制与仿真》读书笔记（三）：PID控制与飞控实现——从单环到串级</div></div><div class="info-2"><div class="info-item-1"> 本文是 Stevens《Aircraft Control and Simulation》读书笔记系列的第三篇，覆盖教材第3-4章中的PID控制与飞控实现部分。阅读本文前需掌握模态概念（短周期、荷兰滚等）以及拉普拉斯变换和传递函数。   第三篇：PID控制与飞控实现——从单环到串级一、概念引入——从”知道怎么动”到”让它按期望动”1.1 问题第一篇我们建立了飞行器的12状态数学模型，第二篇分析了系统的固有力学模态。现在的问题非常直接：这个系统怎么控？ Stevens 教材第3-4章从最简单的单回路PID开始，逐步搭建出完整的飞控架构。这些内容与你已有的《PX4-PID调参原理与方法》文章直接对应——但Stevens提供了更系统的理论视角。 1.2 历史的五分钟   时间 人物 贡献    1922 米诺斯基（Minorsky） 首次提出PID控制概念   1939 齐格勒-尼科尔斯（Ziegler-Nichols） 提出PID参数整定的实用方法   1950s 自动驾驶仪 串级PID在飞控中的首次应用   1970s 自适应控制 现代飞控理论的系统化   2010s PX4 &#...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">516</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-JSBSim"><span class="toc-number">1.</span> <span class="toc-text">一、什么是 JSBSim</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%8E%86%E5%8F%B2%E8%B5%B7%E6%BA%90"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 历史起源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%B8%E5%BF%83%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 核心定位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81JSBSim-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">二、JSBSim 架构设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%A3%9E%E8%A1%8C%E5%99%A8%E6%A8%A1%E5%9E%8B%E5%AE%9A%E4%B9%89%EF%BC%88XML%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 飞行器模型定义（XML）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B1%9E%E6%80%A7%E6%A0%91%EF%BC%88Property-Tree%EF%BC%89"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 属性树（Property Tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%B0%94%E5%8A%A8%E6%A8%A1%E5%9E%8B%EF%BC%9A%E5%9F%BA%E4%BA%8E%E8%A1%A8%E6%A0%BC%E6%8F%92%E5%80%BC"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 气动模型：基于表格插值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%8E%A7%E5%88%B6%E9%9D%A2%E4%B8%8E%E6%89%A7%E8%A1%8C%E6%9C%BA%E6%9E%84"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 控制面与执行机构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%8F%91%E5%8A%A8%E6%9C%BA%E4%B8%8E%E8%9E%BA%E6%97%8B%E6%A1%A8%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.6.</span> <span class="toc-text">2.6 发动机与螺旋桨模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81WSL-%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">三、WSL 安装与配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B1%82"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 环境要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%89%E8%A3%85%E6%AD%A5%E9%AA%A4"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 安装步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%AA%8C%E8%AF%81%E7%AC%AC%E4%B8%80%E4%B8%AA%E4%BB%BF%E7%9C%9F%EF%BC%88Cessna-172%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 验证第一个仿真（Cessna 172）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-WSL-%E4%B8%AD%E7%9A%84%E8%B7%AF%E5%BE%84%E8%AF%B4%E6%98%8E"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 WSL 中的路径说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%B8%B8%E8%A7%81%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 常见安装问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Python-API-%E5%AE%9E%E6%88%98"><span class="toc-number">4.</span> <span class="toc-text">四、Python API 实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B8%E5%BF%83%E7%B1%BB%E4%B8%8E%E7%94%A8%E6%B3%95"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 核心类与用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%A4%9A%E9%A3%9E%E8%A1%8C%E5%99%A8%E4%BB%BF%E7%9C%9F%EF%BC%88%E9%9D%B6%E6%9C%BA-%E6%88%AA%E5%87%BB%E6%9C%BA%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 多飞行器仿真（靶机 + 截击机）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%84%9A%E6%9C%AC%E8%87%AA%E5%8A%A8%E5%8C%96"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 脚本自动化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%80%89%E5%AE%9A%E9%A3%9E%E6%9C%BA%E6%A8%A1%E5%9E%8B%E8%A7%A3%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">五、选定飞机模型解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-c172x%EF%BC%88Cessna-172%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 c172x（Cessna 172）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-f16%EF%BC%88F-16-Fighting-Falcon%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 f16（F-16 Fighting Falcon）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-x15%EF%BC%88X-15-%E9%AB%98%E8%B6%85%E9%9F%B3%E9%80%9F%E9%AA%8C%E8%AF%81%E6%9C%BA%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 x15（X-15 高超音速验证机）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%A8%A1%E5%9E%8B%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E5%8F%82%E8%80%83"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 模型文件结构参考</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%B8%8E%E5%85%B6%E4%BB%96%E4%BB%BF%E7%9C%9F%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">六、与其他仿真器的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-JSBSim-vs-Gazebo-vs-X-Plane"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 JSBSim vs Gazebo vs X-Plane</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 选型建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%AF%B9%E4%BD%A0%E9%A1%B9%E7%9B%AE%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 对你项目的影响</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">7.</span> <span class="toc-text">七、常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9AJSBSim-%E8%83%BD%E8%B7%91%E5%AE%9E%E6%97%B6%E4%BB%BF%E7%9C%9F%E5%90%97%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">Q1：JSBSim 能跑实时仿真吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9AJSBSim-%E6%94%AF%E6%8C%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C%E5%90%97%EF%BC%9F"><span class="toc-number">7.2.</span> <span class="toc-text">Q2：JSBSim 支持多核并行吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9AJSBSim-%E5%8F%AF%E4%BB%A5%E6%8E%A5%E7%9C%9F%E5%AE%9E%E9%A3%9E%E6%8E%A7%E5%90%97%EF%BC%9F"><span class="toc-number">7.3.</span> <span class="toc-text">Q3：JSBSim 可以接真实飞控吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9AJSBSim-%E7%9A%84%E7%B2%BE%E5%BA%A6%E5%A4%9F%E7%94%A8%E4%BA%8E%E9%A3%9E%E8%A1%8C%E5%99%A8%E8%AE%BE%E8%AE%A1%E5%90%97%EF%BC%9F"><span class="toc-number">7.4.</span> <span class="toc-text">Q4：JSBSim 的精度够用于飞行器设计吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">八、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">9.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-2/" title="九年级数学下册·核心知识点">九年级数学下册·核心知识点</a><time datetime="2026-05-13T00:01:00.000Z" title="发表于 2026-05-13 08:01:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/13/grade9-math-textbook-1/" title="九年级数学上册·核心知识点">九年级数学上册·核心知识点</a><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-2/" title="八年级数学下册·核心知识点">八年级数学下册·核心知识点</a><time datetime="2026-05-12T00:01:00.000Z" title="发表于 2026-05-12 08:01:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/12/grade8-math-textbook-1/" title="八年级数学上册·核心知识点">八年级数学上册·核心知识点</a><time datetime="2026-05-12T00:00:00.000Z" title="发表于 2026-05-12 08:00:00">2026-05-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/11/grade7-math-textbook-2/" title="七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式">七年级数学下册·知识点速查——平行线、实数、坐标系、方程组、不等式</a><time datetime="2026-05-11T02:00:00.000Z" title="发表于 2026-05-11 10:00:00">2026-05-11</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 640">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <filter id="s" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+    <marker id="au" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#6b7280"/>
+    </marker>
+  </defs>
+  <rect width="1020" height="640" fill="#ffffff"/>
+  <text x="510" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">Isaac Lab 三层架构</text>
+  <text x="510" y="55" text-anchor="middle" font-size="12" fill="#6b7280">基于 NVIDIA Omniverse — 物理 · 渲染 · 学习 统一平台</text>
+  <rect x="30" y="80" width="960" height="160" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="510" y="108" text-anchor="middle" font-size="15" font-weight="600" fill="#2563eb">顶层: 机器人学习工作流</text>
+  <rect x="50" y="125" width="200" height="100" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="50" y="125" width="200" height="26" rx="8" fill="#2563eb" fill-opacity="0.12"/>
+  <rect x="50" y="145" width="200" height="6" fill="#2563eb" fill-opacity="0.12"/>
+  <text x="150.0" y="144" text-anchor="middle" font-size="12" font-weight="600" fill="#2563eb">强化学习</text>
+  <text x="150.0" y="180" text-anchor="middle" font-size="11" fill="#4b5563">PPO/SAC/TRPO</text>
+  <text x="150.0" y="205" text-anchor="middle" font-size="10" fill="#9ca3af">GPU 原生</text>
+  <rect x="290" y="125" width="200" height="100" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="290" y="125" width="200" height="26" rx="8" fill="#7c3aed" fill-opacity="0.12"/>
+  <rect x="290" y="145" width="200" height="6" fill="#7c3aed" fill-opacity="0.12"/>
+  <text x="390.0" y="144" text-anchor="middle" font-size="12" font-weight="600" fill="#7c3aed">模仿学习</text>
+  <text x="390.0" y="180" text-anchor="middle" font-size="11" fill="#4b5563">BC/DAgger/IRL</text>
+  <text x="390.0" y="205" text-anchor="middle" font-size="10" fill="#9ca3af">GPU 原生</text>
+  <rect x="530" y="125" width="200" height="100" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="530" y="125" width="200" height="26" rx="8" fill="#ea580c" fill-opacity="0.12"/>
+  <rect x="530" y="145" width="200" height="6" fill="#ea580c" fill-opacity="0.12"/>
+  <text x="630.0" y="144" text-anchor="middle" font-size="12" font-weight="600" fill="#ea580c">数据收集</text>
+  <text x="630.0" y="180" text-anchor="middle" font-size="11" fill="#4b5563">遥操作/自动记录</text>
+  <text x="630.0" y="205" text-anchor="middle" font-size="10" fill="#9ca3af">GPU 原生</text>
+  <rect x="770" y="125" width="200" height="100" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="770" y="125" width="200" height="26" rx="8" fill="#059669" fill-opacity="0.12"/>
+  <rect x="770" y="145" width="200" height="6" fill="#059669" fill-opacity="0.12"/>
+  <text x="870.0" y="144" text-anchor="middle" font-size="12" font-weight="600" fill="#059669">Sim-to-Real</text>
+  <text x="870.0" y="180" text-anchor="middle" font-size="11" fill="#4b5563">域随机化/微调</text>
+  <text x="870.0" y="205" text-anchor="middle" font-size="10" fill="#9ca3af">GPU 原生</text>
+  <line x1="510" y1="240" x2="510" y2="270" stroke="#6b7280" stroke-width="1.5" marker-end="url(#au)"/>
+  <text x="530" y="250" font-size="9" fill="#9ca3af">训练循环</text>
+  <rect x="30" y="270" width="960" height="195" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="510" y="295" text-anchor="middle" font-size="15" font-weight="600" fill="#16a34a">中层: Isaac Lab 环境设计 API</text>
+  <rect x="277" y="308" width="105" height="110" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1" filter="url(#s)"/>
+  <rect x="277" y="308" width="105" height="24" rx="8" fill="#2563eb" fill-opacity="0.1"/>
+  <rect x="277" y="326" width="105" height="6" fill="#2563eb" fill-opacity="0.1"/>
+  <text x="329.5" y="325" text-anchor="middle" font-size="10" font-weight="600" fill="#2563eb">观测管理器</text>
+  <text x="329.5" y="358" text-anchor="middle" font-size="10" fill="#4b5563">状态向量/图像</text>
+  <text x="329.5" y="388" text-anchor="middle" font-size="9" fill="#9ca3af">可复用</text>
+  <text x="329.5" y="403" text-anchor="middle" font-size="9" fill="#9ca3af">可组合</text>
+  <rect x="397" y="308" width="105" height="110" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#s)"/>
+  <rect x="397" y="308" width="105" height="24" rx="8" fill="#7c3aed" fill-opacity="0.1"/>
+  <rect x="397" y="326" width="105" height="6" fill="#7c3aed" fill-opacity="0.1"/>
+  <text x="449.5" y="325" text-anchor="middle" font-size="10" font-weight="600" fill="#7c3aed">动作管理器</text>
+  <text x="449.5" y="358" text-anchor="middle" font-size="10" fill="#4b5563">电机/关节/控制器</text>
+  <text x="449.5" y="388" text-anchor="middle" font-size="9" fill="#9ca3af">可复用</text>
+  <text x="449.5" y="403" text-anchor="middle" font-size="9" fill="#9ca3af">可组合</text>
+  <rect x="517" y="308" width="105" height="110" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1" filter="url(#s)"/>
+  <rect x="517" y="308" width="105" height="24" rx="8" fill="#ea580c" fill-opacity="0.1"/>
+  <rect x="517" y="326" width="105" height="6" fill="#ea580c" fill-opacity="0.1"/>
+  <text x="569.5" y="325" text-anchor="middle" font-size="10" font-weight="600" fill="#ea580c">奖励管理器</text>
+  <text x="569.5" y="358" text-anchor="middle" font-size="10" fill="#4b5563">任务奖励/成型</text>
+  <text x="569.5" y="388" text-anchor="middle" font-size="9" fill="#9ca3af">可复用</text>
+  <text x="569.5" y="403" text-anchor="middle" font-size="9" fill="#9ca3af">可组合</text>
+  <rect x="637" y="308" width="105" height="110" rx="8" fill="#ffffff" stroke="#dc2626" stroke-width="1" filter="url(#s)"/>
+  <rect x="637" y="308" width="105" height="24" rx="8" fill="#dc2626" fill-opacity="0.1"/>
+  <rect x="637" y="326" width="105" height="6" fill="#dc2626" fill-opacity="0.1"/>
+  <text x="689.5" y="325" text-anchor="middle" font-size="10" font-weight="600" fill="#dc2626">终止管理器</text>
+  <text x="689.5" y="358" text-anchor="middle" font-size="10" fill="#4b5563">成功/失败/超时</text>
+  <text x="689.5" y="388" text-anchor="middle" font-size="9" fill="#9ca3af">可复用</text>
+  <text x="689.5" y="403" text-anchor="middle" font-size="9" fill="#9ca3af">可组合</text>
+  <rect x="45" y="428" width="930" height="36" rx="6" fill="#fef3c7" stroke="#fcd34d" stroke-width="1"/>
+  <text x="510" y="451" text-anchor="middle" font-size="12" font-weight="600" fill="#d97706">域随机化管理器 — 物理 / 视觉 / 光源 / 相机</text>
+  <line x1="510" y1="469" x2="510" y2="489" stroke="#6b7280" stroke-width="1.5" marker-end="url(#au)"/>
+  <text x="530" y="479" font-size="9" fill="#9ca3af">物理+渲染</text>
+  <rect x="30" y="499" width="960" height="150" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="510" y="524" text-anchor="middle" font-size="15" font-weight="600" fill="#0891b2">底层: NVIDIA Omniverse 平台（全 GPU 管线 · 无 CPU 瓶颈 · 4000+ 并行环境）</text>
+  <rect x="45" y="539" width="210" height="90" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="45" y="539" width="210" height="28" rx="8" fill="#2563eb" fill-opacity="0.1"/>
+  <rect x="45" y="561" width="210" height="6" fill="#2563eb" fill-opacity="0.1"/>
+  <text x="150.0" y="559" text-anchor="middle" font-size="12" font-weight="600" fill="#2563eb">PhysX 5 物理引擎</text>
+  <text x="150.0" y="589" text-anchor="middle" font-size="11" fill="#4b5563">刚体/软体/SDF碰撞</text>
+  <text x="150.0" y="611" text-anchor="middle" font-size="10" fill="#9ca3af">Direct GPU 零拷贝</text>
+  <rect x="285" y="539" width="210" height="90" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="285" y="539" width="210" height="28" rx="8" fill="#7c3aed" fill-opacity="0.1"/>
+  <rect x="285" y="561" width="210" height="6" fill="#7c3aed" fill-opacity="0.1"/>
+  <text x="390.0" y="559" text-anchor="middle" font-size="12" font-weight="600" fill="#7c3aed">RTX 渲染器</text>
+  <text x="390.0" y="589" text-anchor="middle" font-size="11" fill="#4b5563">光追/DLSS/MDL材质</text>
+  <text x="390.0" y="611" text-anchor="middle" font-size="10" fill="#9ca3af">Direct GPU 零拷贝</text>
+  <rect x="525" y="539" width="210" height="90" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="525" y="539" width="210" height="28" rx="8" fill="#ea580c" fill-opacity="0.1"/>
+  <rect x="525" y="561" width="210" height="6" fill="#ea580c" fill-opacity="0.1"/>
+  <text x="630.0" y="559" text-anchor="middle" font-size="12" font-weight="600" fill="#ea580c">OpenUSD 场景图</text>
+  <text x="630.0" y="589" text-anchor="middle" font-size="11" fill="#4b5563">统一几何/物理/语义</text>
+  <text x="630.0" y="611" text-anchor="middle" font-size="10" fill="#9ca3af">Direct GPU 零拷贝</text>
+  <rect x="765" y="539" width="210" height="90" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="765" y="539" width="210" height="28" rx="8" fill="#059669" fill-opacity="0.1"/>
+  <rect x="765" y="561" width="210" height="6" fill="#059669" fill-opacity="0.1"/>
+  <text x="870.0" y="559" text-anchor="middle" font-size="12" font-weight="600" fill="#059669">CUDA 张量 API</text>
+  <text x="870.0" y="589" text-anchor="middle" font-size="11" fill="#4b5563">零拷贝 PyTorch</text>
+  <text x="870.0" y="611" text-anchor="middle" font-size="10" fill="#9ca3af">Direct GPU 零拷贝</text>
+</svg>

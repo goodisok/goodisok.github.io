@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+<style>text{font-family:'WenQuanYi Zen Hei','Droid Sans Fallback','Noto Sans CJK SC',sans-serif;}</style>
+<defs><marker id="arr" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,8 2.5,0 5" fill="#1d4ed8"/></marker></defs>
+<rect width="800" height="500" fill="#ffffff"/>
+<text x="400" y="35" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">势流理论四种基本解——拉普拉斯方程的「乐高积木」</text>
+<rect x="280" y="55" width="240" height="40" rx="20" fill="#1d4ed8"/>
+<text x="400" y="81" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">∇²φ = 0 拉普拉斯方程</text>
+<line x1="300" y1="95" x2="300" y2="125" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#arr)"/>
+<line x1="360" y1="95" x2="360" y2="125" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#arr)"/>
+<line x1="440" y1="95" x2="440" y2="125" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#arr)"/>
+<line x1="500" y1="95" x2="500" y2="125" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="120" y="130" width="160" height="70" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>
+<text x="200" y="155" text-anchor="middle" fill="#0284c7" font-size="14" font-weight="600">均匀流</text>
+<text x="200" y="175" text-anchor="middle" fill="#0369a1" font-size="12">φ=V∞x</text>
+<rect x="320" y="130" width="160" height="70" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+<text x="400" y="155" text-anchor="middle" fill="#16a34a" font-size="14" font-weight="600">源/汇</text>
+<text x="400" y="175" text-anchor="middle" fill="#15803d" font-size="12">φ=Λlnr/2π</text>
+<rect x="120" y="240" width="160" height="70" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+<text x="200" y="265" text-anchor="middle" fill="#d97706" font-size="14" font-weight="600">偶极子</text>
+<text x="200" y="285" text-anchor="middle" fill="#b45309" font-size="12">φ=μcosθ/2πr</text>
+<rect x="320" y="240" width="160" height="70" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+<text x="400" y="265" text-anchor="middle" fill="#dc2626" font-size="14" font-weight="600">点涡</text>
+<text x="400" y="285" text-anchor="middle" fill="#b91c1c" font-size="12">φ=Γθ/2π</text>
+<line x1="200" y1="200" x2="200" y2="240" stroke="#6b7280" stroke-width="1" stroke-dasharray="5,3"/>
+<line x1="400" y1="200" x2="400" y2="240" stroke="#6b7280" stroke-width="1" stroke-dasharray="5,3"/>
+<rect x="60" y="350" width="680" height="100" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+<text x="400" y="373" text-anchor="middle" fill="#7c3aed" font-size="13" font-weight="600">叠加原理：复杂流动 = 基本解的线性组合</text>
+<text x="160" y="398" fill="#6b7280" font-size="11">• 均匀流+源+汇 = Rankine卵形体</text>
+<text x="160" y="418" fill="#6b7280" font-size="11">• 均匀流+偶极子 = 圆柱绕流（无升力）</text>
+<text x="500" y="398" fill="#6b7280" font-size="11">• 均匀流+偶极子+点涡 = 带升力的圆柱绕流</text>
+<text x="500" y="418" fill="#6b7280" font-size="11">• 多种叠加+保角变换 = 翼型绕流</text>
+</svg>
