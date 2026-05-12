@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 580">
+  <defs>
+    <marker id="aok" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="sh">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="960" height="580" fill="#ffffff"/>
+  <text x="480" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">自适应密度控制 (ADC) · 训练的核心魔法</text>
+  <text x="480" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#64748b">每100步检查一次，根据梯度和尺寸动态调整高斯数量</text>
+  <text x="30" y="100" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">判断条件</text>
+  <ellipse cx="110" cy="180" rx="35" ry="25" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="110" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#4f46e5">高斯球</text>
+  <text x="110" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#4f46e5" font-weight="bold">梯度 > τ?</text>
+  <line x1="145" y1="180" x2="200" y2="130" stroke="#64748b" stroke-width="1.5" marker-end="url(#aok)"/>
+  <text x="195" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#059669" font-weight="bold">Yes</text>
+  <line x1="145" y1="180" x2="200" y2="230" stroke="#64748b" stroke-width="1.5" marker-end="url(#aok)"/>
+  <text x="195" y="246" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#dc2626" font-weight="bold">No</text>
+  <rect x="210" y="100" width="240" height="60" rx="10" fill="#e0e7ff" stroke="#818cf8" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="330" y="123" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#4338ca">分裂 Split</text>
+  <text x="330" y="143" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#4f46e5">尺寸大 → 分裂成2个更小的</text>
+  <ellipse cx="290" cy="220" rx="20" ry="14" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="290" y="224" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#4f46e5">父</text>
+  <line x1="305" y1="213" x2="330" y2="200" stroke="#818cf8" stroke-width="1.5" marker-end="url(#aok)"/>
+  <line x1="305" y1="227" x2="330" y2="240" stroke="#818cf8" stroke-width="1.5" marker-end="url(#aok)"/>
+  <ellipse cx="350" cy="195" rx="15" ry="10" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="350" y="199" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#4f46e5">子1</text>
+  <ellipse cx="350" cy="245" rx="15" ry="10" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+  <text x="350" y="249" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#4f46e5">子2</text>
+  <rect x="210" y="240" width="240" height="60" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="330" y="263" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#065f46">克隆 Clone</text>
+  <text x="330" y="283" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#047857">尺寸小 → 场景需要更多覆盖</text>
+  <ellipse cx="290" cy="350" rx="12" ry="9" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/>
+  <text x="290" y="354" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#065f46">源</text>
+  <line x1="302" y1="350" x2="330" y2="335" stroke="#6ee7b7" stroke-width="1.5" marker-end="url(#aok)"/>
+  <ellipse cx="350" cy="330" rx="12" ry="9" fill="#a7f3d0" stroke="#10b981" stroke-width="1"/>
+  <text x="350" y="334" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#065f46">副本</text>
+  <rect x="210" y="380" width="240" height="50" rx="10" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="330" y="402" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#991b1b">剪枝 Prune</text>
+  <text x="330" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#b91c1c">不透明度太小或尺寸过大</text>
+  <rect x="500" y="80" width="430" height="130" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="715" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">高斯数量随训练步数增长</text>
+  <path d="M 520,180 L 560,170 L 600,165 L 640,160 L 680,155 L 720,148 L 760,140 L 800,125 L 840,105 L 880,85" stroke="#6366f1" stroke-width="2.5" fill="none"/>
+  <line x1="520" y1="100" x2="520" y2="190" stroke="#94a3b8" stroke-width="1"/>
+  <line x1="515" y1="180" x2="920" y2="180" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="505" y="185" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">3K</text>
+  <line x1="515" y1="100" x2="920" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="505" y="105" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">3M</text>
+  <text x="710" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#64748b">训练步数 0 → 30,000</text>
+  <rect x="30" y="460" width="900" height="95" rx="10" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5" filter="url(#sh)"/>
+  <rect x="60" y="478" width="260" height="62" rx="6" fill="#ffffff" stroke="#6366f1" stroke-width="1"/>
+  <rect x="60" y="478" width="6" height="62" rx="3" fill="#6366f1"/>
+  <text x="80" y="498" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#6366f1">分裂 Split</text>
+  <text x="80" y="516" font-family="Arial, sans-serif" font-size="11" fill="#475569">梯度大 + 尺寸大</text>
+  <text x="80" y="532" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">阈值: τ_pos=0.0002</text>
+  <rect x="350" y="478" width="260" height="62" rx="6" fill="#ffffff" stroke="#10b981" stroke-width="1"/>
+  <rect x="350" y="478" width="6" height="62" rx="3" fill="#10b981"/>
+  <text x="370" y="498" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#10b981">克隆 Clone</text>
+  <text x="370" y="516" font-family="Arial, sans-serif" font-size="11" fill="#475569">梯度大 + 尺寸小</text>
+  <text x="370" y="532" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">阈值: 交替触发</text>
+  <rect x="640" y="478" width="260" height="62" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>
+  <rect x="640" y="478" width="6" height="62" rx="3" fill="#ef4444"/>
+  <text x="660" y="498" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ef4444">剪枝 Prune</text>
+  <text x="660" y="516" font-family="Arial, sans-serif" font-size="11" fill="#475569">α&lt;0.005 或 超大</text>
+  <text x="660" y="532" font-family="Arial, sans-serif" font-size="10" fill="#94a3b8">阈值: 去除非必要高斯</text>
+</svg>

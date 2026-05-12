@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420">
+<defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#5a5a5a"/></marker>
+<marker id="ccw" markerWidth="12" markerHeight="12" refX="6" refY="6"><circle cx="6" cy="6" r="3" fill="none" stroke="#2196F3" stroke-width="1.5"/><path d="M6,2 v8 M3,5 l3-3 l3,3" stroke="#2196F3" stroke-width="1.2" fill="none"/></marker>
+<marker id="cw" markerWidth="12" markerHeight="12" refX="6" refY="6"><circle cx="6" cy="6" r="3" fill="none" stroke="#E57373" stroke-width="1.5"/><path d="M6,10 v-8 M3,7 l3,3 l3-3" stroke="#E57373" stroke-width="1.2" fill="none"/></marker>
+</defs>
+<rect width="1000" height="420" fill="#0d1117"/>
+<text x="250.0" y="35" fill="#8ab4f8" font-size="15" font-family="sans-serif" text-anchor="middle" font-weight="bold">平面六旋翼（Flat Hex）</text>
+<line x1="250.0" y1="200.0" x2="330.0" y2="200.0" stroke="#444" stroke-width="1.5"/>
+<circle cx="330.0" cy="200.0" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="330.0" cy="200.0" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<path d="M 348.0,200.0 A18,18 0 0,1 330.0,182.0" fill="none" stroke="#2196F3" stroke-width="1" opacity="0.6"/>
+<polygon points="330.0,182.0 323.0,183.4 337.0,183.4" fill="#2196F3" opacity="0.7"/>
+<line x1="250.0" y1="200.0" x2="290.0" y2="130.7" stroke="#444" stroke-width="1.5"/>
+<circle cx="290.0" cy="130.7" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="290.0" cy="130.7" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<path d="M 299.0,115.1 A18,18 0 0,0 305.6,139.7" fill="none" stroke="#E57373" stroke-width="1" opacity="0.6"/>
+<polygon points="305.6,139.7 300.9,145.1 307.9,132.9" fill="#E57373" opacity="0.7"/>
+<line x1="250.0" y1="200.0" x2="210.0" y2="130.7" stroke="#444" stroke-width="1.5"/>
+<circle cx="210.0" cy="130.7" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="210.0" cy="130.7" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<path d="M 201.0,115.1 A18,18 0 0,1 194.4,139.7" fill="none" stroke="#2196F3" stroke-width="1" opacity="0.6"/>
+<polygon points="194.4,139.7 199.1,145.1 192.1,132.9" fill="#2196F3" opacity="0.7"/>
+<line x1="250.0" y1="200.0" x2="170.0" y2="200.0" stroke="#444" stroke-width="1.5"/>
+<circle cx="170.0" cy="200.0" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="170.0" cy="200.0" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<path d="M 152.0,200.0 A18,18 0 0,0 170.0,182.0" fill="none" stroke="#E57373" stroke-width="1" opacity="0.6"/>
+<polygon points="170.0,182.0 177.0,183.4 163.0,183.4" fill="#E57373" opacity="0.7"/>
+<line x1="250.0" y1="200.0" x2="210.0" y2="269.3" stroke="#444" stroke-width="1.5"/>
+<circle cx="210.0" cy="269.3" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="210.0" cy="269.3" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<path d="M 201.0,284.9 A18,18 0 0,1 225.6,278.3" fill="none" stroke="#2196F3" stroke-width="1" opacity="0.6"/>
+<polygon points="225.6,278.3 227.9,271.5 220.9,283.6" fill="#2196F3" opacity="0.7"/>
+<line x1="250.0" y1="200.0" x2="290.0" y2="269.3" stroke="#444" stroke-width="1.5"/>
+<circle cx="290.0" cy="269.3" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="290.0" cy="269.3" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<path d="M 299.0,284.9 A18,18 0 0,0 274.4,278.3" fill="none" stroke="#E57373" stroke-width="1" opacity="0.6"/>
+<polygon points="274.4,278.3 272.1,271.5 279.1,283.6" fill="#E57373" opacity="0.7"/>
+<circle cx="250.0" cy="200.0" r="14" fill="#444" stroke="#666" stroke-width="2"/>
+<line x1="250.0" y1="200.0" x2="350.0" y2="200.0" stroke="#FFD54F" stroke-width="2" marker-end="url(#arr)"/>
+<text x="354.0" y="194.0" fill="#FFD54F" font-size="11" font-family="sans-serif">机头</text>
+<text x="250.0" y="400" fill="#666" font-size="11" font-family="sans-serif" text-anchor="middle">6旋翼 · 60°均布 · 容错1旋翼</text>
+<text x="500.0" y="35" fill="#8ab4f8" font-size="15" font-family="sans-serif" text-anchor="middle" font-weight="bold">共轴六旋翼（Y6）</text>
+<line x1="500.0" y1="200.0" x2="580.0" y2="200.0" stroke="#444" stroke-width="1.5"/>
+<circle cx="580.0" cy="200.0" r="2" fill="#666"/>
+<circle cx="580.0" cy="190.0" r="9" fill="#2196F3" opacity="0.75"/>
+<circle cx="580.0" cy="190.0" r="9" fill="none" stroke="#2196F3" stroke-width="1.5"/>
+<line x1="580.0" y1="190.0" x2="580.0" y2="210.0" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<circle cx="580.0" cy="210.0" r="9" fill="#E57373" opacity="0.75"/>
+<circle cx="580.0" cy="210.0" r="9" fill="none" stroke="#E57373" stroke-width="1.5"/>
+<line x1="580.0" y1="190.0" x2="580.0" y2="210.0" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="500.0" y1="200.0" x2="460.0" y2="130.7" stroke="#444" stroke-width="1.5"/>
+<circle cx="460.0" cy="130.7" r="2" fill="#666"/>
+<circle cx="460.0" cy="120.7" r="9" fill="#2196F3" opacity="0.75"/>
+<circle cx="460.0" cy="120.7" r="9" fill="none" stroke="#2196F3" stroke-width="1.5"/>
+<line x1="460.0" y1="120.71796769724489" x2="460.0" y2="140.7179676972449" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<circle cx="460.0" cy="140.7" r="9" fill="#E57373" opacity="0.75"/>
+<circle cx="460.0" cy="140.7" r="9" fill="none" stroke="#E57373" stroke-width="1.5"/>
+<line x1="460.0" y1="120.71796769724489" x2="460.0" y2="140.7179676972449" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="500.0" y1="200.0" x2="460.0" y2="269.3" stroke="#444" stroke-width="1.5"/>
+<circle cx="460.0" cy="269.3" r="2" fill="#666"/>
+<circle cx="460.0" cy="259.3" r="9" fill="#2196F3" opacity="0.75"/>
+<circle cx="460.0" cy="259.3" r="9" fill="none" stroke="#2196F3" stroke-width="1.5"/>
+<line x1="460.0" y1="259.28203230275506" x2="460.0" y2="279.28203230275506" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<circle cx="460.0" cy="279.3" r="9" fill="#E57373" opacity="0.75"/>
+<circle cx="460.0" cy="279.3" r="9" fill="none" stroke="#E57373" stroke-width="1.5"/>
+<line x1="460.0" y1="259.28203230275506" x2="460.0" y2="279.28203230275506" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<circle cx="500.0" cy="200.0" r="14" fill="#444" stroke="#666" stroke-width="2"/>
+<line x1="500.0" y1="200.0" x2="580.0" y2="200.0" stroke="#FFD54F" stroke-width="2" marker-end="url(#arr)"/>
+<text x="584.0" y="194.0" fill="#FFD54F" font-size="11" font-family="sans-serif">机头</text>
+<text x="500.0" y="400" fill="#666" font-size="11" font-family="sans-serif" text-anchor="middle">3支臂共轴 · 120° · 桨盘小50%</text>
+<text x="750.0" y="35" fill="#8ab4f8" font-size="15" font-family="sans-serif" text-anchor="middle" font-weight="bold">Y型六旋翼</text>
+<circle cx="670.0" cy="200.0" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="670.0" cy="200.0" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<line x1="750.0" y1="200.0" x2="670.0" y2="200.0" stroke="#444" stroke-width="1.5"/>
+<circle cx="767.7" cy="265.7" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="767.7" cy="265.7" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<line x1="750.0" y1="200.0" x2="767.7" y2="265.7" stroke="#444" stroke-width="1.5"/>
+<circle cx="726.0" cy="158.4" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="726.0" cy="158.4" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<line x1="750.0" y1="200.0" x2="726.0" y2="158.4" stroke="#444" stroke-width="1.5"/>
+<circle cx="719.3" cy="168.5" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="719.3" cy="168.5" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<circle cx="726.0" cy="241.6" r="12" fill="#2196F3" opacity="0.8"/>
+<circle cx="726.0" cy="241.6" r="12" fill="none" stroke="#2196F3" stroke-width="2"/>
+<circle cx="719.3" cy="231.5" r="12" fill="#E57373" opacity="0.8"/>
+<circle cx="719.3" cy="231.5" r="12" fill="none" stroke="#E57373" stroke-width="2"/>
+<line x1="670.0" y1="200.0" x2="767.7" y2="265.7" stroke="#444" stroke-width="1"/>
+<line x1="726.0" y1="158.4" x2="719.3" y2="168.5" stroke="#444" stroke-width="1"/>
+<line x1="726.0" y1="241.6" x2="719.3" y2="231.5" stroke="#444" stroke-width="1"/>
+<circle cx="750.0" cy="200.0" r="14" fill="#444" stroke="#666" stroke-width="2"/>
+<line x1="750.0" y1="200.0" x2="850.0" y2="200.0" stroke="#FFD54F" stroke-width="2" marker-end="url(#arr)"/>
+<text x="854.0" y="194.0" fill="#FFD54F" font-size="11" font-family="sans-serif">机头</text>
+<text x="750.0" y="400" fill="#666" font-size="11" font-family="sans-serif" text-anchor="middle">Y型非对称 · 力矩耦合复杂</text>
+<rect x="820" y="370" width="160" height="40" rx="6" fill="#161b22" stroke="#333"/>
+<circle cx="840" cy="388" r="7" fill="#2196F3" opacity="0.8"/>
+<text x="855" y="392" fill="#aaa" font-size="11" font-family="sans-serif">逆时针(CCW)</text>
+<circle cx="840" cy="408" r="7" fill="#E57373" opacity="0.8"/>
+<text x="855" y="412" fill="#aaa" font-size="11" font-family="sans-serif">顺时针(CW)</text>
+</svg>

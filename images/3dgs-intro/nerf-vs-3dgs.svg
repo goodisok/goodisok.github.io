@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  <rect width="960" height="520" fill="#ffffff"/>
+  <text x="480" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">NeRF（隐式）vs 3DGS（显式）：场景表示的根本差异</text>
+  <rect x="30" y="60" width="440" height="440" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="250" y="90" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#dc2626">NeRF — 隐式表示</text>
+  <line x1="60" y1="105" x2="440" y2="105" stroke="#fca5a5" stroke-width="1"/>
+  <rect x="60" y="120" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="150" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">多视角照片输入</text>
+  <line x1="150" y1="160" x2="150" y2="195" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="60" y="200" width="180" height="55" rx="6" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="150" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#991b1b">神经网络 MLP</text>
+  <text x="150" y="242" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7f1d1d">F(x,y,z,θ,φ) → (RGB, σ)</text>
+  <line x1="150" y1="255" x2="150" y2="295" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="60" y="300" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="150" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">沿光线采样 N 个点</text>
+  <line x1="150" y1="340" x2="150" y2="375" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="60" y="380" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="150" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">体渲染积分 → 像素</text>
+  <line x1="150" y1="420" x2="150" y2="455" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="60" y="460" width="180" height="30" rx="6" fill="#dc2626" opacity="0.9"/>
+  <text x="150" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" font-weight="bold">慢：1帧/秒级</text>
+  <text x="260" y="200" font-family="Arial, sans-serif" font-size="11" fill="#ef4444">每像素跑</text>
+  <text x="260" y="216" font-family="Arial, sans-serif" font-size="11" fill="#ef4444">N次MLP</text>
+  <circle cx="480" cy="280" r="20" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="480" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#64748b">VS</text>
+  <rect x="490" y="60" width="440" height="440" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="710" y="90" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#16a34a">3DGS — 显式表示</text>
+  <line x1="520" y1="105" x2="900" y2="105" stroke="#86efac" stroke-width="1"/>
+  <rect x="520" y="120" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="610" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">SfM稀疏点云 → 初始椭球</text>
+  <line x1="610" y1="160" x2="610" y2="195" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <rect x="520" y="200" width="180" height="55" rx="6" fill="#bbf7d0" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="610" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#166534">百万高斯椭球</text>
+  <text x="610" y="242" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#14532d">位置+形状+颜色+透明度</text>
+  <line x1="700" y1="220" x2="750" y2="220" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="700" y1="235" x2="750" y2="280" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="700" y1="250" x2="750" y2="340" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="610" y1="255" x2="610" y2="295" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <rect x="520" y="300" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="610" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">投影到图像平面（2D椭斑）</text>
+  <line x1="610" y1="340" x2="610" y2="375" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <rect x="520" y="380" width="180" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="610" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">深度排序 + Alpha混合</text>
+  <line x1="610" y1="420" x2="610" y2="455" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <rect x="520" y="460" width="180" height="30" rx="6" fill="#16a34a" opacity="0.9"/>
+  <text x="610" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" font-weight="bold">快：100+ FPS，实时</text>
+  <text x="720" y="200" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">不跑任何</text>
+  <text x="720" y="216" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">神经网络</text>
+</svg>
