@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520">
+<rect width="900" height="520" fill="#FAFBFC"/>
+<text x="450.0" y="35" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="bold" fill="#1a1a2e">LLM引导的迭代优化引擎架构</text>
+<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+<polygon points="0 0, 10 3.5, 0 7" fill="#555"/></marker></defs>
+<rect x="30.0" y="220.0" width="180" height="80" rx="10" ry="10" fill="#4A90D9" opacity="0.15" stroke="#4A90D9" stroke-width="2"/>
+<text x="120" y="250" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#4A90D9">生成器</text>
+<text x="120" y="274" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">(LLM)</text>
+<rect x="290.0" y="220.0" width="180" height="80" rx="10" ry="10" fill="#E8833A" opacity="0.15" stroke="#E8833A" stroke-width="2"/>
+<text x="380" y="250" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#E8833A">评估器</text>
+<text x="380" y="274" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">(Env/Test)</text>
+<rect x="550.0" y="220.0" width="180" height="80" rx="10" ry="10" fill="#50B86C" opacity="0.15" stroke="#50B86C" stroke-width="2"/>
+<text x="640" y="250" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#50B86C">反思器</text>
+<text x="640" y="274" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">(LLM)</text>
+<rect x="340.0" y="370.0" width="220" height="60" rx="10" ry="10" fill="#8B5CF6" opacity="0.15" stroke="#8B5CF6" stroke-width="2"/>
+<text x="450" y="390" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#8B5CF6">记忆缓冲区</text>
+<text x="450" y="414" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">(历史尝试+反思)</text>
+<line x1="215.0" y1="260" x2="285.0" y2="260" stroke="#555555" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="250.0" y="248.0" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#555555">候选解</text>
+<line x1="475.0" y1="260" x2="545.0" y2="260" stroke="#555555" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="510.0" y="248.0" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#555555">反馈信号</text>
+<line x1="640" y1="300.0" x2="640" y2="370" stroke="#555555" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="630" y="335.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#555555">存储反思</text>
+<line x1="340" y1="370" x2="120" y2="300.0" stroke="#555555" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="230.0" y="385" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#555555">历史上下文</text>
+<text x="120" y="322.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#4A90D9">产生候选解</text>
+<text x="380" y="322.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#E8833A">量化反馈</text>
+<text x="640" y="322.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#50B86C">语言化诊断+改进方向</text>
+</svg>
