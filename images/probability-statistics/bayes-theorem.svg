@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 280" width="600" height="280">
+  <rect width="600" height="280" fill="#fff"/>
+  <text x="300" y="28" text-anchor="middle" font-size="16" font-weight="bold" font-family="sans-serif" fill="#222">贝叶斯公式：从先验到后验</text>
+  <rect x="20" y="50" width="140" height="100" rx="8" fill="#E3F2FD" stroke="#1976D2" stroke-width="1.5"/>
+  <text x="90" y="78" text-anchor="middle" font-size="13" font-weight="bold" font-family="sans-serif" fill="#1565C0">先验 P(H)</text>
+  <text x="90" y="98" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#1976D2">"数据前的信念"</text>
+  <text x="90" y="118" text-anchor="middle" font-size="12" font-family="monospace" fill="#1565C0">比如 P(生病)=1%</text>
+  <line x1="160" y1="100" x2="210" y2="100" stroke="#666" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <rect x="210" y="50" width="140" height="100" rx="8" fill="#FFF3E0" stroke="#F57C00" stroke-width="1.5"/>
+  <text x="280" y="78" text-anchor="middle" font-size="13" font-weight="bold" font-family="sans-serif" fill="#E65100">似然 P(D|H)</text>
+  <text x="280" y="98" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#F57C00">"数据出现的可能性"</text>
+  <text x="280" y="118" text-anchor="middle" font-size="12" font-family="monospace" fill="#E65100">比如 P(阳性|生病)=95%</text>
+  <line x1="350" y1="100" x2="400" y2="100" stroke="#666" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <rect x="400" y="50" width="160" height="100" rx="8" fill="#E8F5E9" stroke="#388E3C" stroke-width="1.5"/>
+  <text x="480" y="78" text-anchor="middle" font-size="13" font-weight="bold" font-family="sans-serif" fill="#2E7D32">后验 P(H|D)</text>
+  <text x="480" y="98" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#388E3C">"更新后的信念"</text>
+  <text x="480" y="118" text-anchor="middle" font-size="12" font-family="monospace" fill="#2E7D32">贝叶斯公式计算出</text>
+  <rect x="60" y="175" width="480" height="50" rx="6" fill="#F5F5F5"/>
+  <text x="300" y="198" text-anchor="middle" font-size="13" font-family="serif" fill="#333">P(H|D) = P(H) · P(D|H) / P(D)</text>
+  <text x="300" y="216" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#888">后验 ∝ 先验 × 似然  (归一化常数 P(D) 确保概率总和为1)</text>
+  <text x="300" y="255" text-anchor="middle" font-size="11" font-family="sans-serif" fill="#999">贝叶斯更新是可迭代的：今天的后验 = 明天的先验（新数据到来时重新计算）</text>
+  <defs>
+    <marker id="arrow2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#666"/>
+    </marker>
+  </defs>
+</svg>
