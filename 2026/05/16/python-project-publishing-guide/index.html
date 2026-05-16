@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="基于 Prandtl 项目的实战经验，从零到发布一个 Python 包的全流程指南。涵盖项目结构、PyPI 发布、MkDocs 文档站、GitHub Actions CI&#x2F;CD，以及国内网络环境下的特殊处理方案。   一、项目准备1.1 最简项目结构12345678910111213141516prandtl&#x2F;├── pyproject.toml          # 项目元数据 +">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python开源项目全流程：PyPI发布、文档站部署与CI&#x2F;CD自动化">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/16/python-project-publishing-guide/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="基于 Prandtl 项目的实战经验，从零到发布一个 Python 包的全流程指南。涵盖项目结构、PyPI 发布、MkDocs 文档站、GitHub Actions CI&#x2F;CD，以及国内网络环境下的特殊处理方案。   一、项目准备1.1 最简项目结构12345678910111213141516prandtl&#x2F;├── pyproject.toml          # 项目元数据 +">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-16T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-16T08:34:37.611Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Cloudflare">
+<meta property="article:tag" content="PyPI">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="开源">
+<meta property="article:tag" content="文档">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化",
+  "url": "https://goodisok.github.io/2026/05/16/python-project-publishing-guide/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-16T10:00:00.000Z",
+  "dateModified": "2026-05-16T08:34:37.611Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/16/python-project-publishing-guide/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">133</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">568</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-16T10:00:00.000Z" title="发表于 2026-05-16 18:00:00">2026-05-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-16T08:34:37.611Z" title="更新于 2026-05-16 16:34:37">2026-05-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E6%95%99%E7%A8%8B/">技术教程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>基于 Prandtl 项目的实战经验，从零到发布一个 Python 包的全流程指南。涵盖项目结构、PyPI 发布、MkDocs 文档站、GitHub Actions CI&#x2F;CD，以及国内网络环境下的特殊处理方案。</p>
+</blockquote>
+<hr>
+<h2 id="一、项目准备"><a href="#一、项目准备" class="headerlink" title="一、项目准备"></a>一、项目准备</h2><h3 id="1-1-最简项目结构"><a href="#1-1-最简项目结构" class="headerlink" title="1.1 最简项目结构"></a>1.1 最简项目结构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">prandtl/</span><br><span class="line">├── pyproject.toml          # 项目元数据 + 构建配置</span><br><span class="line">├── README.md               # 英文</span><br><span class="line">├── README_zh.md            # 中文（面向国内用户）</span><br><span class="line">├── LICENSE                 # MIT</span><br><span class="line">├── .gitignore</span><br><span class="line">├── src/</span><br><span class="line">│   └── prandtl/</span><br><span class="line">│       ├── __init__.py     # __version__ 定义在这里</span><br><span class="line">│       ├── surrogate.py</span><br><span class="line">│       └── ...</span><br><span class="line">├── docs/                   # MkDocs 源文件</span><br><span class="line">├── .github/workflows/</span><br><span class="line">│   ├── publish.yml         # tag 推送 → 自动发 PyPI</span><br><span class="line">│   └── docs.yml            # main 推送 → 自动部署文档站</span><br><span class="line">└── site/                   # mkdocs build 输出（不提交）</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-pyproject-toml-关键字段"><a href="#1-2-pyproject-toml-关键字段" class="headerlink" title="1.2 pyproject.toml 关键字段"></a>1.2 pyproject.toml 关键字段</h3><figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[project]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">&quot;prandtl-cfd&quot;</span>              <span class="comment"># PyPI 上的包名（小写+连字符）</span></span><br><span class="line"><span class="attr">version</span> = <span class="string">&quot;0.5.1&quot;</span></span><br><span class="line"><span class="attr">description</span> = <span class="string">&quot;CFD surrogate modeling toolkit&quot;</span></span><br><span class="line"><span class="attr">requires-python</span> = <span class="string">&quot;&gt;=3.10&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="section">[project.optional-dependencies]</span></span><br><span class="line"><span class="attr">gp</span> = [<span class="string">&quot;scikit-learn&gt;=1.3.0&quot;</span>]</span><br><span class="line"><span class="attr">all</span> = [<span class="string">&quot;prandtl-cfd[gp]&quot;</span>]</span><br><span class="line"></span><br><span class="line"><span class="section">[build-system]</span></span><br><span class="line"><span class="attr">requires</span> = [<span class="string">&quot;setuptools&gt;=68.0&quot;</span>, <span class="string">&quot;wheel&quot;</span>]</span><br><span class="line"><span class="attr">build-backend</span> = <span class="string">&quot;setuptools.build_meta&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：包名（<code>prandtl-cfd</code>）和 import 名（<code>import prandtl</code>）可以不同。这符合 PEP 423 规范，许多知名项目都这样——<code>scikit-learn</code> → <code>import sklearn</code>，<code>opencv-python</code> → <code>import cv2</code>。</p>
+<h3 id="1-3-版本号双重维护"><a href="#1-3-版本号双重维护" class="headerlink" title="1.3 版本号双重维护"></a>1.3 版本号双重维护</h3><p>版本号需要出现在两个地方，缺一不可：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># src/prandtl/__init__.py  ← 运行时版本</span></span><br><span class="line">__version__ = <span class="string">&quot;0.5.1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># pyproject.toml  ← 构建时版本</span></span><br><span class="line"><span class="attr">version</span> = <span class="string">&quot;0.5.1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>少写一个，PyPI 和 <code>pip show</code> 的版本不一致，或者 <code>import prandtl; prandtl.__version__</code> 失败。</p>
+<hr>
+<h2 id="二、PyPI-发布"><a href="#二、PyPI-发布" class="headerlink" title="二、PyPI 发布"></a>二、PyPI 发布</h2><h3 id="2-1-认证"><a href="#2-1-认证" class="headerlink" title="2.1 认证"></a>2.1 认证</h3><p>PyPI 已<strong>禁止密码登录</strong>。必须使用 API Token：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">用户名：__token__</span><br><span class="line">密码：pypi-AgEIcHlwaS5vcmc...</span><br></pre></td></tr></table></figure>
+
+<p>Token 在 <a target="_blank" rel="noopener" href="https://pypi.org/manage/account/token/">https://pypi.org/manage/account/token/</a> 生成，选 “Entire account” 权限。</p>
+<h3 id="2-2-本地发布（一条命令）"><a href="#2-2-本地发布（一条命令）" class="headerlink" title="2.2 本地发布（一条命令）"></a>2.2 本地发布（一条命令）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 清理 + 构建 + 上传</span></span><br><span class="line"><span class="built_in">rm</span> -rf dist/ build/ src/*.egg-info</span><br><span class="line">python -m build</span><br><span class="line">twine upload dist/* -u __token__ -p pypi-&lt;your-token&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-自动化：tag-推送-→-GitHub-Actions-自动发-PyPI"><a href="#2-3-自动化：tag-推送-→-GitHub-Actions-自动发-PyPI" class="headerlink" title="2.3 自动化：tag 推送 → GitHub Actions 自动发 PyPI"></a>2.3 自动化：tag 推送 → GitHub Actions 自动发 PyPI</h3><p><code>.github/workflows/publish.yml</code>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">publish</span></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">tags:</span> [<span class="string">&#x27;v*&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">pypi:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&#x27;3.11&#x27;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Build</span> <span class="string">package</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          pip install build</span></span><br><span class="line"><span class="string">          python -m build</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Publish</span> <span class="string">to</span> <span class="string">PyPI</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">pypa/gh-action-pypi-publish@release/v1</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">password:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.PYPI_TOKEN</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>配置后，日常发布只需：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 改 pyproject.toml + __init__.py 的版本号</span></span><br><span class="line">git tag v0.5.2</span><br><span class="line">git push origin v0.5.2</span><br><span class="line"><span class="comment"># → GitHub Actions 自动构建并发布到 PyPI</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>GitHub Secret 配置</strong>：在 <code>https://github.com/&lt;你&gt;/&lt;项目&gt;/settings/secrets/actions</code> 添加 <code>PYPI_TOKEN</code>，值为你的 PyPI API Token。</p>
+<hr>
+<h2 id="三、文档站部署"><a href="#三、文档站部署" class="headerlink" title="三、文档站部署"></a>三、文档站部署</h2><h3 id="3-1-技术选型：MkDocs-Material-Cloudflare-Pages"><a href="#3-1-技术选型：MkDocs-Material-Cloudflare-Pages" class="headerlink" title="3.1 技术选型：MkDocs Material + Cloudflare Pages"></a>3.1 技术选型：MkDocs Material + Cloudflare Pages</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th align="center">国内可访问</th>
+<th align="center">免费</th>
+<th align="center">自动部署</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GitHub Pages</td>
+<td align="center">❌ GFW 阻断</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Read the Docs</td>
+<td align="center">慢</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><strong>Cloudflare Pages</strong></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>自建服务器</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">需维护</td>
+</tr>
+</tbody></table>
+<p>GitHub Pages 在国内 TLS 被重置，Cloudflare Pages 是唯一免费+国内可通的选项。</p>
+<h3 id="3-2-mkdocs-yml-最小配置"><a href="#3-2-mkdocs-yml-最小配置" class="headerlink" title="3.2 mkdocs.yml 最小配置"></a>3.2 mkdocs.yml 最小配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">site_name:</span> <span class="string">Prandtl</span></span><br><span class="line"><span class="attr">site_description:</span> <span class="string">CFD</span> <span class="string">surrogate</span> <span class="string">modeling</span> <span class="string">toolkit</span></span><br><span class="line"><span class="attr">repo_url:</span> <span class="string">https://github.com/goodisok/prandtl</span></span><br><span class="line"><span class="attr">repo_name:</span> <span class="string">goodisok/prandtl</span></span><br><span class="line"></span><br><span class="line"><span class="attr">theme:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">material</span></span><br><span class="line">  <span class="attr">palette:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">scheme:</span> <span class="string">slate</span></span><br><span class="line">      <span class="attr">primary:</span> <span class="string">indigo</span></span><br><span class="line">      <span class="attr">accent:</span> <span class="string">light</span> <span class="string">blue</span></span><br><span class="line">      <span class="attr">toggle:</span></span><br><span class="line">        <span class="attr">icon:</span> <span class="string">material/brightness-7</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">Switch</span> <span class="string">to</span> <span class="string">light</span> <span class="string">mode</span></span><br><span class="line">  <span class="attr">features:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">navigation.instant</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">navigation.sections</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">search.highlight</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">content.code.copy</span></span><br><span class="line"></span><br><span class="line"><span class="attr">markdown_extensions:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">admonition</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pymdownx.superfences</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pymdownx.tabbed</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nav:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">首页:</span> <span class="string">index.md</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">安装:</span> <span class="string">install.md</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">用户指南:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">快速开始:</span> <span class="string">user-guide/quickstart.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">采样方法:</span> <span class="string">user-guide/sampling.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">模型训练:</span> <span class="string">user-guide/training.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">验证评估:</span> <span class="string">user-guide/validation.md</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">API</span> <span class="string">参考:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">Surrogate:</span> <span class="string">api/surrogate.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">采样:</span> <span class="string">api/sampling.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">验证:</span> <span class="string">api/validation.md</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">示例:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">平板边界层:</span> <span class="string">examples/flat-plate.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">多输出模型:</span> <span class="string">examples/multi-output.md</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">完整验证流程:</span> <span class="string">examples/validation-pipeline.md</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-GitHub-Actions-自动部署-docs-yml"><a href="#3-3-GitHub-Actions-自动部署-docs-yml" class="headerlink" title="3.3 GitHub Actions 自动部署 docs.yml"></a>3.3 GitHub Actions 自动部署 docs.yml</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">docs</span></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span> [<span class="string">main</span>]</span><br><span class="line">  <span class="attr">workflow_dispatch:</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">deploy-cf-pages:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&#x27;3.11&#x27;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Build</span> <span class="string">docs</span></span><br><span class="line">        <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          pip install mkdocs-material</span></span><br><span class="line"><span class="string">          mkdocs build</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Deploy</span> <span class="string">to</span> <span class="string">Cloudflare</span> <span class="string">Pages</span></span><br><span class="line">        <span class="attr">uses:</span> <span class="string">cloudflare/wrangler-action@v3</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">apiToken:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.CLOUDFLARE_API_TOKEN</span> <span class="string">&#125;&#125;</span></span><br><span class="line">          <span class="attr">accountId:</span> <span class="string">&lt;你的</span> <span class="string">Cloudflare</span> <span class="string">Account</span> <span class="string">ID&gt;</span></span><br><span class="line">          <span class="attr">command:</span> <span class="string">pages</span> <span class="string">deploy</span> <span class="string">site/</span> <span class="string">--project-name=&lt;项目名&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>前提</strong>：</p>
+<ol>
+<li>在 Cloudflare 控制台创建 Pages 项目（<code>wrangler pages project create &lt;name&gt;</code>）</li>
+<li>生成 API Token（权限：<strong>Account → Cloudflare Pages → Edit</strong>）</li>
+<li>在 GitHub Secrets 添加 <code>CLOUDFLARE_API_TOKEN</code></li>
+</ol>
+<p>此后每次 <code>git push</code> 到 main 分支，文档自动构建并部署。</p>
+<h3 id="3-4-本地预览"><a href="#3-4-本地预览" class="headerlink" title="3.4 本地预览"></a>3.4 本地预览</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pip install mkdocs-material</span><br><span class="line">mkdocs serve</span><br><span class="line"><span class="comment"># → http://127.0.0.1:8000</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、国内网络环境的三个坑"><a href="#四、国内网络环境的三个坑" class="headerlink" title="四、国内网络环境的三个坑"></a>四、国内网络环境的三个坑</h2><h3 id="4-1-git-push-被-GFW-阻断（HTTPS-写入）"><a href="#4-1-git-push-被-GFW-阻断（HTTPS-写入）" class="headerlink" title="4.1 git push 被 GFW 阻断（HTTPS 写入）"></a>4.1 git push 被 GFW 阻断（HTTPS 写入）</h3><p><strong>现象</strong>：<code>git clone</code> 和 <code>git fetch</code> 正常，但 <code>git push</code> 超时。</p>
+<p><strong>原因</strong>：GFW 的 DPI 识别 <code>git-receive-pack</code> 协议后静默丢包，只拦截写入不拦截读取。</p>
+<p><strong>解决</strong>：切换到 SSH 协议。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git remote set-url origin git@github.com:goodisok/prandtl.git</span><br><span class="line">git push origin main  <span class="comment"># 绕过 DPI</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>前提</strong>：本地需配置 SSH key 并添加到 GitHub。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -C <span class="string">&quot;your@email.com&quot;</span></span><br><span class="line"><span class="built_in">cat</span> ~/.ssh/id_ed25519.pub  <span class="comment"># 复制到 GitHub → Settings → SSH Keys</span></span><br><span class="line">ssh -T git@github.com      <span class="comment"># 验证</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-SSH-也偶尔不通-——-GitHub-API-兜底"><a href="#4-2-SSH-也偶尔不通-——-GitHub-API-兜底" class="headerlink" title="4.2 SSH 也偶尔不通 —— GitHub API 兜底"></a>4.2 SSH 也偶尔不通 —— GitHub API 兜底</h3><p>GFW 封锁是间歇性的。当 SSH 也不通时，使用 GitHub REST API 推送提交：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 获取 token</span></span><br><span class="line">TOKEN=$(<span class="built_in">echo</span> <span class="string">&#x27;url=https://github.com&#x27;</span> | git credential fill | awk -F= <span class="string">&#x27;/^password=/&#123;print $2&#125;&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取远程 HEAD</span></span><br><span class="line">REMOTE=$(curl -s -H <span class="string">&quot;Authorization: token <span class="variable">$TOKEN</span>&quot;</span> \</span><br><span class="line">  <span class="string">&quot;https://api.github.com/repos/用户/仓库/git/refs/heads/main&quot;</span> | \</span><br><span class="line">  python3 -c <span class="string">&quot;import json,sys; print(json.load(sys.stdin)[&#x27;object&#x27;][&#x27;sha&#x27;])&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 blob → tree → commit → 更新 ref</span></span><br><span class="line"><span class="comment"># ...（完整脚本见文末附录）</span></span><br></pre></td></tr></table></figure>
+
+<p>API 走标准的 HTTPS 443 端口，不会被 DPI 识别。</p>
+<h3 id="4-3-PyPI-上传超时"><a href="#4-3-PyPI-上传超时" class="headerlink" title="4.3 PyPI 上传超时"></a>4.3 PyPI 上传超时</h3><p><code>twine upload</code> 在 GFW 下上传大型包可能卡在 0%。两个方案：</p>
+<ul>
+<li><strong>方案 A</strong>：用户手动上传（60KB 的 wheel 文件通常能过）</li>
+<li><strong>方案 B</strong>：打 tag 让 GitHub Actions 自动发布（推荐，Actions 跑在境外服务器）</li>
+</ul>
+<hr>
+<h2 id="五、完整发布-checklist"><a href="#五、完整发布-checklist" class="headerlink" title="五、完整发布 checklist"></a>五、完整发布 checklist</h2><h3 id="首次配置（一次性）"><a href="#首次配置（一次性）" class="headerlink" title="首次配置（一次性）"></a>首次配置（一次性）</h3><ul>
+<li><input disabled="" type="checkbox"> GitHub 仓库创建完成</li>
+<li><input disabled="" type="checkbox"> PyPI 项目名 <code>pip install &lt;名字&gt;</code> 测试通过</li>
+<li><input disabled="" type="checkbox"> GitHub Secrets：<code>PYPI_TOKEN</code> + <code>CLOUDFLARE_API_TOKEN</code></li>
+<li><input disabled="" type="checkbox"> Cloudflare Pages 项目创建</li>
+<li><input disabled="" type="checkbox"> SSH key 配置（GFW 环境下必做）</li>
+<li><input disabled="" type="checkbox"> <code>site/</code> 加入 <code>.gitignore</code></li>
+</ul>
+<h3 id="每次发布"><a href="#每次发布" class="headerlink" title="每次发布"></a>每次发布</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 确认所有改动已提交</span></span><br><span class="line">git status</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 更新版本号（两处）</span></span><br><span class="line"><span class="comment"># pyproject.toml: version = &quot;0.5.2&quot;</span></span><br><span class="line"><span class="comment"># src/&lt;包&gt;/__init__.py: __version__ = &quot;0.5.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 提交版本号变更</span></span><br><span class="line">git add pyproject.toml src/&lt;包&gt;/__init__.py</span><br><span class="line">git commit -m <span class="string">&quot;bump: v0.5.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 打 tag + 推送</span></span><br><span class="line">git tag v0.5.2</span><br><span class="line">git push origin main</span><br><span class="line">git push origin v0.5.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 等待 GitHub Actions</span></span><br><span class="line"><span class="comment"># → publish.yml：自动发 PyPI</span></span><br><span class="line"><span class="comment"># → docs.yml：自动部署文档站</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 验证</span></span><br><span class="line">pip install --no-deps &lt;包名&gt;==0.5.2</span><br><span class="line">python3 -c <span class="string">&quot;import &lt;模块&gt;; print(&lt;模块&gt;.__version__)&quot;</span></span><br><span class="line">curl -sI https://&lt;项目&gt;.pages.dev | <span class="built_in">head</span> -3</span><br></pre></td></tr></table></figure>
+
+<h3 id="常见踩坑速查"><a href="#常见踩坑速查" class="headerlink" title="常见踩坑速查"></a>常见踩坑速查</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git push</code> 超时</td>
+<td>GFW 阻断 HTTPS</td>
+<td>改用 <code>git@github.com</code> SSH</td>
+</tr>
+<tr>
+<td><code>twine upload</code> 卡在 0%</td>
+<td>GFW 阻断 PyPI 上传</td>
+<td>打 tag 让 Actions 自动发布</td>
+</tr>
+<tr>
+<td><code>403 Bad credentials</code></td>
+<td>用了密码而非 Token</td>
+<td>用户名必须是 <code>__token__</code></td>
+</tr>
+<tr>
+<td><code>403 isn&#39;t allowed to upload</code></td>
+<td>项目名被占用</td>
+<td>换名字或联系 PyPI</td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: numpy</code></td>
+<td><code>pip install --no-deps</code></td>
+<td>正常——deps 会随正常安装自动解决</td>
+</tr>
+<tr>
+<td>Cloudflare 文档站 404</td>
+<td>GH Actions 没触发</td>
+<td>推一次 main 即可</td>
+</tr>
+<tr>
+<td><code>version not found</code></td>
+<td>忘了改 <code>__init__.py</code></td>
+<td>两处都要改</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h2><p>从零到完整发布一个 Python 开源项目，核心工作流就三步：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">写代码 → 打 tag → GitHub Actions 全自动完成 PyPI + 文档部署</span><br></pre></td></tr></table></figure>
+
+<p>关键决策：</p>
+<ul>
+<li><strong>文档站</strong>：Cloudflare Pages（免费 + 国内可访），不要用 GitHub Pages</li>
+<li><strong>认证</strong>：PyPI 用 API Token，Cloudflare 用 API Token，GitHub 用 SSH</li>
+<li><strong>自动化</strong>：publish.yml（tag 触发）+ docs.yml（push 触发）</li>
+</ul>
+<p>在此架构下，开发者的日常就是改代码 + 打 tag，剩下的全部自动完成。</p>
+<hr>
+<h2 id="附录：GitHub-API-推送脚本"><a href="#附录：GitHub-API-推送脚本" class="headerlink" title="附录：GitHub API 推送脚本"></a>附录：GitHub API 推送脚本</h2><p>当 SSH 和 HTTPS git push 都被 GFW 阻断时的兜底方案：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;通过 GitHub REST API 推送单个提交（绕过 GFW git 协议检测）&quot;&quot;&quot;</span></span><br><span class="line"><span class="keyword">import</span> subprocess, json, os</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>(<span class="params">cmd</span>):</span><br><span class="line">    <span class="keyword">return</span> subprocess.check_output(cmd, shell=<span class="literal">True</span>, text=<span class="literal">True</span>).strip()</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">api</span>(<span class="params">method, url, data=<span class="literal">None</span></span>):</span><br><span class="line">    token = run(<span class="string">&quot;echo &#x27;url=https://github.com&#x27; | git credential fill 2&gt;&amp;1 | awk -F= &#x27;/^password=/&#123;print $2&#125;&#x27;&quot;</span>)</span><br><span class="line">    cmd = <span class="string">f&quot;curl -sf -X <span class="subst">&#123;method&#125;</span> -H &#x27;Authorization: token <span class="subst">&#123;token&#125;</span>&#x27; -H &#x27;Content-Type: application/json&#x27;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> data:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;/tmp/gh_api_data.json&#x27;</span>, <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            json.dump(data, f)</span><br><span class="line">        cmd += <span class="string">&#x27; -d @/tmp/gh_api_data.json&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> json.loads(subprocess.check_output(<span class="string">f&quot;<span class="subst">&#123;cmd&#125;</span> <span class="subst">&#123;url&#125;</span>&quot;</span>, shell=<span class="literal">True</span>, text=<span class="literal">True</span>))</span><br><span class="line"></span><br><span class="line">os.chdir(<span class="string">&#x27;&lt;your-project&gt;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">local = run(<span class="string">&#x27;git rev-parse HEAD&#x27;</span>)</span><br><span class="line">remote = run(<span class="string">&quot;git ls-remote origin HEAD | awk &#x27;&#123;print $1&#125;&#x27;&quot;</span>)</span><br><span class="line">msg = run(<span class="string">&quot;git show --format=&#x27;%s&#x27; --no-patch HEAD&quot;</span>)</span><br><span class="line">author = run(<span class="string">&quot;git show --format=&#x27;%an&#x27; --no-patch HEAD&quot;</span>)</span><br><span class="line">email = run(<span class="string">&quot;git show --format=&#x27;%ae&#x27; --no-patch HEAD&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取远程树</span></span><br><span class="line">base_tree = api(<span class="string">&#x27;GET&#x27;</span>, <span class="string">f&#x27;https://api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/commits/<span class="subst">&#123;remote&#125;</span>&#x27;</span>)[<span class="string">&#x27;tree&#x27;</span>][<span class="string">&#x27;sha&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 为每个变更文件创建 blob，加入新树</span></span><br><span class="line">entries = []</span><br><span class="line"><span class="keyword">for</span> f <span class="keyword">in</span> run(<span class="string">f&#x27;git diff --name-only <span class="subst">&#123;remote&#125;</span>..<span class="subst">&#123;local&#125;</span>&#x27;</span>).split(<span class="string">&#x27;\n&#x27;</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> f: <span class="keyword">continue</span></span><br><span class="line">    content = run(<span class="string">f&#x27;git show <span class="subst">&#123;local&#125;</span>:<span class="subst">&#123;f&#125;</span>&#x27;</span>)</span><br><span class="line">    blob = api(<span class="string">&#x27;POST&#x27;</span>, <span class="string">&#x27;https://api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/blobs&#x27;</span>,</span><br><span class="line">               &#123;<span class="string">&#x27;content&#x27;</span>: content, <span class="string">&#x27;encoding&#x27;</span>: <span class="string">&#x27;utf-8&#x27;</span>&#125;)</span><br><span class="line">    entries.append(&#123;<span class="string">&#x27;path&#x27;</span>: f, <span class="string">&#x27;mode&#x27;</span>: <span class="string">&#x27;100644&#x27;</span>, <span class="string">&#x27;type&#x27;</span>: <span class="string">&#x27;blob&#x27;</span>, <span class="string">&#x27;sha&#x27;</span>: blob[<span class="string">&#x27;sha&#x27;</span>]&#125;)</span><br><span class="line"></span><br><span class="line">new_tree = api(<span class="string">&#x27;POST&#x27;</span>, <span class="string">&#x27;https://api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/trees&#x27;</span>,</span><br><span class="line">               &#123;<span class="string">&#x27;base_tree&#x27;</span>: base_tree, <span class="string">&#x27;tree&#x27;</span>: entries&#125;)</span><br><span class="line"></span><br><span class="line">new_commit = api(<span class="string">&#x27;POST&#x27;</span>, <span class="string">&#x27;https://api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/commits&#x27;</span>, &#123;</span><br><span class="line">    <span class="string">&#x27;message&#x27;</span>: msg,</span><br><span class="line">    <span class="string">&#x27;author&#x27;</span>: &#123;<span class="string">&#x27;name&#x27;</span>: author, <span class="string">&#x27;email&#x27;</span>: email&#125;,</span><br><span class="line">    <span class="string">&#x27;parents&#x27;</span>: [remote],</span><br><span class="line">    <span class="string">&#x27;tree&#x27;</span>: new_tree[<span class="string">&#x27;sha&#x27;</span>]</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新引用（真正的 push）</span></span><br><span class="line">api(<span class="string">&#x27;PATCH&#x27;</span>, <span class="string">f&#x27;https://api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/git/refs/heads/main&#x27;</span>,</span><br><span class="line">    &#123;<span class="string">&#x27;sha&#x27;</span>: new_commit[<span class="string">&#x27;sha&#x27;</span>], <span class="string">&#x27;force&#x27;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line"></span><br><span class="line">run(<span class="string">&#x27;git fetch origin main --quiet&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;✅ Pushed: <span class="subst">&#123;new_commit[<span class="string">&#x27;sha&#x27;</span>][:<span class="number">8</span>]&#125;</span> - <span class="subst">&#123;msg&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/16/python-project-publishing-guide/">https://goodisok.github.io/2026/05/16/python-project-publishing-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E5%BC%80%E6%BA%90/">开源</a><a class="post-meta__tags" href="/tags/PyPI/">PyPI</a><a class="post-meta__tags" href="/tags/CI-CD/">CI/CD</a><a class="post-meta__tags" href="/tags/%E6%96%87%E6%A1%A3/">文档</a><a class="post-meta__tags" href="/tags/Cloudflare/">Cloudflare</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/17/llm-guided-iterative-code-optimization/" title="大模型引导的迭代式代码优化：方法论、范式与工程实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">大模型引导的迭代式代码优化：方法论、范式与工程实践</div></div><div class="info-2"><div class="info-item-1">  系统梳理 LLM 引导的迭代式代码优化方法论。以 Eureka、FunSearch、Reflexion、SPIN、AlphaCodium 五种代表性工作为锚点，提炼通用的迭代反馈闭环、评估-改进二分结构和多样性维持策略，形成可复用的方法论框架。   一、引言：从生成到优化的范式转变2023年以前，大语言模型（LLM）在代码领域的核心叙事是“一次生成”——给定自然语言描述，直接输出完整代码。Codex [1]、StarCoder [2] 等模型在 HumanEval 等基准上不断刷新通过率，但生成结果的正确性和质量依赖模型的单样本能力，缺乏自我纠错机制。 2023年下半年至2024年初，一个根本性的范式转变出现：从“生成即终点”到“生成-评估-改进”的闭环迭代。这一转变的标志性事件包括：  2023年5月：Voyager [4] 提出 Skill Library + 迭代提示机制，LLM 自主探索 Minecraft 并持续改进技能代码 2023年6月：Reflexion [5] 将“语言化强化学习”引入代码生成，模型根据执行反馈自主修正 2023年10月：Eureka [3]...</div></div></div></a><a class="pagination-related" href="/2026/05/16/probability-statistics-textbook/" title="概率论与数理统计教材速查（浙大第五版）——从随机事件到假设检验"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">概率论与数理统计教材速查（浙大第五版）——从随机事件到假设检验</div></div><div class="info-2"><div class="info-item-1">  适用教材：盛骤、谢式千、潘承毅主编，《概率论与数理统计》（第五版），高等教育出版社。这是考研数学一指定参考书，与同济高数、同济线代组成”考研数学三件套”。本文按八章速查，配关键几何图解和手算例子。   一、概率论的基本概念概念理解概率论回答一个根本问题：在不确定中，我们能知道什么？ 抛一枚硬币，你不知道下一次是正面还是反面——但你知道抛1000次，大约500次正面。概率论就是把这种”大约”精确化的语言。 核心定义样本空间 Ω\OmegaΩ：随机试验所有可能结果的集合。 事件：Ω\OmegaΩ 的子集。事件 AAA 发生 &#x3D; 试验结果落在 AAA 中。 概率的公理化定义（柯尔莫哥洛夫，1933）：  非负性：P(A)≥0P(A) \ge 0P(A)≥0 规范性：P(Ω)=1P(\Omega) = 1P(Ω)=1 可列可加性：互不相容事件的概率 &#x3D; 各自概率之和  关键性质条件概率：已知 BBB 发生的条件下，AAA 发生的概率 P(A∣B)=P(AB)P(B)P(A|B) = \frac{P(AB)}{P(B)}P(A∣B)=P(B)P(AB)​  乘法公式...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/08/%E6%97%A0%E4%BA%BA%E6%9C%BA%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BB%BF%E7%9C%9F%E9%AA%8C%E8%AF%81%E5%AE%9E%E6%88%98-%E4%BB%8EGazebo%E5%8F%82%E6%95%B0%E5%81%8F%E5%B7%AE%E5%88%B04%E8%BD%AE%E8%BF%AD%E4%BB%A3%E6%94%B6%E6%95%9B/" title="四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">四旋翼动力学仿真验证方法论：Gazebo+PX4 从参数辨识到 97 m&#x2F;s 阻力模型修正</div></div><div class="info-2"><div class="info-item-1"> 本文做了什么：在没有实机的前提下，用纯仿真（Gazebo+PX4）把 Sim-to-Real 动力学验证的完整工具链跑通——验证方法本身是否可行、找到方法的能力边界、修复仿真平台在高速下的结构性缺陷。 三层递进：  方法验证（0-12 m&#x2F;s）：用 twin experiment（x500 当”真值”、interceptor 当”仿真”）验证 setpoint replay + k_f 辨识 + 迭代修正这套流程能收敛——4 轮后 Vz RMSE 下降 48%，Pitch RMSE 下降 45%。 高速极限诊断（50-97 m&#x2F;s）：用 x500_hp 和 Gobi 模型把速度推到 97 m&#x2F;s，发现 Gazebo 线性阻力模型在 50+ m&#x2F;s 完全失效（97 m&#x2F;s 时误差达 4 倍），桨盘前进比效应在 70+ m&#x2F;s 引入 20-50% 推力偏差。 缺陷修复：开发 QuadraticDrag 自定义插件实现物理正确的 v² 阻力，gobi_v2 验证了修复效果（最高速降低 14 m&#x2F;s，符合推力-阻力平...</div></div></div></a><a class="pagination-related" href="/2026/03/17/%E8%A7%86%E9%A2%91%E6%B5%81%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%BB%B6%E8%BF%9F%E6%B5%8B%E9%87%8F%E6%96%B9%E6%B3%95%E8%AE%BA-%E4%B8%80%E5%A5%97%E4%BB%A3%E7%A0%81%E9%80%9A%E5%90%83%E4%BB%BF%E7%9C%9F%E4%B8%8E%E5%A4%96%E5%9C%BA/" title="视频流端到端延迟测量方法论：一套代码通吃仿真与外场"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-17</div><div class="info-item-2">视频流端到端延迟测量方法论：一套代码通吃仿真与外场</div></div><div class="info-2"><div class="info-item-1"> 无人机图传延迟是影响飞行安全和操控体验的核心指标。业界常用 LED + 光电传感器法测量物理链路延迟，但这套方法无法用于仿真环境，仿真和外场需要两套完全不同的测量工具，数据也无法直接对比。 本文提出并实验验证了一种基于视觉时间戳标记的端到端延迟测量方法：在画面中放一个持续刷新时间戳的 QR 码，接收端解码即可算出延迟。这套方法仿真和外场使用完全相同的代码，实验证明测量精度 &lt; 3ms，标准差 &lt; 0.3ms。全部代码开源。   一、问题：为什么需要一个通用的延迟测量方法1.1 无人机图传延迟的完整链路12光线 → 机载相机(采集) → 编码器(H.264/H.265) → 图传发射 → 无线传输 → 接收 → 解码 → 地面显示          T_cap               T_enc              T_tx        T_rf      T_rx    T_dec    T_disp  各环节典型耗时：    环节 描述 典型延迟    相机采集 CMOS 曝光 + 读出 5-15 ms   编码 H.264&#x2F;H.265 压缩...</div></div></div></a><a class="pagination-related" href="/2026/02/11/JSBSim%E9%A3%9E%E8%A1%8C%E4%BB%BF%E7%9C%9F%E5%85%A5%E9%97%A8-NASA%E7%BA%A7%E5%BC%80%E6%BA%90%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%BC%95%E6%93%8E%E7%9A%84%E6%9E%B6%E6%9E%84%E5%AE%89%E8%A3%85%E4%B8%8E%E5%AE%9E%E6%88%98/" title="JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-11</div><div class="info-item-2">JSBSim飞行仿真入门：NASA级开源动力学引擎的架构、安装与实战</div></div><div class="info-2"><div class="info-item-1">  摘要：JSBSim 是 NASA 主导开发的开源飞行动力学仿真库，被 F-16、X-15、X-38 等多个航空航天项目采用。本文从架构设计、核心概念到 WSL 安装部署与 Python API 实战，完整覆盖 JSBSim 的使用全链路。最后对比 JSBSim、Gazebo、X-Plane 三大仿真器的适用场景，为飞行器建模与仿真应用提供技术选型参考。    一、什么是 JSBSim1.1 历史起源JSBSim 起源于 1996 年，由 Jon Berndt 在美国 NASA Langley 研究中心开始开发。它的核心目标是创建一个模块化、可扩展的开源飞行动力学仿真框架，用于替代当时昂贵的商业仿真软件（如 MATLAB&#x2F;Simulink Aerospace Toolbox）。 关键时间线：  1996：Jon Berndt 在 NASA Langley 开始 JSBSim 的早期开发 2000：首次公开发布，用于飞行控制系统验证 2004：被 X-38（NASA&#x2F;ESA 乘员返回飞行器）项目用于再入轨迹仿真验证 2010：成为 FlightGear 飞行模...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">133</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">568</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%A1%B9%E7%9B%AE%E5%87%86%E5%A4%87"><span class="toc-number">1.</span> <span class="toc-text">一、项目准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%9C%80%E7%AE%80%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 最简项目结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-pyproject-toml-%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 pyproject.toml 关键字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E7%89%88%E6%9C%AC%E5%8F%B7%E5%8F%8C%E9%87%8D%E7%BB%B4%E6%8A%A4"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 版本号双重维护</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81PyPI-%E5%8F%91%E5%B8%83"><span class="toc-number">2.</span> <span class="toc-text">二、PyPI 发布</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%AE%A4%E8%AF%81"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%AC%E5%9C%B0%E5%8F%91%E5%B8%83%EF%BC%88%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 本地发布（一条命令）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%87%AA%E5%8A%A8%E5%8C%96%EF%BC%9Atag-%E6%8E%A8%E9%80%81-%E2%86%92-GitHub-Actions-%E8%87%AA%E5%8A%A8%E5%8F%91-PyPI"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 自动化：tag 推送 → GitHub Actions 自动发 PyPI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%96%87%E6%A1%A3%E7%AB%99%E9%83%A8%E7%BD%B2"><span class="toc-number">3.</span> <span class="toc-text">三、文档站部署</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%EF%BC%9AMkDocs-Material-Cloudflare-Pages"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 技术选型：MkDocs Material + Cloudflare Pages</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-mkdocs-yml-%E6%9C%80%E5%B0%8F%E9%85%8D%E7%BD%AE"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 mkdocs.yml 最小配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-GitHub-Actions-%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2-docs-yml"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 GitHub Actions 自动部署 docs.yml</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%9C%AC%E5%9C%B0%E9%A2%84%E8%A7%88"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 本地预览</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%9B%BD%E5%86%85%E7%BD%91%E7%BB%9C%E7%8E%AF%E5%A2%83%E7%9A%84%E4%B8%89%E4%B8%AA%E5%9D%91"><span class="toc-number">4.</span> <span class="toc-text">四、国内网络环境的三个坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-git-push-%E8%A2%AB-GFW-%E9%98%BB%E6%96%AD%EF%BC%88HTTPS-%E5%86%99%E5%85%A5%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 git push 被 GFW 阻断（HTTPS 写入）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-SSH-%E4%B9%9F%E5%81%B6%E5%B0%94%E4%B8%8D%E9%80%9A-%E2%80%94%E2%80%94-GitHub-API-%E5%85%9C%E5%BA%95"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 SSH 也偶尔不通 —— GitHub API 兜底</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-PyPI-%E4%B8%8A%E4%BC%A0%E8%B6%85%E6%97%B6"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 PyPI 上传超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%8C%E6%95%B4%E5%8F%91%E5%B8%83-checklist"><span class="toc-number">5.</span> <span class="toc-text">五、完整发布 checklist</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A6%96%E6%AC%A1%E9%85%8D%E7%BD%AE%EF%BC%88%E4%B8%80%E6%AC%A1%E6%80%A7%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">首次配置（一次性）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%8F%E6%AC%A1%E5%8F%91%E5%B8%83"><span class="toc-number">5.2.</span> <span class="toc-text">每次发布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%B8%A9%E5%9D%91%E9%80%9F%E6%9F%A5"><span class="toc-number">5.3.</span> <span class="toc-text">常见踩坑速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">六、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9AGitHub-API-%E6%8E%A8%E9%80%81%E8%84%9A%E6%9C%AC"><span class="toc-number">7.</span> <span class="toc-text">附录：GitHub API 推送脚本</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/visual-simulation-3d-scene-methods-survey/" title="无人机视觉仿真3D场景方案：五条技术路径分析">无人机视觉仿真3D场景方案：五条技术路径分析</a><time datetime="2026-06-03T12:00:00.000Z" title="发表于 2026-06-03 20:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/llm-guided-iterative-code-optimization/" title="大模型引导的迭代式代码优化：方法论、范式与工程实践">大模型引导的迭代式代码优化：方法论、范式与工程实践</a><time datetime="2026-05-17T00:00:00.000Z" title="发表于 2026-05-17 08:00:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/16/python-project-publishing-guide/" title="Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化">Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化</a><time datetime="2026-05-16T10:00:00.000Z" title="发表于 2026-05-16 18:00:00">2026-05-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/16/discrete-mathematics-textbook/" title="离散数学·从命题逻辑到代数系统">离散数学·从命题逻辑到代数系统</a><time datetime="2026-05-16T00:00:00.000Z" title="发表于 2026-05-16 08:00:00">2026-05-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/16/probability-statistics-textbook/" title="概率论与数理统计教材速查（浙大第五版）——从随机事件到假设检验">概率论与数理统计教材速查（浙大第五版）——从随机事件到假设检验</a><time datetime="2026-05-16T00:00:00.000Z" title="发表于 2026-05-16 08:00:00">2026-05-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
