@@ -1,0 +1,850 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="不是所有代理模型都一样。高斯过程适合小数据+需要不确定性，MLP适合生产部署+需要梯度，树模型适合表格特征——选错方法等于浪费宝贵的CFD计算时间。本文从数据效率、推理速度、不确定性、梯度可用性等七个维度系统对比四种主流方法，并给出明确的选型决策树。  一、为什么选型是代理模型项目中最关键的决策CFD代理模型的研发链路中，方法选择是第一个不可逆的决策。选错方法的代价不是”稍微差一点”——而是整">
+<meta property="og:type" content="article">
+<meta property="og:title" content="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/18/cfd-surrogate-model-comparison/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="不是所有代理模型都一样。高斯过程适合小数据+需要不确定性，MLP适合生产部署+需要梯度，树模型适合表格特征——选错方法等于浪费宝贵的CFD计算时间。本文从数据效率、推理速度、不确定性、梯度可用性等七个维度系统对比四种主流方法，并给出明确的选型决策树。  一、为什么选型是代理模型项目中最关键的决策CFD代理模型的研发链路中，方法选择是第一个不可逆的决策。选错方法的代价不是”稍微差一点”——而是整">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-18T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-16T09:58:42.269Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="CFD">
+<meta property="article:tag" content="代理模型">
+<meta property="article:tag" content="决策指南">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="选型对比">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南",
+  "url": "https://goodisok.github.io/2026/05/18/cfd-surrogate-model-comparison/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-18T01:00:00.000Z",
+  "dateModified": "2026-05-16T09:58:42.269Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/18/cfd-surrogate-model-comparison/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">136</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-18T01:00:00.000Z" title="发表于 2026-05-18 09:00:00">2026-05-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-16T09:58:42.269Z" title="更新于 2026-05-16 17:58:42">2026-05-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%B5%81%E4%BD%93%E5%8A%9B%E5%AD%A6/">计算流体力学</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="https://img.shields.io/badge/CFD-%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B-blue?style=for-the-badge" alt="Badge"></p>
+<blockquote>
+<p>不是所有代理模型都一样。高斯过程适合小数据+需要不确定性，MLP适合生产部署+需要梯度，树模型适合表格特征——选错方法等于浪费宝贵的CFD计算时间。本文从数据效率、推理速度、不确定性、梯度可用性等七个维度系统对比四种主流方法，并给出明确的选型决策树。</p>
+</blockquote>
+<h2 id="一、为什么选型是代理模型项目中最关键的决策"><a href="#一、为什么选型是代理模型项目中最关键的决策" class="headerlink" title="一、为什么选型是代理模型项目中最关键的决策"></a>一、为什么选型是代理模型项目中最关键的决策</h2><p>CFD代理模型的研发链路中，方法选择是第一个不可逆的决策。选错方法的代价不是”稍微差一点”——而是整个训练数据收集策略、部署方式、后续可维护性都跟着走偏了。</p>
+<p>四种方法的核心差异可以用一个表概括：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th align="center">高斯过程 (GP)</th>
+<th align="center">多层感知器 (MLP)</th>
+<th align="center">随机森林 (RF)</th>
+<th align="center">梯度提升 (GB)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据效率</strong></td>
+<td align="center">⬆⬆ 最高</td>
+<td align="center">⬆ 高（+物理约束）</td>
+<td align="center">➡ 中</td>
+<td align="center">➡ 中</td>
+</tr>
+<tr>
+<td><strong>推理速度</strong></td>
+<td align="center">⬇ 慢（O(N)）</td>
+<td align="center">⬆⬆ 最快</td>
+<td align="center">⬆ 快</td>
+<td align="center">⬆ 快</td>
+</tr>
+<tr>
+<td><strong>不确定性输出</strong></td>
+<td align="center">✅ 天然</td>
+<td align="center">❌ 需额外方法</td>
+<td align="center">❌ 无</td>
+<td align="center">❌ 无</td>
+</tr>
+<tr>
+<td><strong>梯度可用</strong></td>
+<td align="center">✅ 解析梯度</td>
+<td align="center">✅ 自动微分</td>
+<td align="center">❌ 不可微</td>
+<td align="center">❌ 不可微</td>
+</tr>
+<tr>
+<td><strong>外推能力</strong></td>
+<td align="center">⬆ 好（核选择）</td>
+<td align="center">⬆ 好（物理约束）</td>
+<td align="center">⬇⬇ 差</td>
+<td align="center">⬇⬇ 差</td>
+</tr>
+<tr>
+<td><strong>超参调优难度</strong></td>
+<td align="center">⬇ 低</td>
+<td align="center">⬇⬇ 高</td>
+<td align="center">⬇⬇ 低</td>
+<td align="center">⬆ 中</td>
+</tr>
+<tr>
+<td><strong>可导出ONNX</strong></td>
+<td align="center">❌ 不可</td>
+<td align="center">✅ 可</td>
+<td align="center">✅ 可（skl2onnx）</td>
+<td align="center">✅ 可（skl2onnx）</td>
+</tr>
+</tbody></table>
+<p>下面逐一深入分析。</p>
+<h2 id="二、高斯过程回归（GP）"><a href="#二、高斯过程回归（GP）" class="headerlink" title="二、高斯过程回归（GP）"></a>二、高斯过程回归（GP）</h2><h3 id="2-1-原理简述"><a href="#2-1-原理简述" class="headerlink" title="2.1 原理简述"></a>2.1 原理简述</h3><p>GP将函数视为一个随机过程的样本。训练后，在每个输入点上给出高斯后验分布——均值是预测，方差是不确定性：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mi mathvariant="normal">∣</mi><mi>X</mi><mo separator="true">,</mo><mi>y</mi><mo separator="true">,</mo><msub><mi>x</mi><mo>∗</mo></msub><mo>∼</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mi>μ</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+f(x_*) | X, y, x_* \sim \mathcal{N}(\mu(x_*), \sigma^2(x_*))
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.1474em;">N</span><span class="mopen">(</span><span class="mord mathnormal">μ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">))</span></span></span></span></span>
+
+<p>其中：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>μ</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mo>=</mo><mi>K</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo separator="true">,</mo><mi>X</mi><mo stretchy="false">)</mo><mo stretchy="false">[</mo><mi>K</mi><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><msubsup><mi>σ</mi><mi>n</mi><mn>2</mn></msubsup><mi>I</mi><msup><mo stretchy="false">]</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>y</mi></mrow><annotation encoding="application/x-tex">
+\mu(x_*) = K(x_*, X)[K(X, X) + \sigma_n^2 I]^{-1}y
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">μ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span></span></span></span></span>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mo>=</mo><mi>k</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo separator="true">,</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo><mo>−</mo><mi>K</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mo>∗</mo></msub><mo separator="true">,</mo><mi>X</mi><mo stretchy="false">)</mo><mo stretchy="false">[</mo><mi>K</mi><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><msubsup><mi>σ</mi><mi>n</mi><mn>2</mn></msubsup><mi>I</mi><msup><mo stretchy="false">]</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>K</mi><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><msub><mi>x</mi><mo>∗</mo></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\sigma^2(x_*) = k(x_*, x_*) - K(x_*, X)[K(X, X) + \sigma_n^2 I]^{-1}K(X, x_*)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1757em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<h3 id="2-2-数据效率"><a href="#2-2-数据效率" class="headerlink" title="2.2 数据效率"></a>2.2 数据效率</h3><p>GP是四种方法中<strong>数据效率最高</strong>的。原因有二：</p>
+<ol>
+<li><strong>贝叶斯框架</strong>自动进行Occam剃刀——复杂度和数据量自动平衡</li>
+<li><strong>核函数</strong>编码了函数光滑性的先验信念</li>
+</ol>
+<p>经验法则：对于CFD代理模型的典型维度（d&#x3D;7-9），GP通常需要10d到30d个训练样本——即70到270个CFD案例。</p>
+<h3 id="2-3-不确定性的真实价值"><a href="#2-3-不确定性的真实价值" class="headerlink" title="2.3 不确定性的真实价值"></a>2.3 不确定性的真实价值</h3><p>GP天然输出不确定性，这不仅是学术装饰——在工程中有两个具体应用：</p>
+<p><strong>主动学习</strong>：在下一次CFD采样前，问”哪个点的预测最不确定？”然后在那里做CFD。这确保CFD计算时间被花在最需要的地方。</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>x</mi><mtext>next</mtext></msub><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>x</mi></munder><mi>σ</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+x_{\text{next}} = \arg\max_x \sigma(x)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">next</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.45em;vertical-align:-0.7em;"></span><span class="mop">ar<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.4306em;"><span style="top:-2.4em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span>
+
+<p><strong>安全边界</strong>：在做出设计决策时，不只是看预测值，还看这个预测有多靠谱：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cl_pred, cl_std = gp_model.predict(x, return_std=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">if</span> cl_std &gt; <span class="number">0.05</span>:  <span class="comment"># 预测不确定性太大</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;需要额外CFD验证，不采用代理模型预测&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-核心局限"><a href="#2-4-核心局限" class="headerlink" title="2.4 核心局限"></a>2.4 核心局限</h3><p><strong>推理慢</strong>：GP推理需要计算测试点与所有训练点的核函数，<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mclose">)</span></span></span></span></span> 的时间复杂度。训练是 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>。</p>
+<p><strong>不能导出ONNX</strong>：非参数模型的推理依赖全量训练数据。这意味着不能把GP部署到C++飞控中去——它留在Python&#x2F;Julia层面，做离线分析和主动学习。</p>
+<p><strong>在高维（d &gt; 20）表现变差</strong>：核函数在高维空间中的”距离”概念会失效。不过CFD代理模型的输入维度（d &lt; 10）通常不触发这个问题。</p>
+<h3 id="2-5-最佳使用场景"><a href="#2-5-最佳使用场景" class="headerlink" title="2.5 最佳使用场景"></a>2.5 最佳使用场景</h3><ul>
+<li>🔬 <strong>贝叶斯优化</strong>：用不确定性引导下一次采样</li>
+<li>📊 <strong>设计空间探索</strong>：需要知道”哪里预测可靠，哪里需要更多数据”</li>
+<li>🧪 <strong>小数据场景</strong>：只有50-150个CFD案例时，GP是首选</li>
+</ul>
+<h2 id="三、多层感知器（MLP）"><a href="#三、多层感知器（MLP）" class="headerlink" title="三、多层感知器（MLP）"></a>三、多层感知器（MLP）</h2><h3 id="3-1-原理简述"><a href="#3-1-原理简述" class="headerlink" title="3.1 原理简述"></a>3.1 原理简述</h3><p>MLP用多层全连接网络逼近函数：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>f</mi><mo>^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>W</mi><mi>L</mi></msub><mo>⋅</mo><mi>σ</mi><mo stretchy="false">(</mo><msub><mi>W</mi><mrow><mi>L</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>⋅</mo><mi>σ</mi><mo stretchy="false">(</mo><mo>⋯</mo><mtext> </mtext><mo stretchy="false">)</mo><mo>+</mo><msub><mi>b</mi><mrow><mi>L</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>b</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">
+\hat{f}(x) = W_L \cdot \sigma(W_{L-1} \cdot \sigma(\cdots) + b_{L-1}) + b_L
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2079em;vertical-align:-0.25em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="mopen">(</span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<p>训练通过反向传播和梯度下降最小化MSE损失：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mo stretchy="false">(</mo><mover accent="true"><mi>f</mi><mo>^</mo></mover><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>y</mi><mi>i</mi></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mo>+</mo><mi>λ</mi><munder><mo>∑</mo><mi>k</mi></munder><msub><mi mathvariant="script">P</mi><mi>k</mi></msub><mo stretchy="false">(</mo><mover accent="true"><mi>f</mi><mo>^</mo></mover><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\mathcal{L} = \frac{1}{N}\sum_{i=1}^{N}(\hat{f}(x_i) - y_i)^2 + \lambda \sum_{k} \mathcal{P}_k(\hat{f})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.106em;vertical-align:-1.2777em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.3521em;vertical-align:-1.3021em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3021em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0822em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">P</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{P}_k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0822em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> 是物理约束惩罚项——这是MLP独有的优势。</p>
+<h3 id="3-2-物理约束：MLP的杀手锏"><a href="#3-2-物理约束：MLP的杀手锏" class="headerlink" title="3.2 物理约束：MLP的杀手锏"></a>3.2 物理约束：MLP的杀手锏</h3><p>MLP可以方便地在损失函数中注入物理先验：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> prandtl.physics <span class="keyword">import</span> Monotonicity, BoundaryValue, Convexity</span><br><span class="line"></span><br><span class="line">surrogate.fit(X, Y, method=<span class="string">&quot;mlp&quot;</span>, physics=[</span><br><span class="line">    Monotonicity(param_idx=<span class="number">0</span>, sign=<span class="number">1</span>, weight=<span class="number">0.1</span>),</span><br><span class="line">    <span class="comment"># CL随迎角单调递增</span></span><br><span class="line"></span><br><span class="line">    BoundaryValue(&#123;<span class="string">&quot;alpha&quot;</span>: <span class="number">0.0</span>, <span class="string">&quot;camber&quot;</span>: <span class="number">0.0</span>&#125;, &#123;<span class="string">&quot;CL&quot;</span>: <span class="number">0.0</span>&#125;, weight=<span class="number">10.0</span>),</span><br><span class="line">    <span class="comment"># 对称翼型零迎角时升力为零</span></span><br><span class="line"></span><br><span class="line">    Convexity(param_idx=<span class="number">0</span>, weight=<span class="number">0.05</span>),</span><br><span class="line">    <span class="comment"># 升力曲线在附着流区域是凸的</span></span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+<p>这在数据稀少的区域尤为重要——物理约束确保了模型在未见过的输入点上不会做出”物理上不可能”的预测。GP通过核函数编码了光滑性，但没有这种针对特定物理规律的软约束能力。</p>
+<h3 id="3-3-生产部署优势"><a href="#3-3-生产部署优势" class="headerlink" title="3.3 生产部署优势"></a>3.3 生产部署优势</h3><p>MLP是唯一可以<strong>同时满足</strong>以下所有部署要求的：</p>
+<ul>
+<li>✅ 推理速度：&lt; 0.1ms（满足400Hz飞控刷新率）</li>
+<li>✅ 可导出：ONNX支持，C++&#x2F;C#&#x2F;Java加载</li>
+<li>✅ 自动微分：梯度几乎免费，适合逆设计和优化</li>
+<li>✅ 生产级：行业标准，所有云和边缘平台支持</li>
+</ul>
+<h3 id="3-4-核心局限"><a href="#3-4-核心局限" class="headerlink" title="3.4 核心局限"></a>3.4 核心局限</h3><p><strong>超参数调优需要经验</strong>：隐藏层数、每层宽度、学习率、正则化强度——调优空间大。但CFD代理的输入维度低（d &lt; 10），一个简单的 [64, 64, 32] MLP架构通常就够用了。</p>
+<p><strong>无天然不确定性</strong>：需要Ensemble（训练5个MLP取方差）或MC Dropout。这会增加2-10倍的计算开销。</p>
+<h3 id="3-5-最佳使用场景"><a href="#3-5-最佳使用场景" class="headerlink" title="3.5 最佳使用场景"></a>3.5 最佳使用场景</h3><ul>
+<li>🚀 <strong>生产部署</strong>：实时仿真、飞控中的气动查询</li>
+<li>🔄 <strong>逆设计</strong>：需要梯度信息优化几何参数</li>
+<li>⚡ <strong>实时应用</strong>：400Hz以上的飞控刷新率</li>
+<li>🔗 <strong>工业集成</strong>：导出ONNX嵌入C++&#x2F;C#系统</li>
+</ul>
+<h2 id="四、随机森林（RF）"><a href="#四、随机森林（RF）" class="headerlink" title="四、随机森林（RF）"></a>四、随机森林（RF）</h2><h3 id="4-1-原理简述"><a href="#4-1-原理简述" class="headerlink" title="4.1 原理简述"></a>4.1 原理简述</h3><p>随机森林用Bootstrap聚合构建多棵决策树：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>f</mi><mo>^</mo></mover><mtext>RF</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></munderover><msub><mi>T</mi><mi>b</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\hat{f}_{\text{RF}}(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2079em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">RF</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.1304em;vertical-align:-1.3021em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3021em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span>
+
+<p>每棵树在bootstrap样本上训练，且每次分裂只考虑特征的随机子集。</p>
+<h3 id="4-2-在CFD代理中的表现"><a href="#4-2-在CFD代理中的表现" class="headerlink" title="4.2 在CFD代理中的表现"></a>4.2 在CFD代理中的表现</h3><p>随机森林在<strong>表格特征工程</strong>场景中表现不错——当输入是精心设计的工程参数（如雷诺数、翼型类别编码、展弦比等），RF可以自动捕获特征交互。</p>
+<p>但CFD代理模型的输入通常是<strong>连续物理参数</strong>（迎角、马赫数、弯度等），这削弱了RF的优势。决策树本质上学习分段常函数：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><msub><mi>c</mi><mi>j</mi></msub><mo>⋅</mo><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>x</mi><mo>∈</mo><msub><mi>R</mi><mi>j</mi></msub><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">
+T(x) = \sum_{j=1}^{J} c_j \cdot \mathbf{1}[x \in R_j]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.2421em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0962em;">J</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">]</span></span></span></span></span>
+
+<p>这个结构导致：</p>
+<ul>
+<li>❌ 输出不光滑（阶梯状），不是连续函数</li>
+<li>❌ 外推完全失效（超出训练范围输出常数）</li>
+<li>❌ 不可微，不能用于需要梯度的场景</li>
+</ul>
+<h3 id="4-3-什么时候用RF"><a href="#4-3-什么时候用RF" class="headerlink" title="4.3 什么时候用RF"></a>4.3 什么时候用RF</h3><p>如果输入包含<strong>分类变量</strong>（如翼型类型：对称&#x2F;弯度&#x2F;超临界）和<strong>表格型混合特征</strong>——RF是天然的选择。但在纯连续物理参数的CFD代理中，GP和MLP通常更好。</p>
+<h3 id="4-4-最佳使用场景"><a href="#4-4-最佳使用场景" class="headerlink" title="4.4 最佳使用场景"></a>4.4 最佳使用场景</h3><ul>
+<li>📋 <strong>混合特征</strong>：连续+分类变量的输入空间</li>
+<li>🛡️ <strong>异常值容错</strong>：RF对CFD求解器偶尔的收敛失败不敏感</li>
+<li>🔍 <strong>特征重要性分析</strong>：天然输出特征重要性排名</li>
+</ul>
+<h2 id="五、梯度提升（GB）"><a href="#五、梯度提升（GB）" class="headerlink" title="五、梯度提升（GB）"></a>五、梯度提升（GB）</h2><h3 id="5-1-原理简述"><a href="#5-1-原理简述" class="headerlink" title="5.1 原理简述"></a>5.1 原理简述</h3><p>梯度提升逐步训练弱学习器来减少残差：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mover accent="true"><mi>f</mi><mo>^</mo></mover><mtext>GB</mtext><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mover accent="true"><mi>f</mi><mo>^</mo></mover><mtext>GB</mtext><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>η</mi><mo>⋅</mo><msub><mi>h</mi><mi>t</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+\hat{f}_{\text{GB}}^{(t)}(x) = \hat{f}_{\text{GB}}^{(t-1)}(x) + \eta \cdot h_t(x)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.3383em;vertical-align:-0.2935em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.4065em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">GB</span></span></span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">t</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2935em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.3383em;vertical-align:-0.2935em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9579em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.4065em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">GB</span></span></span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2935em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">η</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>h</mi><mi>t</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">h_t(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span> 是用残差梯度训练的决策树。</p>
+<h3 id="5-2-与RF的关键区别"><a href="#5-2-与RF的关键区别" class="headerlink" title="5.2 与RF的关键区别"></a>5.2 与RF的关键区别</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>随机森林</th>
+<th>梯度提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>训练方式</td>
+<td>并行（Bootstrap）</td>
+<td>串行（逐步减少残差）</td>
+</tr>
+<tr>
+<td>偏差-方差</td>
+<td>主要降低方差</td>
+<td>同时降低偏差和方差</td>
+</tr>
+<tr>
+<td>训练速度</td>
+<td>天然并行</td>
+<td>必须串行</td>
+</tr>
+<tr>
+<td>过拟合风险</td>
+<td>低</td>
+<td>中（需早停）</td>
+</tr>
+<tr>
+<td>精度上限</td>
+<td>中高</td>
+<td>高（表格数据SOTA）</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-在CFD代理中的角色"><a href="#5-3-在CFD代理中的角色" class="headerlink" title="5.3 在CFD代理中的角色"></a>5.3 在CFD代理中的角色</h3><p>GB在Kaggle表格数据比赛中常年占据前列，但在CFD代理中的适用性受限于：</p>
+<ol>
+<li><strong>外推能力差</strong>：和RF一样的树模型通病——在训练数据范围外的预测是常数</li>
+<li><strong>输出不光滑</strong>：虽然是分段常函数的加权组合，但实际操作中外推处仍无法给出光滑合理的外推</li>
+<li><strong>不可微</strong>：不能用于需要梯度的逆设计和优化</li>
+</ol>
+<h3 id="5-4-最佳使用场景"><a href="#5-4-最佳使用场景" class="headerlink" title="5.4 最佳使用场景"></a>5.4 最佳使用场景</h3><ul>
+<li>🏆 <strong>精度优先</strong>：表格特征+足够数据时，GB通常精度最高</li>
+<li>📊 <strong>特征工程密集型</strong>：当输入是手工构造的复杂工程特征</li>
+<li>🎯 <strong>有充足数据+不需要外推</strong>：如翼型数据库查询（已知范围内插值）</li>
+</ul>
+<h2 id="六、选型决策树"><a href="#六、选型决策树" class="headerlink" title="六、选型决策树"></a>六、选型决策树</h2><p>根据你的具体需求，按以下决策树选择：</p>
+<p><img src="/images/cfd-surrogate/model-selection-decision-tree.svg" alt="代理模型方法选型决策树"></p>
+<h2 id="七、数据预算与精度预期"><a href="#七、数据预算与精度预期" class="headerlink" title="七、数据预算与精度预期"></a>七、数据预算与精度预期</h2><p>经验数据（基于CFD代理模型文献和Prandtl框架验证）：</p>
+<table>
+<thead>
+<tr>
+<th align="center">样本数</th>
+<th align="center">GP R² (典型 d&#x3D;7)</th>
+<th align="center">MLP R² (典型 d&#x3D;7)</th>
+<th align="center">RF R² (典型 d&#x3D;7)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">50</td>
+<td align="center">0.85-0.92</td>
+<td align="center">0.75-0.85</td>
+<td align="center">0.70-0.80</td>
+</tr>
+<tr>
+<td align="center">100</td>
+<td align="center">0.92-0.96</td>
+<td align="center">0.85-0.93</td>
+<td align="center">0.80-0.88</td>
+</tr>
+<tr>
+<td align="center">200</td>
+<td align="center">0.95-0.98</td>
+<td align="center">0.93-0.97</td>
+<td align="center">0.88-0.94</td>
+</tr>
+<tr>
+<td align="center">500</td>
+<td align="center">0.97-0.99</td>
+<td align="center">0.96-0.99</td>
+<td align="center">0.93-0.97</td>
+</tr>
+</tbody></table>
+<p><strong>注</strong>：上表是典型范围，实际精度取决于具体流动物理的复杂度和输入空间的实际有效维度。光滑附着流的精度远高于分离流&#x2F;激波区域。</p>
+<p><strong>关键观察</strong>：</p>
+<ul>
+<li>GP在小样本（N &lt; 100）明显优于其他方法</li>
+<li>MLP在大样本（N &gt; 300）追平甚至超越GP（尤其在加入物理约束后）</li>
+<li>树模型在整个范围内系统性落后（对光滑函数不擅长）</li>
+</ul>
+<h2 id="八、混合策略：取长补短"><a href="#八、混合策略：取长补短" class="headerlink" title="八、混合策略：取长补短"></a>八、混合策略：取长补短</h2><p>实践中最优方案往往是混合的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 阶段1：用GP做主动学习，高效收集数据</span></span><br><span class="line">gp_model = pr.Surrogate(method=<span class="string">&quot;gp&quot;</span>)</span><br><span class="line">X, Y = initial_samples()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(active_learning_rounds):</span><br><span class="line">    gp_model.fit(X, Y)</span><br><span class="line">    x_next = gp_model.propose_next(X)  <span class="comment"># 选不确定性最高的点</span></span><br><span class="line">    y_next = run_cfd(x_next)</span><br><span class="line">    X, Y = append(X, x_next), append(Y, y_next)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 阶段2：用MLP+物理约束做最终训练和部署</span></span><br><span class="line">mlp_model = pr.Surrogate(method=<span class="string">&quot;mlp&quot;</span>)</span><br><span class="line">mlp_model.fit(X, Y, physics=[...])</span><br><span class="line">mlp_model.export(<span class="string">&quot;surrogate.onnx&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这结合了GP的主动学习优势和MLP的生产部署优势。</p>
+<h2 id="九、选择Prandtl框架的理由"><a href="#九、选择Prandtl框架的理由" class="headerlink" title="九、选择Prandtl框架的理由"></a>九、选择Prandtl框架的理由</h2><p>上面的所有代码示例都基于<strong>Prandtl</strong>（<code>pip install prandtl-cfd</code>），原因如下：</p>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>Prandtl支持</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>统一API：fit&#x2F;predict&#x2F;validate</td>
+<td>✅ 所有方法共用</td>
+</tr>
+<tr>
+<td>GP后端</td>
+<td>✅ GPyTorch ExactGP，自动核选择</td>
+</tr>
+<tr>
+<td>MLP+物理约束</td>
+<td>✅ 单调性&#x2F;凹凸性&#x2F;边界值</td>
+</tr>
+<tr>
+<td>ONNX导出</td>
+<td>✅ MLP支持</td>
+</tr>
+<tr>
+<td>采样器</td>
+<td>✅ LHS&#x2F;Sobol&#x2F;均匀采样</td>
+</tr>
+<tr>
+<td>解析函数验证</td>
+<td>✅ 零CFD开发</td>
+</tr>
+<tr>
+<td>从GP切换到MLP</td>
+<td>✅ 一行参数变化</td>
+</tr>
+</tbody></table>
+<p>其他框架对比：</p>
+<p>| 框架 | 定位 | CFDGPGPMLP | 物理约束 | ONNX |<br>|——|——|:—:|:—:|:—:|:—:|<br>| GPyTorch | GP专用库 | ✅ | ❌ | ❌ | ❌ |<br>| scikit-learn | 通用ML | ✅ | ✅ | ❌ | ✅ |<br>| PhysicsNeMo | 物理ML全栈 | ✅ | ✅ | ✅ | ✅ |<br>| <strong>Prandtl</strong> | CFD代理专用 | ✅ | ✅ | ✅ | ✅ |</p>
+<h2 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方法</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>小数据 + 需要知道预测是否靠谱</strong></td>
+<td>GP</td>
+<td>天然不确定性，数据效率最高</td>
+</tr>
+<tr>
+<td><strong>生产部署 + 实时推理</strong></td>
+<td>MLP + ONNX</td>
+<td>微秒级推理，跨平台部署</td>
+</tr>
+<tr>
+<td><strong>逆设计 + 梯度优化</strong></td>
+<td>MLP</td>
+<td>自动微分，梯度几乎免费</td>
+</tr>
+<tr>
+<td><strong>混合特征 + 异常值多</strong></td>
+<td>RF</td>
+<td>对非光滑数据和异常值稳健</td>
+</tr>
+<tr>
+<td><strong>最高纯预测精度</strong></td>
+<td>GB</td>
+<td>表格数据SOTA</td>
+</tr>
+<tr>
+<td><strong>最优综合方案</strong></td>
+<td>GP主动学习 → MLP部署</td>
+<td>取各方法所长</td>
+</tr>
+</tbody></table>
+<p>代理模型的方法选择不是”哪个最好”的问题——而是”哪个最适合你的约束和场景”的问题。理解每个方法的优势边界，比迷信一个”最佳方法”更重要。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>Rasmussen, C. E., &amp; Williams, C. K. I. (2006). <em>Gaussian Processes for Machine Learning</em>. MIT Press.</li>
+<li>Breiman, L. (2001). Random Forests. <em>Machine Learning</em>, 45(1), 5-32. DOI: 10.1023&#x2F;A:1010933404324</li>
+<li>Friedman, J. H. (2001). Greedy Function Approximation: A Gradient Boosting Machine. <em>The Annals of Statistics</em>, 29(5), 1189-1232.</li>
+<li>Gardner, J. R., et al. (2018). GPyTorch: Blackbox Matrix-Matrix Gaussian Process Inference with GPU Acceleration. <em>NeurIPS 2018</em>.</li>
+<li>Prandtl: CFD代理模型框架. <a target="_blank" rel="noopener" href="https://github.com/goodisok/prandtl">https://github.com/goodisok/prandtl</a></li>
+<li>Chen, T., &amp; Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. <em>KDD 2016</em>. arXiv: 1603.02754</li>
+<li>Raissi, M., Perdikaris, P., &amp; Karniadakis, G. E. (2019). Physics-informed neural networks. <em>Journal of Computational Physics</em>, 378, 686-707. DOI: 10.1016&#x2F;j.jcp.2018.10.045</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/18/cfd-surrogate-model-comparison/">https://goodisok.github.io/2026/05/18/cfd-surrogate-model-comparison/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD/">CFD</a><a class="post-meta__tags" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a><a class="post-meta__tags" href="/tags/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B/">代理模型</a><a class="post-meta__tags" href="/tags/%E9%80%89%E5%9E%8B%E5%AF%B9%E6%AF%94/">选型对比</a><a class="post-meta__tags" href="/tags/%E5%86%B3%E7%AD%96%E6%8C%87%E5%8D%97/">决策指南</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/05/17/2026-05-17-high-speed-quadcopter-altitude-loss/" title="高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">高速多旋翼的"掉高"现象——推力分解与BEMT模型边界</div></div><div class="info-2"><div class="info-item-1">一、问题：一个违反直觉的现象想象一架四旋翼，起飞后在 50 米高度开始加速。它的姿态倾角逐渐增大——从悬停时的 0°，到 50°，再到 65°。按照直觉，更大的倾角意味着更多的推力投向水平方向，速度应该越来越快，高度也应该可控。 但实验告诉你相反的结论：    倾角 θ 水平飞行需求推力 BEMT模型实际输出 差值 结果    50° 48.9 N 48.9 N ≈0 N 微降 ~2 m&#x2F;s   65° 74.3 N 38.2 N -36.1 N 加速坠落   70° 91.8 N 34.5 N -57.3 N 18秒触地   倾角越大，推力缺口越大，掉高越严重。这不是控制器参数没调好，而是物理模型本身的局限——BEMT（Blade Element Momentum Theory）在来流速度超过桨尖线速度时，会丧失产生有效推力的能力。 本文将用推力分解、BEMT模型边界、仿真验证三个角度解释这个现象。  二、推力分解：前倾的多旋翼如何分配推力如图 1 所示，四旋翼在水平飞行时，前一个倾角 θ 的姿态。总推力 T 沿旋翼平面的法线方向（垂直桨盘），它与铅垂方向的夹角就是 ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/16/cfd-surrogate-modeling-methodology/" title="CFD代理模型方法论——为什么几毫秒的神经网络可以替代几小时的CFD求解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-16</div><div class="info-item-2">CFD代理模型方法论——为什么几毫秒的神经网络可以替代几小时的CFD求解</div></div><div class="info-2"><div class="info-item-1">  CFD代理模型用机器学习从仿真数据中学习输入-输出映射，以微秒级推理替代小时级求解。本文从近似理论、物理流形假设、数据效率三个角度解释为什么这能行得通——不是魔法，是数学。  一、CFD的速度困境计算流体力学（CFD）是现代工程设计的核心工具。无论设计飞机机翼、汽车外形还是无人机旋翼，工程师都需要反复调用CFD求解器来评估气动性能。 问题在于速度。一次RANS（雷诺平均Navier-Stokes）求解器运行需要几分钟到几小时，而一次工程设计优化循环可能需要数百到数千次CFD评估： 1000次优化迭代×2小时次=83天 \text{1000次优化迭代} \times \frac{2\text{小时}}{\text{次}} = 83\text{天} 1000次优化迭代×次2小时​=83天  这不可接受。更糟糕的是，许多工程场景——实时飞控仿真（400Hz刷新率）、不确定性量化（需10000+次蒙特卡洛评估）、多学科耦合优化——要求的调用次数远超设计优化，而每次调用的速度必须远快于CFD。 这就是代理模型（surrogate model）要解决的问题：用一次性批量CFD开销，置换出...</div></div></div></a><a class="pagination-related" href="/2026/05/17/cfd-surrogate-modeling-tutorial/" title="CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-17</div><div class="info-item-2">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</div></div><div class="info-2"><div class="info-item-1">  从零搭建翼型气动代理模型——零CFD依赖即可完成90%开发。本文用解析函数做真值、Prandtl框架做训练、ONNX做部署，让你看到代理模型从采样到部署的完整链路。  一、目标：五步完成翼型代理模型本文以薄翼型升力系数预测为例，展示CFD代理模型的完整开发流程：  问题定义：输入参数化、输出定义 采样设计：在输入空间选择训练点 真值计算：用解析公式（替代CFD）生成标签 模型训练：GP和MLP对比 模型部署：导出ONNX用于生产  关键前提：开发代理模型框架时不需要任何CFD数据。解析函数做真值是验证框架逻辑最快、最可靠的方式——等框架验证通过后再对接真实CFD也不迟。  二、环境准备1pip install prandtl-cfd numpy matplotlib scikit-learn onnx onnxruntime  确认安装： 12import prandtl as prprint(f&quot;Prandtl version: &#123;pr.__version__&#125;&quot;)  三、步骤1：问题定义薄翼型升力公式根据薄翼型理论，升力系数 CLC...</div></div></div></a><a class="pagination-related" href="/2026/04/25/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%8D%81%E4%BA%8C%E8%AE%B2-%E6%B9%8D%E6%B5%81%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%8E%B0%E4%BB%A3%E6%95%B0%E5%80%BC%E6%96%B9%E6%B3%95-%E4%BB%8E%E5%B7%A5%E7%A8%8BCFD%E5%88%B0%E9%AB%98%E4%BF%9D%E7%9C%9F%E4%BB%BF%E7%9C%9F/" title="Anderson《空气动力学基础》读书笔记（十二）：湍流模型与现代数值方法——从工程CFD到高保真仿真"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（十二）：湍流模型与现代数值方法——从工程CFD到高保真仿真</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第十二篇（完结篇），覆盖教材第13-14章「湍流模型与现代数值方法」的核心内容。从工程CFD的奠基到高保真仿真前沿，为这个系列画上句号。   第十二篇：湍流模型与现代数值方法——从工程 CFD 到高保真仿真一、CFD 的百年演变1.1 概念引入如果你在 1950 年问一位空气动力学家如何计算一个翼型的升力和阻力，答案会是：去风洞。如果你在 2026 年问同样的问题，答案会是：先用 CFD 算一遍，再用风洞验证几个关键工况。 计算流体力学（Computational Fluid Dynamics, CFD） 已经从学术工具变成了工程标准。 1.2 历史节点   年份 事件 影响    1910 Richardson 提出”数值天气预报”概念 CFD 最早的思想   1930s 手算松弛法处理势流 电脑出现前的数值方法   1946 第一台电子计算机 ENIAC 诞生 开始有了”计算”的硬件   1960s NASA Ames 的团队开发隐式格式 可压缩流 N...</div></div></div></a><a class="pagination-related" href="/2026/02/01/2026-05-03-ctj-thrust-coefficient-advance-ratio/" title="螺旋桨推力系数 C_T(J) 完全解析：从动量理论到高速前进比"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-01</div><div class="info-item-2">螺旋桨推力系数 C_T(J) 完全解析：从动量理论到高速前进比</div></div><div class="info-2"><div class="info-item-1"> 本文目标：让没有任何旋翼动力学基础的读者，从零开始系统掌握 C_T(J) 的核心概念、物理意义与工程应用，理解为什么它在高速无人机仿真中至关重要。  一、C_T(J) 是什么——一句话回答C_T(J) 是描述”螺旋桨在飞多快的时候还剩多少推力效率”的函数。 它回答一个非常实际的问题：  一个在悬停时能产生 10N 推力的螺旋桨，在 350km&#x2F;h 前飞时还能产生多少推力？  答案是：可能连 1N 都不到。 而 C_T(J) 就是量化这个衰减的数学工具。   二、基本概念2.1 推力系数 C_T概念引入螺旋桨的推力公式可以写成： 1T = (某个系数) × 空气密度 × 桨盘面积 × 转速项  这个”某个系数”就是 C_T（thrust coefficient，推力系数）。它是一个无量纲数，描述了螺旋桨把旋转运动转化为推力的效率。 定义螺旋桨推力的标准形式为： T=CT⋅ρ⋅A⋅(nD)2T = C_T \cdot \rho \cdot A \cdot (nD)^2T=CT​⋅ρ⋅A⋅(nD)2  其中：  TTT：推力（N） CTC_TCT​：推力系数（无量纲） ρ\...</div></div></div></a><a class="pagination-related" href="/2026/05/09/2026-05-09-reinforcement-learning-complete-guide/" title="强化学习(RL)完全入门：从零基础到理解无人机智能飞控"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">强化学习(RL)完全入门：从零基础到理解无人机智能飞控</div></div><div class="info-2"><div class="info-item-1">  本文目标：让没有任何强化学习基础的读者，理解 RL 的核心原理、数学公式、三大范式，以及为什么它正在改变无人机飞控和自动驾驶。阅读本文大约需要 30 分钟。   引言：为什么 RL 值得学？2025-2026 年，强化学习（Reinforcement Learning, RL）正在经历一个「第二次爆发」：  无人机竞速：TU Delft 的 SkyDreamer 用 RL 实现了 21 m&#x2F;s 的自主高速飞行，完成倒飞筋斗和 Split-S 机动 自动驾驶：小鹏 VLA 2.0、理想 MindVLA-o1 纷纷将 RL 嵌入端到端驾驶系统 世界模型：DreamerV3 让飞行器「先做梦再飞」，真机交互量降低 10000 倍 大模型对齐：ChatGPT 的 RLHF 本质就是 RL——人类反馈作为奖励信号  但 RL 的入门门槛确实高——Bellman 方程、策略梯度、TD 误差……术语密集、数学抽象。 本文用一个方法解决：概念→定义→性质→表示→例子→应用，每一步都不跳。  一、概念：强化学习的直觉理解1.1 核心比喻：训狗想象你在训一只狗：  你发出指令「坐下」 ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">136</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E5%9E%8B%E6%98%AF%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%9C%80%E5%85%B3%E9%94%AE%E7%9A%84%E5%86%B3%E7%AD%96"><span class="toc-number">1.</span> <span class="toc-text">一、为什么选型是代理模型项目中最关键的决策</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E9%AB%98%E6%96%AF%E8%BF%87%E7%A8%8B%E5%9B%9E%E5%BD%92%EF%BC%88GP%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">二、高斯过程回归（GP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 原理简述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%95%B0%E6%8D%AE%E6%95%88%E7%8E%87"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 数据效率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E7%9A%84%E7%9C%9F%E5%AE%9E%E4%BB%B7%E5%80%BC"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 不确定性的真实价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%B8%E5%BF%83%E5%B1%80%E9%99%90"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 核心局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%9C%80%E4%BD%B3%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 最佳使用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E5%99%A8%EF%BC%88MLP%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、多层感知器（MLP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 原理简述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%89%A9%E7%90%86%E7%BA%A6%E6%9D%9F%EF%BC%9AMLP%E7%9A%84%E6%9D%80%E6%89%8B%E9%94%8F"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 物理约束：MLP的杀手锏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%94%9F%E4%BA%A7%E9%83%A8%E7%BD%B2%E4%BC%98%E5%8A%BF"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 生产部署优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%A0%B8%E5%BF%83%E5%B1%80%E9%99%90"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 核心局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%9C%80%E4%BD%B3%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 最佳使用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%9A%8F%E6%9C%BA%E6%A3%AE%E6%9E%97%EF%BC%88RF%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">四、随机森林（RF）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 原理简述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9C%A8CFD%E4%BB%A3%E7%90%86%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%8E%B0"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 在CFD代理中的表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8RF"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 什么时候用RF</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%9C%80%E4%BD%B3%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 最佳使用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%EF%BC%88GB%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">五、梯度提升（GB）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 原理简述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%8ERF%E7%9A%84%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 与RF的关键区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%9C%A8CFD%E4%BB%A3%E7%90%86%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 在CFD代理中的角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%9C%80%E4%BD%B3%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 最佳使用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">6.</span> <span class="toc-text">六、选型决策树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%95%B0%E6%8D%AE%E9%A2%84%E7%AE%97%E4%B8%8E%E7%B2%BE%E5%BA%A6%E9%A2%84%E6%9C%9F"><span class="toc-number">7.</span> <span class="toc-text">七、数据预算与精度预期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%B7%B7%E5%90%88%E7%AD%96%E7%95%A5%EF%BC%9A%E5%8F%96%E9%95%BF%E8%A1%A5%E7%9F%AD"><span class="toc-number">8.</span> <span class="toc-text">八、混合策略：取长补短</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%80%89%E6%8B%A9Prandtl%E6%A1%86%E6%9E%B6%E7%9A%84%E7%90%86%E7%94%B1"><span class="toc-number">9.</span> <span class="toc-text">九、选择Prandtl框架的理由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">十、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">11.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/18/cfd-surrogate-model-comparison/" title="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</a><time datetime="2026-05-18T01:00:00.000Z" title="发表于 2026-05-18 09:00:00">2026-05-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/2026-05-17-high-speed-quadcopter-altitude-loss/" title="高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界">高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界</a><time datetime="2026-05-17T13:30:00.000Z" title="发表于 2026-05-17 21:30:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/cfd-surrogate-modeling-tutorial/" title="CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</a><time datetime="2026-05-17T01:00:00.000Z" title="发表于 2026-05-17 09:00:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/llm-guided-iterative-code-optimization/" title="大模型引导的迭代式代码优化：方法论、范式与工程实践">大模型引导的迭代式代码优化：方法论、范式与工程实践</a><time datetime="2026-05-17T00:00:00.000Z" title="发表于 2026-05-17 08:00:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/16/python-project-publishing-guide/" title="Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化">Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化</a><time datetime="2026-05-16T10:00:00.000Z" title="发表于 2026-05-16 18:00:00">2026-05-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

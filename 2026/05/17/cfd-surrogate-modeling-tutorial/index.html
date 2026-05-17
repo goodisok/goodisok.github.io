@@ -1,0 +1,684 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从零搭建翼型气动代理模型——零CFD依赖即可完成90%开发。本文用解析函数做真值、Prandtl框架做训练、ONNX做部署，让你看到代理模型从采样到部署的完整链路。  一、目标：五步完成翼型代理模型本文以薄翼型升力系数预测为例，展示CFD代理模型的完整开发流程：  问题定义：输入参数化、输出定义 采样设计：在输入空间选择训练点 真值计算：用解析公式（替代CFD）生成标签 模型训练：GP和MLP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程">
+<meta property="og:url" content="https://goodisok.github.io/2026/05/17/cfd-surrogate-modeling-tutorial/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="从零搭建翼型气动代理模型——零CFD依赖即可完成90%开发。本文用解析函数做真值、Prandtl框架做训练、ONNX做部署，让你看到代理模型从采样到部署的完整链路。  一、目标：五步完成翼型代理模型本文以薄翼型升力系数预测为例，展示CFD代理模型的完整开发流程：  问题定义：输入参数化、输出定义 采样设计：在输入空间选择训练点 真值计算：用解析公式（替代CFD）生成标签 模型训练：GP和MLP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-05-17T01:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-16T09:58:30.785Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="CFD">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="代理模型">
+<meta property="article:tag" content="实战教程">
+<meta property="article:tag" content="翼型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程",
+  "url": "https://goodisok.github.io/2026/05/17/cfd-surrogate-modeling-tutorial/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-05-17T01:00:00.000Z",
+  "dateModified": "2026-05-16T09:58:30.785Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/05/17/cfd-surrogate-modeling-tutorial/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">136</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-17T01:00:00.000Z" title="发表于 2026-05-17 09:00:00">2026-05-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-16T09:58:30.785Z" title="更新于 2026-05-16 17:58:30">2026-05-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%B5%81%E4%BD%93%E5%8A%9B%E5%AD%A6/">计算流体力学</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="https://img.shields.io/badge/CFD-%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B-blue?style=for-the-badge" alt="Badge"></p>
+<blockquote>
+<p>从零搭建翼型气动代理模型——零CFD依赖即可完成90%开发。本文用解析函数做真值、Prandtl框架做训练、ONNX做部署，让你看到代理模型从采样到部署的完整链路。</p>
+</blockquote>
+<h2 id="一、目标：五步完成翼型代理模型"><a href="#一、目标：五步完成翼型代理模型" class="headerlink" title="一、目标：五步完成翼型代理模型"></a>一、目标：五步完成翼型代理模型</h2><p>本文以<strong>薄翼型升力系数预测</strong>为例，展示CFD代理模型的完整开发流程：</p>
+<ol>
+<li>问题定义：输入参数化、输出定义</li>
+<li>采样设计：在输入空间选择训练点</li>
+<li>真值计算：用解析公式（替代CFD）生成标签</li>
+<li>模型训练：GP和MLP对比</li>
+<li>模型部署：导出ONNX用于生产</li>
+</ol>
+<p><strong>关键前提</strong>：开发代理模型框架时不需要任何CFD数据。解析函数做真值是验证框架逻辑最快、最可靠的方式——等框架验证通过后再对接真实CFD也不迟。</p>
+<p><img src="/images/cfd-surrogate/surrogate-workflow.svg" alt="代理模型开发五步流程"></p>
+<h2 id="二、环境准备"><a href="#二、环境准备" class="headerlink" title="二、环境准备"></a>二、环境准备</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install prandtl-cfd numpy matplotlib scikit-learn onnx onnxruntime</span><br></pre></td></tr></table></figure>
+
+<p>确认安装：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> prandtl <span class="keyword">as</span> pr</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Prandtl version: <span class="subst">&#123;pr.__version__&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、步骤1：问题定义"><a href="#三、步骤1：问题定义" class="headerlink" title="三、步骤1：问题定义"></a>三、步骤1：问题定义</h2><h3 id="薄翼型升力公式"><a href="#薄翼型升力公式" class="headerlink" title="薄翼型升力公式"></a>薄翼型升力公式</h3><p>根据薄翼型理论，升力系数 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">C_L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> 由迎角和弯度决定：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>C</mi><mi>L</mi></msub><mo>=</mo><mn>2</mn><mi>π</mi><mo stretchy="false">(</mo><mi>α</mi><mo>+</mo><mn>2</mn><mi>h</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+C_L = 2\pi(\alpha + 2h)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal">h</span><span class="mclose">)</span></span></span></span></span>
+
+<p>其中：</p>
+<ul>
+<li><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span></span>：迎角（弧度）</li>
+<li><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span></span>：相对弯度（无量纲，如 NACA 2412 的 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>h</mi><mo>=</mo><mn>0.02</mn></mrow><annotation encoding="application/x-tex">h = 0.02</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.02</span></span></span></span></span>）</li>
+</ul>
+<p>这个公式是势流理论的精确结果，适用于小迎角附着流。我们把它当作”真值函数”——在真实项目中这会是CFD求解器。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>符号</th>
+<th>范围</th>
+<th>物理意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>迎角</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span></span></td>
+<td>[-5°, 15°]</td>
+<td>来流与弦线夹角</td>
+</tr>
+<tr>
+<td>相对弯度</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span></span></td>
+<td>[0.01, 0.10]</td>
+<td>NACA四位数第2位（除以100）</td>
+</tr>
+</tbody></table>
+<h2 id="四、步骤2：采样设计"><a href="#四、步骤2：采样设计" class="headerlink" title="四、步骤2：采样设计"></a>四、步骤2：采样设计</h2><p>用拉丁超立方采样（LHS）在二维输入空间中选择训练点：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> prandtl.sampling <span class="keyword">import</span> lhs_sampling</span><br><span class="line"></span><br><span class="line"><span class="comment"># 100个训练点（纯解析函数，0秒生成）</span></span><br><span class="line">bounds = [(-<span class="number">5.0</span>, <span class="number">15.0</span>), (<span class="number">0.01</span>, <span class="number">0.10</span>)]</span><br><span class="line">X_train = lhs_sampling(bounds, n=<span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 50个测试点（独立采样，评估泛化能力）</span></span><br><span class="line">X_test = lhs_sampling(bounds, n=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;训练集: <span class="subst">&#123;X_train.shape&#125;</span>&quot;</span>)  <span class="comment"># (100, 2)</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;测试集: <span class="subst">&#123;X_test.shape&#125;</span>&quot;</span>)   <span class="comment"># (50, 2)</span></span><br></pre></td></tr></table></figure>
+
+<p>LHS确保每个维度的一维投影都是均匀的，避免随机采样的聚集问题。</p>
+<h2 id="五、步骤3：生成真值"><a href="#五、步骤3：生成真值" class="headerlink" title="五、步骤3：生成真值"></a>五、步骤3：生成真值</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cl_true</span>(<span class="params">alpha_deg, camber_pct</span>):</span><br><span class="line">    alpha = np.radians(alpha_deg)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2.0</span> * np.pi * (alpha + <span class="number">2.0</span> * camber_pct)</span><br><span class="line"></span><br><span class="line">Y_train = cl_true(X_train[:, <span class="number">0</span>], X_train[:, <span class="number">1</span>]).reshape(-<span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">Y_test = cl_true(X_test[:, <span class="number">0</span>], X_test[:, <span class="number">1</span>]).reshape(-<span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Y_train 范围: [<span class="subst">&#123;Y_train.<span class="built_in">min</span>():<span class="number">.3</span>f&#125;</span>, <span class="subst">&#123;Y_train.<span class="built_in">max</span>():<span class="number">.3</span>f&#125;</span>]&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>在真实项目中，这里会调用CFD求解器。但从框架开发的角度，解析函数更快、更可控、支持无限次迭代。</p>
+<h2 id="六、步骤4：模型训练与对比"><a href="#六、步骤4：模型训练与对比" class="headerlink" title="六、步骤4：模型训练与对比"></a>六、步骤4：模型训练与对比</h2><h3 id="6-1-高斯过程回归（GP）"><a href="#6-1-高斯过程回归（GP）" class="headerlink" title="6.1 高斯过程回归（GP）"></a>6.1 高斯过程回归（GP）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gp_model = pr.Surrogate(</span><br><span class="line">    params=[<span class="string">&quot;alpha&quot;</span>, <span class="string">&quot;camber&quot;</span>],</span><br><span class="line">    outputs=[<span class="string">&quot;CL&quot;</span>],</span><br><span class="line">    method=<span class="string">&quot;gp&quot;</span></span><br><span class="line">)</span><br><span class="line">gp_model.fit(X_train, Y_train)</span><br><span class="line"></span><br><span class="line">gp_report = gp_model.validate(X_test, Y_test)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;GP R-squared: <span class="subst">&#123;gp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;r2&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;GP RMSE: <span class="subst">&#123;gp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;rmse&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>预期结果</strong>：对线性函数，GP的R-squared应该 &gt; 0.999。不是因为GP强大——是任务本身简单。</p>
+<h3 id="6-2-多层感知器（MLP）-物理约束"><a href="#6-2-多层感知器（MLP）-物理约束" class="headerlink" title="6.2 多层感知器（MLP）+ 物理约束"></a>6.2 多层感知器（MLP）+ 物理约束</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> prandtl.physics <span class="keyword">import</span> Monotonicity, BoundaryValue</span><br><span class="line"></span><br><span class="line">mlp_model = pr.Surrogate(</span><br><span class="line">    params=[<span class="string">&quot;alpha&quot;</span>, <span class="string">&quot;camber&quot;</span>],</span><br><span class="line">    outputs=[<span class="string">&quot;CL&quot;</span>],</span><br><span class="line">    method=<span class="string">&quot;mlp&quot;</span></span><br><span class="line">)</span><br><span class="line">mlp_model.fit(X_train, Y_train, physics=[</span><br><span class="line">    Monotonicity(param_idx=<span class="number">0</span>, sign=<span class="number">1</span>, weight=<span class="number">0.1</span>),</span><br><span class="line">    <span class="comment"># CL随迎角单调递增</span></span><br><span class="line"></span><br><span class="line">    BoundaryValue(&#123;<span class="string">&quot;alpha&quot;</span>: <span class="number">0.0</span>&#125;, &#123;<span class="string">&quot;CL&quot;</span>: <span class="number">0.0</span>&#125;, weight=<span class="number">10.0</span>)</span><br><span class="line">    <span class="comment"># 对称翼型零迎角时升力为零</span></span><br><span class="line">])</span><br><span class="line"></span><br><span class="line">mlp_report = mlp_model.validate(X_test, Y_test)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;MLP R-squared: <span class="subst">&#123;mlp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;r2&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;MLP RMSE: <span class="subst">&#123;mlp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;rmse&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>物理约束在这个简单线性函数上作用不明显——但在真实CFD中、数据稀少的区域，物理约束是防止模型做出物理上不可能预测的关键。</p>
+<h3 id="6-3-结果对比"><a href="#6-3-结果对比" class="headerlink" title="6.3 结果对比"></a>6.3 结果对比</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;方法      | R-squared | RMSE&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;----------|-----------|--------&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;GP        | <span class="subst">&#123;gp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;r2&#x27;</span>]:<span class="number">.6</span>f&#125;</span> | <span class="subst">&#123;gp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;rmse&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;MLP+物理  | <span class="subst">&#123;mlp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;r2&#x27;</span>]:<span class="number">.6</span>f&#125;</span> | <span class="subst">&#123;mlp_report[<span class="string">&#x27;CL&#x27;</span>][<span class="string">&#x27;rmse&#x27;</span>]:<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>两者都精确拟合了这个线性函数——证明框架核心逻辑正确。</p>
+<h2 id="七、步骤5：模型部署（ONNX导出）"><a href="#七、步骤5：模型部署（ONNX导出）" class="headerlink" title="七、步骤5：模型部署（ONNX导出）"></a>七、步骤5：模型部署（ONNX导出）</h2><p>MLP可以导出为ONNX格式——一个跨框架、跨平台的推理标准。GP不能导出（非参数模型，推理依赖全量训练数据）。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出MLP为ONNX</span></span><br><span class="line">mlp_model.export(<span class="string">&quot;cl_surrogate.onnx&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;ONNX model saved: cl_surrogate.onnx&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="加载并推理"><a href="#加载并推理" class="headerlink" title="加载并推理"></a>加载并推理</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> onnxruntime <span class="keyword">as</span> ort</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载ONNX模型</span></span><br><span class="line">session = ort.InferenceSession(<span class="string">&quot;cl_surrogate.onnx&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 推理：预测迎角5度、弯度2%时的升力系数</span></span><br><span class="line">input_data = np.array([[<span class="number">5.0</span>, <span class="number">0.02</span>]], dtype=np.float32)</span><br><span class="line">cl_pred = session.run(<span class="literal">None</span>, &#123;<span class="string">&quot;input&quot;</span>: input_data&#125;)[<span class="number">0</span>]</span><br><span class="line">cl_true_val = cl_true(<span class="number">5.0</span>, <span class="number">0.02</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;ONNX prediction: <span class="subst">&#123;cl_pred[<span class="number">0</span>, <span class="number">0</span>]:<span class="number">.4</span>f&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Ground truth:     <span class="subst">&#123;cl_true_val:<span class="number">.4</span>f&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Error:            <span class="subst">&#123;<span class="built_in">abs</span>(cl_pred[<span class="number">0</span>, <span class="number">0</span>] - cl_true_val):<span class="number">.6</span>f&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="ONNX的优势"><a href="#ONNX的优势" class="headerlink" title="ONNX的优势"></a>ONNX的优势</h3><ul>
+<li><strong>推理时不需要Python</strong>：可以用C++、C#、Java加载</li>
+<li><strong>零依赖</strong>：只需要onnxruntime，3MB的库</li>
+<li><strong>实时能力</strong>：单次推理 &lt; 0.1ms，满足飞控400Hz要求</li>
+<li><strong>工业标准</strong>：所有主流ML框架都支持导出ONNX</li>
+</ul>
+<h2 id="八、从解析函数到真实CFD"><a href="#八、从解析函数到真实CFD" class="headerlink" title="八、从解析函数到真实CFD"></a>八、从解析函数到真实CFD</h2><p>框架验证通过后，对接真实CFD只需更换真值函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 解析函数版（开发验证用）</span></span><br><span class="line">Y = analytical_function(X)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换为 OpenFOAM版（生产用）</span></span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run_openfoam</span>(<span class="params">alpha, camber</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;生成翼型网格 -&gt; 运行simpleFoam -&gt; 提取CL&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1. 用参数化工具生成几何</span></span><br><span class="line">    <span class="comment"># 2. 自动网格划分（blockMesh/snappyHexMesh）</span></span><br><span class="line">    <span class="comment"># 3. 运行 simpleFoam</span></span><br><span class="line">    <span class="comment"># 4. 解析 forceCoeffs 输出</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 200次CFD计算，32核并行约31小时</span></span><br><span class="line"><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ProcessPoolExecutor</span><br><span class="line"><span class="keyword">with</span> ProcessPoolExecutor(max_workers=<span class="number">32</span>) <span class="keyword">as</span> executor:</span><br><span class="line">    Y_train = <span class="built_in">list</span>(executor.<span class="built_in">map</span>(run_openfoam,</span><br><span class="line">                   X_train[:, <span class="number">0</span>], X_train[:, <span class="number">1</span>]))</span><br></pre></td></tr></table></figure>
+
+<h2 id="九、代理模型部署到实时仿真"><a href="#九、代理模型部署到实时仿真" class="headerlink" title="九、代理模型部署到实时仿真"></a>九、代理模型部署到实时仿真</h2><p>训练好的ONNX模型最终部署到仿真器中。Pegasus Simulator是目前唯一可行的开源方案——它提供PX4 SITL桥接和PhysX集成，气动模块通过策略模式替换为你的代理模型：</p>
+<p><img src="/images/cfd-surrogate/surrogate-deployment-arch.svg" alt="代理模型部署架构 — 实时飞控仿真"></p>
+<p>全程推理 &lt; 0.1ms，而等效的CFD求解需要数秒——差距超过四个数量级。</p>
+<h2 id="十、从翼型到旋翼飞行器"><a href="#十、从翼型到旋翼飞行器" class="headerlink" title="十、从翼型到旋翼飞行器"></a>十、从翼型到旋翼飞行器</h2><p>翼型代理模型是最简单的起点。对于完整的旋翼飞行器（如无人机），输入空间扩展到7-9维：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>符号</th>
+<th>物理含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>马赫数</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">M</span></span></span></span></span></td>
+<td>飞行速度</td>
+</tr>
+<tr>
+<td>迎角</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span></span></td>
+<td>机身迎角</td>
+</tr>
+<tr>
+<td>侧滑角</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0528em;">β</span></span></span></span></span></td>
+<td>机身侧滑</td>
+</tr>
+<tr>
+<td>基准转速</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">Ω</mi><mtext>ref</mtext></msub></mrow><annotation encoding="application/x-tex">\Omega_{\text{ref}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord">Ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ref</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></td>
+<td>旋翼转速</td>
+</tr>
+<tr>
+<td>俯仰差动</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi mathvariant="normal">Ω</mi><mtext>pitch</mtext></msub></mrow><annotation encoding="application/x-tex">\Delta\Omega_{\text{pitch}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord">Ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">pitch</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span></td>
+<td>前后旋翼差速</td>
+</tr>
+<tr>
+<td>滚转差动</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi mathvariant="normal">Ω</mi><mtext>roll</mtext></msub></mrow><annotation encoding="application/x-tex">\Delta\Omega_{\text{roll}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord">Ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">roll</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></td>
+<td>左右旋翼差速</td>
+</tr>
+<tr>
+<td>偏航差动</td>
+<td><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi mathvariant="normal">Ω</mi><mtext>yaw</mtext></msub></mrow><annotation encoding="application/x-tex">\Delta\Omega_{\text{yaw}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord">Ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">yaw</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span></td>
+<td>对角旋翼差速</td>
+</tr>
+</tbody></table>
+<p><strong>物理分解策略</strong>（最有效的减数据技巧）：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>F</mi><mtext>total</mtext></msub><mo>=</mo><msub><mi>F</mi><mtext>isolated rotors</mtext></msub><mo>+</mo><msub><mi>F</mi><mtext>fuselage</mtext></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>F</mi><mtext>interference</mtext></msub></mrow><annotation encoding="application/x-tex">
+F_{\text{total}} = F_{\text{isolated rotors}} + F_{\text{fuselage}} + \Delta F_{\text{interference}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">isolated rotors</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">fuselage</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">interference</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>
+
+<p>孤立旋翼力用叶素动量理论（BEMT）解析计算，机身力用细长体理论——<strong>只让代理模型学习干扰修正项 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>F</mi><mtext>interference</mtext></msub></mrow><annotation encoding="application/x-tex">\Delta F_{\text{interference}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">interference</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></strong>。这通常占总力的10-30%，意味着预测任务更容易、数据需求更低。</p>
+<h2 id="十一、总结"><a href="#十一、总结" class="headerlink" title="十一、总结"></a>十一、总结</h2><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>内容</th>
+<th align="center">CFD次数</th>
+<th>耗时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>开发验证</strong></td>
+<td>解析函数 -&gt; 训练 -&gt; 验证</td>
+<td align="center">0</td>
+<td>秒级</td>
+</tr>
+<tr>
+<td><strong>框架集成</strong></td>
+<td>单次CFD冒烟测试</td>
+<td align="center">1-2</td>
+<td>小时级</td>
+</tr>
+<tr>
+<td><strong>批量训练</strong></td>
+<td>200次CFD并行计算</td>
+<td align="center">200</td>
+<td>1-2天</td>
+</tr>
+<tr>
+<td><strong>部署</strong></td>
+<td>导出ONNX -&gt; 嵌入仿真器</td>
+<td align="center">0</td>
+<td>分钟级</td>
+</tr>
+</tbody></table>
+<p>核心理念：<strong>不要在CFD层调试框架——在解析函数层完成所有验证，确认代理模型的拟合能力没问题后，再花CFD的真金白银</strong>。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>Prandtl: CFD代理模型框架. <a target="_blank" rel="noopener" href="https://github.com/goodisok/prandtl">https://github.com/goodisok/prandtl</a></li>
+<li>ONNX Runtime. <a target="_blank" rel="noopener" href="https://onnxruntime.ai/">https://onnxruntime.ai/</a></li>
+<li>McKay, M. D., Beckman, R. J., &amp; Conover, W. J. (1979). A Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code. <em>Technometrics</em>, 21(2), 239-245. DOI: 10.1080&#x2F;00401706.1979.10489755</li>
+<li>Sobol, I. M. (1967). On the Distribution of Points in a Cube and the Approximate Evaluation of Integrals. <em>USSR Computational Mathematics and Mathematical Physics</em>, 7(4), 86-112.</li>
+<li>Leishman, J. G. (2006). <em>Principles of Helicopter Aerodynamics</em>. Cambridge University Press.</li>
+<li>Pegasus Simulator: 开源PX4-IsaacSim桥接. <a target="_blank" rel="noopener" href="https://github.com/PegasusSimulator/PegasusSimulator">https://github.com/PegasusSimulator/PegasusSimulator</a></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/05/17/cfd-surrogate-modeling-tutorial/">https://goodisok.github.io/2026/05/17/cfd-surrogate-modeling-tutorial/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CFD/">CFD</a><a class="post-meta__tags" href="/tags/%E7%BF%BC%E5%9E%8B/">翼型</a><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B/">代理模型</a><a class="post-meta__tags" href="/tags/%E5%AE%9E%E6%88%98%E6%95%99%E7%A8%8B/">实战教程</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/17/2026-05-17-high-speed-quadcopter-altitude-loss/" title="高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">高速多旋翼的"掉高"现象——推力分解与BEMT模型边界</div></div><div class="info-2"><div class="info-item-1">一、问题：一个违反直觉的现象想象一架四旋翼，起飞后在 50 米高度开始加速。它的姿态倾角逐渐增大——从悬停时的 0°，到 50°，再到 65°。按照直觉，更大的倾角意味着更多的推力投向水平方向，速度应该越来越快，高度也应该可控。 但实验告诉你相反的结论：    倾角 θ 水平飞行需求推力 BEMT模型实际输出 差值 结果    50° 48.9 N 48.9 N ≈0 N 微降 ~2 m&#x2F;s   65° 74.3 N 38.2 N -36.1 N 加速坠落   70° 91.8 N 34.5 N -57.3 N 18秒触地   倾角越大，推力缺口越大，掉高越严重。这不是控制器参数没调好，而是物理模型本身的局限——BEMT（Blade Element Momentum Theory）在来流速度超过桨尖线速度时，会丧失产生有效推力的能力。 本文将用推力分解、BEMT模型边界、仿真验证三个角度解释这个现象。  二、推力分解：前倾的多旋翼如何分配推力如图 1 所示，四旋翼在水平飞行时，前一个倾角 θ 的姿态。总推力 T 沿旋翼平面的法线方向（垂直桨盘），它与铅垂方向的夹角就是 ...</div></div></div></a><a class="pagination-related" href="/2026/05/17/llm-guided-iterative-code-optimization/" title="大模型引导的迭代式代码优化：方法论、范式与工程实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">大模型引导的迭代式代码优化：方法论、范式与工程实践</div></div><div class="info-2"><div class="info-item-1">  系统梳理 LLM 引导的迭代式代码优化方法论。以 Eureka、FunSearch、Reflexion、SPIN、AlphaCodium 五种代表性工作为锚点，提炼通用的迭代反馈闭环、评估-改进二分结构和多样性维持策略，形成可复用的方法论框架。   一、引言：从生成到优化的范式转变2023年以前，大语言模型（LLM）在代码领域的核心叙事是“一次生成”——给定自然语言描述，直接输出完整代码。Codex [1]、StarCoder [2] 等模型在 HumanEval 等基准上不断刷新通过率，但生成结果的正确性和质量依赖模型的单样本能力，缺乏自我纠错机制。 2023年下半年至2024年初，一个根本性的范式转变出现：从“生成即终点”到“生成-评估-改进”的闭环迭代。这一转变的标志性事件包括：  2023年5月：Voyager [4] 提出 Skill Library + 迭代提示机制，LLM 自主探索 Minecraft 并持续改进技能代码 2023年6月：Reflexion [5] 将“语言化强化学习”引入代码生成，模型根据执行反馈自主修正 2023年10月：Eureka [3]...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/16/cfd-surrogate-modeling-methodology/" title="CFD代理模型方法论——为什么几毫秒的神经网络可以替代几小时的CFD求解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-16</div><div class="info-item-2">CFD代理模型方法论——为什么几毫秒的神经网络可以替代几小时的CFD求解</div></div><div class="info-2"><div class="info-item-1">  CFD代理模型用机器学习从仿真数据中学习输入-输出映射，以微秒级推理替代小时级求解。本文从近似理论、物理流形假设、数据效率三个角度解释为什么这能行得通——不是魔法，是数学。  一、CFD的速度困境计算流体力学（CFD）是现代工程设计的核心工具。无论设计飞机机翼、汽车外形还是无人机旋翼，工程师都需要反复调用CFD求解器来评估气动性能。 问题在于速度。一次RANS（雷诺平均Navier-Stokes）求解器运行需要几分钟到几小时，而一次工程设计优化循环可能需要数百到数千次CFD评估： 1000次优化迭代×2小时次=83天 \text{1000次优化迭代} \times \frac{2\text{小时}}{\text{次}} = 83\text{天} 1000次优化迭代×次2小时​=83天  这不可接受。更糟糕的是，许多工程场景——实时飞控仿真（400Hz刷新率）、不确定性量化（需10000+次蒙特卡洛评估）、多学科耦合优化——要求的调用次数远超设计优化，而每次调用的速度必须远快于CFD。 这就是代理模型（surrogate model）要解决的问题：用一次性批量CFD开销，置换出...</div></div></div></a><a class="pagination-related" href="/2026/05/18/cfd-surrogate-model-comparison/" title="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-18</div><div class="info-item-2">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</div></div><div class="info-2"><div class="info-item-1">  不是所有代理模型都一样。高斯过程适合小数据+需要不确定性，MLP适合生产部署+需要梯度，树模型适合表格特征——选错方法等于浪费宝贵的CFD计算时间。本文从数据效率、推理速度、不确定性、梯度可用性等七个维度系统对比四种主流方法，并给出明确的选型决策树。  一、为什么选型是代理模型项目中最关键的决策CFD代理模型的研发链路中，方法选择是第一个不可逆的决策。选错方法的代价不是”稍微差一点”——而是整个训练数据收集策略、部署方式、后续可维护性都跟着走偏了。 四种方法的核心差异可以用一个表概括：    维度 高斯过程 (GP) 多层感知器 (MLP) 随机森林 (RF) 梯度提升 (GB)    数据效率 ⬆⬆ 最高 ⬆ 高（+物理约束） ➡ 中 ➡ 中   推理速度 ⬇ 慢（O(N)） ⬆⬆ 最快 ⬆ 快 ⬆ 快   不确定性输出 ✅ 天然 ❌ 需额外方法 ❌ 无 ❌ 无   梯度可用 ✅ 解析梯度 ✅ 自动微分 ❌ 不可微 ❌ 不可微   外推能力 ⬆ 好（核选择） ⬆ 好（物理约束） ⬇⬇ 差 ⬇⬇ 差   超参调优难度 ⬇ 低 ⬇⬇ 高 ⬇⬇ 低 ⬆ 中   可导出ONNX ❌...</div></div></div></a><a class="pagination-related" href="/2026/04/18/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%BA%94%E8%AE%B2-%E7%BF%BC%E5%9E%8B%E7%89%B9%E6%80%A7%E4%B8%8E%E6%95%B0%E6%8D%AE-%E4%BB%8ENACA%E9%A3%8E%E6%B4%9E%E5%88%B0%E5%B7%A5%E7%A8%8B%E9%80%89%E5%9E%8B/" title="Anderson《空气动力学基础》读书笔记（五）：翼型特性与数据——从NACA风洞到工程选型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-18</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（五）：翼型特性与数据——从NACA风洞到工程选型</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第五篇，覆盖教材第6章「翼型数据与应用」的核心内容。阅读本文建议先了解薄翼理论。   第五篇：翼型特性与数据——从 NACA 风洞到工程选型一、从理论到数据——为什么需要风洞测试1.1 概念引入薄翼理论给出了 Cl=2π(α−αL=0)C_l = 2\pi(\alpha - \alpha_{L=0})Cl​=2π(α−αL=0​) 和 Cm,c/4=constC_{m,c/4} = \text{const}Cm,c/4​=const 这样优美的公式。但现实中的翼型远比薄翼理论复杂：  厚度效应不可忽略 黏性导致阻力（薄翼理论给出零阻力！） 襟翼&#x2F;缝翼等机械装置 失速后的非线性行为  因此，Anderson 教材在第6章专门介绍了实测的翼型数据——这些数据来自 NACA&#x2F;NASA 在 1930-1950 年代的系统风洞测试。 1.2 历史：NACA 翼型风洞计划   年份 事件 意义    1929 NACA 建立可变密度风洞（VDT） ...</div></div></div></a><a class="pagination-related" href="/2026/03/17/%E8%A7%86%E9%A2%91%E6%B5%81%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%BB%B6%E8%BF%9F%E6%B5%8B%E9%87%8F%E6%96%B9%E6%B3%95%E8%AE%BA-%E4%B8%80%E5%A5%97%E4%BB%A3%E7%A0%81%E9%80%9A%E5%90%83%E4%BB%BF%E7%9C%9F%E4%B8%8E%E5%A4%96%E5%9C%BA/" title="视频流端到端延迟测量方法论：一套代码通吃仿真与外场"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-17</div><div class="info-item-2">视频流端到端延迟测量方法论：一套代码通吃仿真与外场</div></div><div class="info-2"><div class="info-item-1"> 无人机图传延迟是影响飞行安全和操控体验的核心指标。业界常用 LED + 光电传感器法测量物理链路延迟，但这套方法无法用于仿真环境，仿真和外场需要两套完全不同的测量工具，数据也无法直接对比。 本文提出并实验验证了一种基于视觉时间戳标记的端到端延迟测量方法：在画面中放一个持续刷新时间戳的 QR 码，接收端解码即可算出延迟。这套方法仿真和外场使用完全相同的代码，实验证明测量精度 &lt; 3ms，标准差 &lt; 0.3ms。全部代码开源。   一、问题：为什么需要一个通用的延迟测量方法1.1 无人机图传延迟的完整链路12光线 → 机载相机(采集) → 编码器(H.264/H.265) → 图传发射 → 无线传输 → 接收 → 解码 → 地面显示          T_cap               T_enc              T_tx        T_rf      T_rx    T_dec    T_disp  各环节典型耗时：    环节 描述 典型延迟    相机采集 CMOS 曝光 + 读出 5-15 ms   编码 H.264&#x2F;H.265 压缩...</div></div></div></a><a class="pagination-related" href="/2026/04/16/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E4%B8%89%E8%AE%B2-%E5%8A%BF%E6%B5%81%E7%90%86%E8%AE%BA%EF%BC%88%E4%B8%8B%EF%BC%89-%E7%8E%AF%E9%87%8F%E4%B8%8E%E5%8D%87%E5%8A%9B/" title="Anderson《空气动力学基础》读书笔记（三）：势流理论（下）——环量与升力"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-16</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（三）：势流理论（下）——环量与升力</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第三篇，覆盖教材第3章后半部分与第4章前半部分。阅读本文前需熟悉速度势、流函数、点涡和偶极子的概念。   第三篇：环量与升力——空气动力学最核心的数学定理势流理论的价值不是写一些优美的数学公式——它的终极成就是回答了空气动力学最基本的问题：  升力到底从哪里来？它的大小如何精确计算？  本篇将一步步推导出空气动力学中最重要的公式——库塔-儒科夫斯基定理（Kutta–Joukowski Theorem），以及它背后的物理和数学。  一、达朗贝尔佯谬——理论预测的”零升力零阻力”1.1 问题如果仅用均匀流 + 偶极子叠加出圆柱绕流，会得到什么结果？ 均匀流 + 偶极子（偶极矩 μ=2πV∞R2\mu = 2\pi V_\infty R^2μ=2πV∞​R2，其中 RRR 为圆柱半径）： 速度势： ϕ=V∞(r+R2r)cos⁡θ \phi = V_\infty\left(r + \frac{R^2}{r}\right)\cos\theta ϕ=V∞​(r+rR...</div></div></div></a><a class="pagination-related" href="/2026/04/17/Anderson-%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E5%9F%BA%E7%A1%80%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-%E7%AC%AC%E5%9B%9B%E8%AE%B2-%E7%BF%BC%E5%9E%8B%E7%A9%BA%E6%B0%94%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%B8%8E%E8%96%84%E7%BF%BC%E7%90%86%E8%AE%BA/" title="Anderson《空气动力学基础》读书笔记（四）：翼型空气动力学与薄翼理论"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-17</div><div class="info-item-2">Anderson《空气动力学基础》读书笔记（四）：翼型空气动力学与薄翼理论</div></div><div class="info-2"><div class="info-item-1"> 本文是 John D. Anderson《Fundamentals of Aerodynamics》（第六版）读书笔记系列的第四篇，覆盖教材第5章《翼型空气动力学》。阅读本文前需熟悉环量、库塔条件和库塔-儒科夫斯基定理。   第四篇：翼型空气动力学与薄翼理论 一、翼型的几何语言  1.1 概念引入势流理论推导出了升力产生的数学本质——环量。但环量只适用于圆柱或简单的儒科夫斯基翼型。真实的机翼截面（翼型）有各种各样的形状，它们的几何参数直接影响气动性能。 Anderson 在教材中给出了翼型几何的完整语言体系。 1.2 翼型的几何要素一个翼型的完整几何由以下要素定义： 弦线（Chord Line）：连接前缘（leading edge, LE）与后缘（trailing edge, TE）的直线。长度称为弦长（chord），记为 ccc。 中弧线（Mean Camber Line）：翼型上下表面之间中点的连线。如果中弧线是直线，称为对称翼型（symmetrical airfoil）；如果是曲线，称为弯翼型（cambered airfoil）。 厚度分布（Thickness Distr...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">136</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%9B%AE%E6%A0%87%EF%BC%9A%E4%BA%94%E6%AD%A5%E5%AE%8C%E6%88%90%E7%BF%BC%E5%9E%8B%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">一、目标：五步完成翼型代理模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-number">2.</span> <span class="toc-text">二、环境准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%AD%A5%E9%AA%A41%EF%BC%9A%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">三、步骤1：问题定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%96%84%E7%BF%BC%E5%9E%8B%E5%8D%87%E5%8A%9B%E5%85%AC%E5%BC%8F"><span class="toc-number">3.1.</span> <span class="toc-text">薄翼型升力公式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%AD%A5%E9%AA%A42%EF%BC%9A%E9%87%87%E6%A0%B7%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.</span> <span class="toc-text">四、步骤2：采样设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%AD%A5%E9%AA%A43%EF%BC%9A%E7%94%9F%E6%88%90%E7%9C%9F%E5%80%BC"><span class="toc-number">5.</span> <span class="toc-text">五、步骤3：生成真值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%AD%A5%E9%AA%A44%EF%BC%9A%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E4%B8%8E%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">六、步骤4：模型训练与对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%AB%98%E6%96%AF%E8%BF%87%E7%A8%8B%E5%9B%9E%E5%BD%92%EF%BC%88GP%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 高斯过程回归（GP）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E5%99%A8%EF%BC%88MLP%EF%BC%89-%E7%89%A9%E7%90%86%E7%BA%A6%E6%9D%9F"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 多层感知器（MLP）+ 物理约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E7%BB%93%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 结果对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%AD%A5%E9%AA%A45%EF%BC%9A%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%EF%BC%88ONNX%E5%AF%BC%E5%87%BA%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">七、步骤5：模型部署（ONNX导出）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E5%B9%B6%E6%8E%A8%E7%90%86"><span class="toc-number">7.1.</span> <span class="toc-text">加载并推理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ONNX%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">7.2.</span> <span class="toc-text">ONNX的优势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%BB%8E%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%88%B0%E7%9C%9F%E5%AE%9ECFD"><span class="toc-number">8.</span> <span class="toc-text">八、从解析函数到真实CFD</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E5%88%B0%E5%AE%9E%E6%97%B6%E4%BB%BF%E7%9C%9F"><span class="toc-number">9.</span> <span class="toc-text">九、代理模型部署到实时仿真</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E4%BB%8E%E7%BF%BC%E5%9E%8B%E5%88%B0%E6%97%8B%E7%BF%BC%E9%A3%9E%E8%A1%8C%E5%99%A8"><span class="toc-number">10.</span> <span class="toc-text">十、从翼型到旋翼飞行器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">十一、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">12.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/18/cfd-surrogate-model-comparison/" title="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</a><time datetime="2026-05-18T01:00:00.000Z" title="发表于 2026-05-18 09:00:00">2026-05-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/2026-05-17-high-speed-quadcopter-altitude-loss/" title="高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界">高速多旋翼的&quot;掉高&quot;现象——推力分解与BEMT模型边界</a><time datetime="2026-05-17T13:30:00.000Z" title="发表于 2026-05-17 21:30:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/cfd-surrogate-modeling-tutorial/" title="CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</a><time datetime="2026-05-17T01:00:00.000Z" title="发表于 2026-05-17 09:00:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/llm-guided-iterative-code-optimization/" title="大模型引导的迭代式代码优化：方法论、范式与工程实践">大模型引导的迭代式代码优化：方法论、范式与工程实践</a><time datetime="2026-05-17T00:00:00.000Z" title="发表于 2026-05-17 08:00:00">2026-05-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/16/python-project-publishing-guide/" title="Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化">Python开源项目全流程：PyPI发布、文档站部署与CI/CD自动化</a><time datetime="2026-05-16T10:00:00.000Z" title="发表于 2026-05-16 18:00:00">2026-05-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

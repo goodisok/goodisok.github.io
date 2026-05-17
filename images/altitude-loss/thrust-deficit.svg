@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 480">
+<rect width="700" height="480" fill="#0d1117"/>
+<text x="350.0" y="35" fill="#f0f6fc" font-size="18" text-anchor="middle" font-weight="bold">图2  推力需求 vs BEMT实际输出</text>
+<line x1="80" y1="80" x2="80" y2="420" stroke="#8b949e" stroke-width="1"/>
+<line x1="80" y1="420.0" x2="650" y2="420.0" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="424.0" fill="#8b949e" font-size="11" text-anchor="end">0 N</text>
+<line x1="80" y1="358.1818181818182" x2="650" y2="358.1818181818182" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="362.1818181818182" fill="#8b949e" font-size="11" text-anchor="end">20 N</text>
+<line x1="80" y1="296.3636363636364" x2="650" y2="296.3636363636364" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="300.3636363636364" fill="#8b949e" font-size="11" text-anchor="end">40 N</text>
+<line x1="80" y1="234.54545454545456" x2="650" y2="234.54545454545456" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="238.54545454545456" fill="#8b949e" font-size="11" text-anchor="end">60 N</text>
+<line x1="80" y1="172.72727272727272" x2="650" y2="172.72727272727272" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="176.72727272727272" fill="#8b949e" font-size="11" text-anchor="end">80 N</text>
+<line x1="80" y1="110.90909090909093" x2="650" y2="110.90909090909093" stroke="#21262d" stroke-width="1"/>
+<text x="72" y="114.90909090909093" fill="#8b949e" font-size="11" text-anchor="end">100 N</text>
+<line x1="80" y1="420.0" x2="650" y2="420.0" stroke="#8b949e" stroke-width="1"/>
+<rect x="148" y="268" width="52" height="151" fill="#58a6ff" rx="3"/>
+<text x="174" y="260" fill="#f0f6fc" font-size="12" text-anchor="middle">48.9</text>
+<rect x="210" y="268" width="52" height="151" fill="#e05555" rx="3"/>
+<text x="236" y="260" fill="#f0f6fc" font-size="12" text-anchor="middle">48.9</text>
+<text x="205" y="266" fill="#f0883e" font-size="14" text-anchor="middle" font-weight="bold">0%</text>
+<text x="205" y="448" fill="#c9d1d9" font-size="14" text-anchor="middle" font-weight="bold">θ=50°</text>
+<rect x="308" y="190" width="52" height="229" fill="#58a6ff" rx="3"/>
+<text x="334" y="182" fill="#f0f6fc" font-size="12" text-anchor="middle">74.3</text>
+<rect x="370" y="301" width="52" height="118" fill="#e05555" rx="3"/>
+<text x="396" y="293" fill="#f0f6fc" font-size="12" text-anchor="middle">38.2</text>
+<text x="365" y="244" fill="#f0883e" font-size="14" text-anchor="middle" font-weight="bold">-49%</text>
+<text x="365" y="448" fill="#c9d1d9" font-size="14" text-anchor="middle" font-weight="bold">θ=65°</text>
+<rect x="467" y="136" width="52" height="283" fill="#58a6ff" rx="3"/>
+<text x="493" y="128" fill="#f0f6fc" font-size="12" text-anchor="middle">91.8</text>
+<rect x="529" y="313" width="52" height="106" fill="#e05555" rx="3"/>
+<text x="555" y="305" fill="#f0f6fc" font-size="12" text-anchor="middle">34.5</text>
+<text x="524" y="222" fill="#f0883e" font-size="14" text-anchor="middle" font-weight="bold">-62%</text>
+<text x="524" y="448" fill="#c9d1d9" font-size="14" text-anchor="middle" font-weight="bold">θ=70°</text>
+<rect x="80" y="450" width="14" height="14" fill="#58a6ff" rx="2"/>
+<text x="100" y="462" fill="#8b949e" font-size="12">水平飞行所需</text>
+<rect x="235" y="450" width="14" height="14" fill="#e05555" rx="2"/>
+<text x="255" y="462" fill="#8b949e" font-size="12">BEMT模型输出</text>
+<rect x="395" y="450" width="14" height="14" fill="#f0883e" rx="2"/>
+<text x="415" y="462" fill="#f0883e" font-size="12">短缺百分比</text>
+</svg>

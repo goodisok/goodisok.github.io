@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 520">
+<rect width="700" height="520" fill="#0d1117"/>
+<defs>
+<marker id="ab" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff"/></marker>
+<marker id="ar" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#e05555"/></marker>
+<marker id="ag" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3fb950"/></marker>
+<marker id="ao" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#d2991d"/></marker>
+</defs>
+<line x1="310" y1="310" x2="146.16959114220165" y2="195.28471272979078" stroke="#58a6ff" stroke-width="3.5" marker-end="url(#ab)"/>
+<text x="86" y="187" fill="#58a6ff" font-size="15" font-weight="bold">T (推力)</text>
+<line x1="310" y1="310" x2="310" y2="195.28471272979078" stroke="#3fb950" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ag)"/>
+<text x="318" y="252" fill="#3fb950" font-size="13">T·cosθ = 115 N</text>
+<line x1="310" y1="310" x2="146.16959114220165" y2="310" stroke="#d2991d" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ao)"/>
+<text x="178" y="328" fill="#d2991d" font-size="13">T·sinθ = 164 N</text>
+<line x1="310" y1="310" x2="310" y2="424.7152872702092" stroke="#e05555" stroke-width="3.5" marker-end="url(#ar)"/>
+<text x="320" y="377" fill="#e05555" font-size="13">mg = 31.4 N</text>
+<line x1="146.16959114220165" y1="310" x2="146.16959114220165" y2="195.28471272979078" stroke="#484f58" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="310" y1="195.28471272979078" x2="146.16959114220165" y2="195.28471272979078" stroke="#484f58" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="310" y1="310" x2="310" y2="100" stroke="#21262d" stroke-width="1.5" stroke-dasharray="5,5"/>
+<path d="M 310.0 265.0 A 45 45 0 0 0 346.9 284.2" fill="none" stroke="#8b949e" stroke-width="1.5"/>
+<text x="248" y="288" fill="#8b949e" font-size="15" font-style="italic">θ</text>
+<line x1="457.4" y1="206.8" x2="342.8" y2="287.1" stroke="#58a6ff" stroke-width="7" stroke-linecap="round" opacity="0.6"/>
+<line x1="284.2" y1="273.1" x2="335.8" y2="346.9" stroke="#c9d1d9" stroke-width="4" stroke-linecap="round"/>
+<line x1="278.9" y1="288.2" x2="341.1" y2="331.8" stroke="#484f58" stroke-width="2.5"/>
+<text x="350" y="35" fill="#f0f6fc" font-size="18" text-anchor="middle" font-weight="bold">图1  推力分解示意图</text>
+<rect x="430" y="380" width="250" height="110" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<text x="445" y="405" fill="#f0f6fc" font-size="13" font-weight="bold">关键关系</text>
+<text x="445" y="425" fill="#8b949e" font-size="11">T·cosθ = mg  (维持高度)</text>
+<text x="445" y="443" fill="#8b949e" font-size="11">T·sinθ = D   (克服阻力)</text>
+<text x="445" y="465" fill="#d2991d" font-size="11">θ↑ → T↑, cosθ↓ → 掉高</text>
+</svg>
