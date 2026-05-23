@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 540">
+<style>text{font-family:"WenQuanYi Zen Hei","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}</style>
+<rect width="680" height="540" fill="#ffffff"/>
+<line x1="120.0" y1="250" x2="540.0" y2="250" stroke="#374151" stroke-width="2"/>
+<polygon points="540.0,250 532.0,246 532.0,254" fill="#374151"/>
+<text x="544.0" y="254" font-size="14" font-weight="700" fill="#374151">x</text>
+<line x1="330" y1="70" x2="330" y2="430" stroke="#374151" stroke-width="2"/>
+<polygon points="330,70 326,78 334,78" fill="#374151"/>
+<text x="338" y="66" font-size="14" font-weight="700" fill="#374151">y</text>
+<circle cx="330" cy="250" r="3" fill="#111827"/>
+<text x="314" y="268" font-size="12" fill="#111827">O</text>
+<line x1="150" y1="246" x2="150" y2="254" stroke="#9ca3af"/>
+<text x="150" y="268" text-anchor="middle" font-size="11" fill="#6b7280">-3</text>
+<line x1="210" y1="246" x2="210" y2="254" stroke="#9ca3af"/>
+<text x="210" y="268" text-anchor="middle" font-size="11" fill="#6b7280">-2</text>
+<line x1="270" y1="246" x2="270" y2="254" stroke="#9ca3af"/>
+<text x="270" y="268" text-anchor="middle" font-size="11" fill="#6b7280">-1</text>
+<line x1="390" y1="246" x2="390" y2="254" stroke="#9ca3af"/>
+<text x="390" y="268" text-anchor="middle" font-size="11" fill="#6b7280">1</text>
+<line x1="450" y1="246" x2="450" y2="254" stroke="#9ca3af"/>
+<text x="450" y="268" text-anchor="middle" font-size="11" fill="#6b7280">2</text>
+<line x1="510" y1="246" x2="510" y2="254" stroke="#9ca3af"/>
+<text x="510" y="268" text-anchor="middle" font-size="11" fill="#6b7280">3</text>
+<line x1="326" y1="430" x2="334" y2="430" stroke="#9ca3af"/>
+<text x="318" y="434" text-anchor="end" font-size="11" fill="#6b7280">-3</text>
+<line x1="326" y1="370" x2="334" y2="370" stroke="#9ca3af"/>
+<text x="318" y="374" text-anchor="end" font-size="11" fill="#6b7280">-2</text>
+<line x1="326" y1="310" x2="334" y2="310" stroke="#9ca3af"/>
+<text x="318" y="314" text-anchor="end" font-size="11" fill="#6b7280">-1</text>
+<line x1="326" y1="190" x2="334" y2="190" stroke="#9ca3af"/>
+<text x="318" y="194" text-anchor="end" font-size="11" fill="#6b7280">1</text>
+<line x1="326" y1="130" x2="334" y2="130" stroke="#9ca3af"/>
+<text x="318" y="134" text-anchor="end" font-size="11" fill="#6b7280">2</text>
+<line x1="326" y1="70" x2="334" y2="70" stroke="#9ca3af"/>
+<text x="318" y="74" text-anchor="end" font-size="11" fill="#6b7280">3</text>
+<rect x="340" y="80" width="170" height="170" rx="8" fill="#16a34a" opacity="0.07"/>
+<text x="450" y="160" text-anchor="middle" font-size="13" font-weight="700" fill="#16a34a">第一象限 (+,+)</text>
+<rect x="160" y="80" width="170" height="170" rx="8" fill="#2563eb" opacity="0.07"/>
+<text x="210" y="160" text-anchor="middle" font-size="13" font-weight="700" fill="#2563eb">第二象限 (−,+)</text>
+<rect x="160" y="260" width="170" height="170" rx="8" fill="#dc2626" opacity="0.07"/>
+<text x="210" y="340" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">第三象限 (−,−)</text>
+<rect x="340" y="260" width="170" height="170" rx="8" fill="#ea580c" opacity="0.07"/>
+<text x="450" y="340" text-anchor="middle" font-size="13" font-weight="700" fill="#ea580c">第四象限 (+,−)</text>
+<line x1="510" y1="130" x2="510" y2="250" stroke="#16a34a" stroke-width="0.8" stroke-dasharray="3,3"/>
+<line x1="510" y1="130" x2="330" y2="130" stroke="#16a34a" stroke-width="0.8" stroke-dasharray="3,3"/>
+<circle cx="510" cy="130" r="4.5" fill="#16a34a"/>
+<text x="525" y="115" text-anchor="start" font-size="13" font-weight="600" fill="#16a34a">A(3,2)</text>
+<line x1="150" y1="130" x2="150" y2="250" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,3"/>
+<line x1="150" y1="130" x2="330" y2="130" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,3"/>
+<circle cx="150" cy="130" r="4.5" fill="#2563eb"/>
+<text x="135" y="115" text-anchor="end" font-size="13" font-weight="600" fill="#2563eb">B(−3,2)</text>
+<line x1="150" y1="370" x2="150" y2="250" stroke="#dc2626" stroke-width="0.8" stroke-dasharray="3,3"/>
+<line x1="150" y1="370" x2="330" y2="370" stroke="#dc2626" stroke-width="0.8" stroke-dasharray="3,3"/>
+<circle cx="150" cy="370" r="4.5" fill="#dc2626"/>
+<text x="135" y="388" text-anchor="end" font-size="13" font-weight="600" fill="#dc2626">C(−3,−2)</text>
+<line x1="510" y1="370" x2="510" y2="250" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="3,3"/>
+<line x1="510" y1="370" x2="330" y2="370" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="3,3"/>
+<circle cx="510" cy="370" r="4.5" fill="#ea580c"/>
+<text x="525" y="388" text-anchor="start" font-size="13" font-weight="600" fill="#ea580c">D(3,−2)</text>
+<rect x="30" y="470" width="620" height="55" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1"/>
+<text x="340" y="490" text-anchor="middle" font-size="13" font-weight="700" fill="#111827">各象限点的坐标特征</text>
+<text x="340" y="507" text-anchor="middle" font-size="11" fill="#374151">一象限 x>0,y>0  │  二象限 x&lt;0,y&gt;0  │  三象限 x&lt;0,y&lt;0  │  四象限 x&gt;0,y&lt;0</text>
+<text x="340" y="521" text-anchor="middle" font-size="10" fill="#6b7280">x轴上 y=0  │  y轴上 x=0  │  原点 (0,0)</text>
+</svg>

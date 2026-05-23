@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" width="1200" height="440">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+  </style>
+  <defs>
+    <marker id="a-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="a-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="a-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#059669"/>
+    </marker>
+    <marker id="a-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="440" fill="#ffffff"/>
+  <text x="600" y="34" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">自动化研究管道：工具联动全景</text>
+  <rect x="50" y="160" width="110" height="60" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="2" filter="url(#shadow)"/>
+  <text x="105" y="184" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">Cron</text>
+  <text x="105" y="202" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">定时触发</text>
+  <rect x="220" y="160" width="120" height="60" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)"/>
+  <text x="280" y="184" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">搜索</text>
+  <text x="280" y="202" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">web_search</text>
+  <rect x="400" y="110" width="140" height="160" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="2" filter="url(#shadow)"/>
+  <text x="470" y="134" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">并行分析</text>
+  <text x="470" y="152" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">delegate_task</text>
+  <rect x="680" y="160" width="110" height="60" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="2" filter="url(#shadow)"/>
+  <text x="735" y="184" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">去重检查</text>
+  <text x="735" y="202" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">Memory</text>
+  <rect x="850" y="160" width="100" height="60" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2" filter="url(#shadow)"/>
+  <text x="900" y="184" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">入库</text>
+  <text x="900" y="202" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">Wiki</text>
+  <rect x="1010" y="160" width="120" height="60" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1070" y="184" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">投递</text>
+  <text x="1070" y="202" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">send_message</text>
+  <line x1="190" y1="190" x2="220" y2="190" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a-blue)"/>
+  <rect x="189" y="166" width="32" height="14" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="205" y="176" text-anchor="middle" font-size="10" fill="#6b7280">触发</text>
+  <line x1="340" y1="190" x2="400" y2="190" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a-blue)"/>
+  <rect x="348" y="166" width="44" height="14" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="370" y="176" text-anchor="middle" font-size="10" fill="#6b7280">关键词</text>
+  <line x1="540" y1="190" x2="680" y2="190" stroke="#059669" stroke-width="1.5" marker-end="url(#a-green)"/>
+  <rect x="594" y="166" width="32" height="14" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="610" y="148" text-anchor="middle" font-size="10" fill="#6b7280">去重</text>
+  <line x1="790" y1="190" x2="850" y2="190" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a-orange)"/>
+  <rect x="804" y="166" width="32" height="14" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="820" y="176" text-anchor="middle" font-size="10" fill="#6b7280">写入</text>
+  <line x1="950" y1="190" x2="1010" y2="190" stroke="#059669" stroke-width="1.5" marker-end="url(#a-green)"/>
+  <rect x="964" y="166" width="32" height="14" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="980" y="176" text-anchor="middle" font-size="10" fill="#6b7280">通知</text>
+  <rect x="490" y="110" width="130" height="36" rx="6" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="555" y="130" text-anchor="middle" font-size="11" fill="#111827">Worker 1: 提取方法</text>
+  <rect x="490" y="154" width="130" height="36" rx="6" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
+  <text x="555" y="174" text-anchor="middle" font-size="11" fill="#111827">Worker 2: 去重检查</text>
+  <rect x="490" y="198" width="130" height="36" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="555" y="218" text-anchor="middle" font-size="11" fill="#111827">Worker 3: 排序评分</text>
+  <path d="M 340 190 L 370 190 L 370 128 L 490 128" stroke="#ea580c" stroke-width="1.2" fill="none" marker-end="url(#a-orange)"/>
+  <path d="M 370 190 L 370 172 L 490 172" stroke="#ea580c" stroke-width="1.2" fill="none" marker-end="url(#a-orange)"/>
+  <path d="M 370 190 L 370 216 L 490 216" stroke="#ea580c" stroke-width="1.2" fill="none" marker-end="url(#a-orange)"/>
+  <path d="M 620 128 L 660 128 L 660 190 L 680 190" stroke="#ea580c" stroke-width="1.2" fill="none"/>
+  <path d="M 620 172 L 650 172 L 650 190 L 680 190" stroke="#ea580c" stroke-width="1.2" fill="none"/>
+  <path d="M 620 216 L 660 216 L 660 190 L 680 190" stroke="#ea580c" stroke-width="1.2" fill="none" marker-end="url(#a-orange)"/>
+  <text x="105" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">① 触发</text>
+  <text x="280" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">② 检索</text>
+  <text x="470" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">③ 并行分析</text>
+  <text x="735" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">④ 去重</text>
+  <text x="900" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">⑤ 入库</text>
+  <text x="1070" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">⑥ 投递</text>
+  <text x="600" y="380" text-anchor="middle" font-size="12" fill="#9ca3af">管道方向：从 Cron 定时触发开始 → 到 send_message 投递结束，中间经过搜索、并行分析、去重、入库四个环节</text>
+  <line x1="50" y1="340" x2="74" y2="340" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a-blue)"/>
+  <text x="82" y="344" font-size="11" fill="#6b7280">主线流向</text>
+  <line x1="50" y1="358" x2="74" y2="358" stroke="#ea580c" stroke-width="1.5" marker-end="url(#a-orange)"/>
+  <text x="82" y="362" font-size="11" fill="#6b7280">并行分叉/汇聚</text>
+  <line x1="50" y1="376" x2="74" y2="376" stroke="#059669" stroke-width="1.5" marker-end="url(#a-green)"/>
+  <text x="82" y="380" font-size="11" fill="#6b7280">持久化操作</text>
+  <rect x="259" y="240" width="72" height="18" rx="9" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="295" y="253" text-anchor="middle" font-size="10" fill="#64748b">检索结果</text>
+  <rect x="574" y="240" width="72" height="18" rx="9" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="610" y="253" text-anchor="middle" font-size="10" fill="#64748b">分析摘要</text>
+  <rect x="914" y="240" width="72" height="18" rx="9" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="950" y="253" text-anchor="middle" font-size="10" fill="#64748b">写入确认</text>
+  <rect x="1034" y="240" width="72" height="18" rx="9" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1070" y="253" text-anchor="middle" font-size="10" fill="#64748b">增量简报</text>
+</svg>

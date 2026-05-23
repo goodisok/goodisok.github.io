@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520">
+<rect width="900" height="520" fill="#0d1117"/>
+<defs>
+<marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#fff"/></marker>
+<marker id="arrRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#E57373"/></marker>
+<marker id="arrBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#64B5F6"/></marker>
+<marker id="arrGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#81C784"/></marker>
+</defs>
+<line x1="80" y1="260" x2="770" y2="260" stroke="#444" stroke-width="1.5" stroke-dasharray="8,4"/>
+<text x="65" y="275" fill="#666" font-size="12" font-family="sans-serif">对称轴</text>
+<line x1="70" y1="22" x2="740" y2="22" stroke="#64B5F6" stroke-width="2" marker-end="url(#arrBlue)" opacity="0.6"/>
+<text x="340" y="10" fill="#64B5F6" font-size="12" font-family="sans-serif" text-anchor="middle">来流方向 → 滑流方向</text>
+<path d="M 128.5,150.0 A55,55,0,0,1,228.5,50.0" fill="none" stroke="#4a9eff" stroke-width="2.5"/>
+<path d="M 126.5,155.0 A57.0,57.0,0,0,1,230.5,34.0" fill="none" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="140" y1="40" x2="350" y2="40" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="140" y1="38.0" x2="350" y2="38.0" stroke="#4a9eff" stroke-width="2" opacity="0.6"/>
+<line x1="350.0" y1="40.0" x2="370.0" y2="42.5" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="370.0" y1="42.5" x2="390.0" y2="44.9" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="390.0" y1="44.9" x2="410.0" y2="47.4" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="410.0" y1="47.4" x2="430.0" y2="49.8" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="430.0" y1="49.8" x2="450.0" y2="52.3" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="450.0" y1="52.3" x2="470.0" y2="54.7" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="470.0" y1="54.7" x2="490.0" y2="57.2" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="490.0" y1="57.2" x2="510.0" y2="59.6" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="510.0" y1="59.6" x2="530.0" y2="62.1" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="530.0" y1="62.1" x2="550.0" y2="64.6" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="550.0" y1="64.6" x2="570.0" y2="67.0" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="570.0" y1="67.0" x2="590.0" y2="69.5" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="590.0" y1="69.5" x2="610.0" y2="71.9" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="610.0" y1="71.9" x2="630.0" y2="74.4" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="630.0" y1="74.4" x2="650.0" y2="76.8" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="650.0" y1="76.8" x2="670.0" y2="79.3" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="670.0" y1="79.3" x2="690.0" y2="81.7" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="690.0" y1="81.7" x2="695.0" y2="250.0" stroke="#4a9eff" stroke-width="2.5"/>
+<line x1="320" y1="260" x2="320" y2="45" stroke="#FFD54F" stroke-width="2.5" stroke-dasharray="4,3"/>
+<text x="295" y="28" fill="#FFD54F" font-size="11" font-family="sans-serif" text-anchor="end">桨盘</text>
+<text x="295" y="43" fill="#FFD54F" font-size="9" font-family="sans-serif" text-anchor="end" opacity="0.7">Rotor Disk</text>
+<text x="328" y="26" fill="#aaa" font-size="8" font-family="sans-serif">间隙 &lt;1% D</text>
+<line x1="320" y1="43" x2="326" y2="28" stroke="#aaa" stroke-width="0.6"/>
+<path d="M 50,220,C 86,220,120,214,125,214" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,200,C 86,200,120,192,125,192" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,180,C 86,180,120,169,125,169" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,160,C 86,160,120,147,125,147" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,130,C 86,130,120,113,125,113" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,100,C 86,100,120,79,125,79" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<path d="M 50,70,C 86,70,120,45,125,45" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.5"/>
+<line x1="145" y1="48" x2="310" y2="46" stroke="#64B5F6" stroke-width="0.8" opacity="0.4"/>
+<line x1="325" y1="40" x2="350" y2="43" stroke="#64B5F6" stroke-width="0.8" opacity="0.4"/>
+<line x1="350" y1="48" x2="690" y2="65" stroke="#64B5F6" stroke-width="0.8" opacity="0.4"/>
+<line x1="690" y1="60" x2="760" y2="220" stroke="#64B5F6" stroke-width="1.2" opacity="0.5"/>
+<line x1="690" y1="90" x2="770" y2="190" stroke="#64B5F6" stroke-width="1.2" opacity="0.5"/>
+<line x1="180" y1="65" x2="140" y2="35" stroke="#E57373" stroke-width="2.5" marker-end="url(#arrRed)"/>
+<text x="183" y="75" fill="#E57373" font-size="11" font-family="sans-serif">唇口推力</text>
+<text x="200" y="88" fill="#E57373" font-size="9" font-family="sans-serif" opacity="0.7">T_lip</text>
+<text x="158.5" y="123" fill="#4a9eff" font-size="10" font-family="sans-serif">r_lip</text>
+<line x1="178.5" y1="90" x2="168.5" y2="118" stroke="#4a9eff" stroke-width="0.8" opacity="0.5"/>
+<line x1="516.0" y1="52.52402521209627" x2="456.0" y2="52.52402521209627" stroke="#81C784" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+<text x="476.0" y="40.52402521209627" fill="#81C784" font-size="11" font-family="sans-serif" text-anchor="middle">扩散段推力</text>
+<text x="476.0" y="66.52402521209626" fill="#81C784" font-size="9" font-family="sans-serif" text-anchor="middle" opacity="0.7">T_diffuser</text>
+<line x1="328" y1="70" x2="328" y2="230" stroke="#FFD54F" stroke-width="2.5" marker-end="url(#arr)"/>
+<text x="335" y="220" fill="#FFD54F" font-size="11" font-family="sans-serif">旋翼推力 T_rotor</text>
+<text x="535.0" y="45.873375353493785" fill="#aaa" font-size="9" font-family="sans-serif">θ_d ≈ 7°</text>
+<text x="170" y="300" fill="#E57373" font-size="11" font-family="sans-serif" text-anchor="middle">唇口</text>
+<text x="320" y="300" fill="#FFD54F" font-size="11" font-family="sans-serif" text-anchor="middle">桨盘</text>
+<text x="520.0" y="300" fill="#81C784" font-size="11" font-family="sans-serif" text-anchor="middle">扩散段</text>
+<rect x="680" y="50" width="195" height="80" rx="6" fill="#161b22" stroke="#333"/>
+<line x1="692" y1="68" x2="718" y2="68" stroke="#E57373" stroke-width="2.5"/>
+<text x="725" y="72" fill="#aaa" font-size="10" font-family="sans-serif">唇口推力 T_lip</text>
+<line x1="692" y1="88" x2="718" y2="88" stroke="#FFD54F" stroke-width="2.5"/>
+<text x="725" y="92" fill="#aaa" font-size="10" font-family="sans-serif">旋翼推力 T_rotor</text>
+<line x1="692" y1="108" x2="718" y2="108" stroke="#81C784" stroke-width="2.5"/>
+<text x="725" y="112" fill="#aaa" font-size="10" font-family="sans-serif">扩散段推力 T_diffuser</text>
+</svg>

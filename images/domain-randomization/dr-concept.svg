@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  <rect width="1000" height="680" fill="#ffffff"/>
+  <text x="500" y="38" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">Domain Randomization 核心思想</text>
+  <text x="500" y="60" text-anchor="middle" font-size="13" fill="#6b7280">如果仿真变异性足够大，真实世界只是另一个变体</text>
+  <rect x="30" y="90" width="420" height="230" rx="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+  <text x="240" y="115" text-anchor="middle" font-size="15" font-weight="600" fill="#dc2626">传统方法：精确认知仿真</text>
+  <circle cx="140" cy="200" r="40" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+  <text x="140" y="196" text-anchor="middle" font-size="12" font-weight="600" fill="#dc2626">仿真</text>
+  <text x="140" y="212" text-anchor="middle" font-size="11" fill="#dc2626">环境</text>
+  <circle cx="340" cy="200" r="40" fill="#ffffff" stroke="#d1d5db" stroke-width="2"/>
+  <text x="340" y="196" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">真实</text>
+  <text x="340" y="212" text-anchor="middle" font-size="11" fill="#6b7280">世界</text>
+  <line x1="182" y1="200" x2="298" y2="200" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)"/>
+  <text x="240" y="190" text-anchor="middle" font-size="14" font-weight="700" fill="#dc2626">✗ 差距太大</text>
+  <text x="240" y="265" text-anchor="middle" font-size="11" fill="#6b7280">系统辨识 → 耗时、无法覆盖未建模效应</text>
+  <text x="240" y="285" text-anchor="middle" font-size="11" fill="#6b7280">高保真渲染 → 成本高、仍有 gap</text>
+  <rect x="510" y="90" width="420" height="230" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="720" y="115" text-anchor="middle" font-size="15" font-weight="600" fill="#16a34a">Domain Randomization</text>
+  <circle cx="720" cy="200" r="80" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="720" y="180" text-anchor="middle" font-size="12" font-weight="600" fill="#16a34a">随机化仿真</text>
+  <text x="720" y="196" text-anchor="middle" font-size="11" fill="#16a34a">(海量变体)</text>
+  <circle cx="720" cy="218" r="30" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="720" y="215" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">真实</text>
+  <text x="720" y="227" text-anchor="middle" font-size="10" fill="#6b7280">世界</text>
+  <text x="720" y="280" text-anchor="middle" font-size="11" fill="#6b7280">低成本渲染 + 无限随机纹理</text>
+  <text x="720" y="300" text-anchor="middle" font-size="11" fill="#6b7280">真实世界 = 仿真中的一个变体 ✓</text>
+  <text x="500" y="360" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">训练管线</text>
+  <rect x="30" y="380" width="175" height="55" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="130" y="402" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">仿真器</text>
+  <text x="130" y="422" text-anchor="middle" font-size="10" fill="#6b7280">MuJoCo 低质量渲染</text>
+  <rect x="218" y="380" width="175" height="55" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="300" y="402" text-anchor="middle" font-size="13" font-weight="600" fill="#9333ea">随机化引擎</text>
+  <text x="300" y="422" text-anchor="middle" font-size="10" fill="#6b7280">纹理/光照/相机/物理</text>
+  <rect x="406" y="380" width="175" height="55" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="470" y="402" text-anchor="middle" font-size="13" font-weight="600" fill="#ea580c">训练数据</text>
+  <text x="470" y="422" text-anchor="middle" font-size="10" fill="#6b7280">海量 (图像, 坐标) 对</text>
+  <rect x="594" y="380" width="175" height="55" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="640" y="402" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">CNN 模型</text>
+  <text x="640" y="422" text-anchor="middle" font-size="10" fill="#6b7280">VGG-16 修改版</text>
+  <rect x="782" y="380" width="175" height="55" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="810" y="402" text-anchor="middle" font-size="13" font-weight="600" fill="#dc2626">部署</text>
+  <text x="810" y="422" text-anchor="middle" font-size="10" fill="#6b7280">真机 1.5cm 精度</text>
+  <line x1="205" y1="407" x2="218" y2="407" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="393" y1="407" x2="406" y2="407" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="581" y1="407" x2="594" y2="407" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="769" y1="407" x2="782" y2="407" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <rect x="80" y="470" width="800" height="80" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="500" y="498" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">关键洞察</text>
+  <text x="500" y="520" text-anchor="middle" font-size="12" fill="#4b5563">不需要照片级渲染 — 算法生成的纯色/渐变/棋盘纹理反而更有利于泛化</text>
+  <text x="500" y="540" text-anchor="middle" font-size="12" fill="#4b5563">训练时见过足够多的"乱"，测试时就不怕真实世界的"乱"</text>
+  <rect x="60" y="575" width="880" height="65" rx="10" fill="#2563eb" filter="url(#shadow)"/>
+  <text x="500" y="598" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">真实世界定位精度: 1.5 cm  ·  抓取成功率: 38/40  ·  纯仿真训练, 无真实图像</text>
+  <text x="500" y="624" text-anchor="middle" font-size="11" fill="#bfdbfe">Tobin et al., OpenAI &amp; UC Berkeley, 2017 · 引用 3,635 次</text>
+</svg>

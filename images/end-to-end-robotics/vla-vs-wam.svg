@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520">
+<defs>
+  <marker id="aBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/></marker>
+  <marker id="aTeal" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0891b2"/></marker>
+  <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+</defs>
+<rect width="960" height="520" fill="#f8fafc"/>
+<text x="480" y="36" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1e293b">VLA vs WAM：从直接映射到联合预测</text>
+<rect x="30" y="60" width="430" height="350" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+<text x="245" y="88" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#1e40af">VLA（视觉-语言-行动模型）</text>
+<text x="245" y="106" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#64748b">仅从观测直接映射到动作</text>
+<rect x="85" y="130" width="140" height="50" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="155" y="150" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#2563eb">观测 o_t</text>
+<text x="155" y="168" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">图像 + 语言指令</text>
+<rect x="85" y="220" width="140" height="60" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="155" y="244" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#2563eb">Transformer</text>
+<text x="155" y="265" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">backbone</text>
+<rect x="85" y="320" width="140" height="50" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="155" y="340" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#2563eb">动作 a_t</text>
+<text x="155" y="358" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">末端位姿 / 关节角度</text>
+<line x1="155" y1="180" x2="155" y2="216" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+<line x1="155" y1="280" x2="155" y2="316" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+<text x="270" y="155" font-family="sans-serif" font-size="18" fill="#ef4444">✘</text>
+<text x="292" y="155" font-family="sans-serif" font-size="11" fill="#64748b">   无内部验算</text>
+<text x="270" y="185" font-family="sans-serif" font-size="18" fill="#ef4444">✘</text>
+<text x="292" y="185" font-family="sans-serif" font-size="11" fill="#64748b">   不预测未来状态</text>
+<text x="270" y="215" font-family="sans-serif" font-size="11" fill="#64748b">推理频率：1-3 Hz</text>
+<text x="270" y="240" font-family="sans-serif" font-size="11" fill="#64748b">新本体适配：数千条轨迹</text>
+<text x="270" y="265" font-family="sans-serif" font-size="11" fill="#64748b">代表：RT-2, OpenVLA, π₀</text>
+<rect x="500" y="60" width="430" height="350" rx="12" fill="#f0fdfa" stroke="#99f6e4" stroke-width="2"/>
+<text x="715" y="88" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0f766e">WAM（世界-动作模型）</text>
+<text x="715" y="106" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#64748b">同时预测动作和未来观测</text>
+<rect x="555" y="130" width="140" height="50" rx="8" fill="white" stroke="#14b8a6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="625" y="150" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0d9488">观测序列</text>
+<text x="625" y="168" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">历史视频帧 + 指令</text>
+<rect x="555" y="210" width="140" height="60" rx="8" fill="white" stroke="#14b8a6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="625" y="234" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0d9488">联合自回归</text>
+<text x="625" y="255" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">视频+动作 transformer</text>
+<rect x="555" y="300" width="140" height="45" rx="8" fill="white" stroke="#14b8a6" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="625" y="318" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0d9488">动作 a_t</text>
+<text x="625" y="336" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">7Hz 高频输出</text>
+<rect x="735" y="300" width="160" height="60" rx="8" fill="white" stroke="#14b8a6" stroke-width="1.5" stroke-dasharray="4,2" filter="url(#shadow)"/>
+<text x="815" y="320" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0d9488">预测下一帧</text>
+<text x="815" y="344" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#94a3b8">v̂_{t+1} 内部验算后果</text>
+<line x1="625" y1="180" x2="625" y2="206" stroke="#0891b2" stroke-width="2" marker-end="url(#aTeal)"/>
+<line x1="555" y1="270" x2="555" y2="296" stroke="#0891b2" stroke-width="2" marker-end="url(#aTeal)"/>
+<line x1="695" y1="270" x2="775" y2="296" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aTeal)"/>
+<text x="745" y="155" font-family="sans-serif" font-size="18" fill="#10b981">✔</text>
+<text x="767" y="155" font-family="sans-serif" font-size="11" fill="#475569">   内部验算动作后果</text>
+<text x="745" y="185" font-family="sans-serif" font-size="18" fill="#10b981">✔</text>
+<text x="767" y="185" font-family="sans-serif" font-size="11" fill="#475569">   显式世界理解</text>
+<text x="745" y="215" font-family="sans-serif" font-size="11" fill="#475569">推理频率：7 Hz</text>
+<text x="745" y="240" font-family="sans-serif" font-size="11" fill="#475569">新本体适配：30分钟</text>
+<text x="745" y="265" font-family="sans-serif" font-size="11" fill="#475569">代表：WAM/DreamZero</text>
+<rect x="30" y="425" width="900" height="80" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+<text x="50" y="445" font-family="sans-serif" font-size="12" font-weight="bold" fill="#475569">核心差异</text>
+<circle cx="120" cy="453" r="4" fill="#0891b2"/>
+<text x="132" y="457" font-family="sans-serif" font-size="11" fill="#475569">泛化能力：WAM ≥ 2× VLA</text>
+<circle cx="400" cy="453" r="4" fill="#0891b2"/>
+<text x="412" y="457" font-family="sans-serif" font-size="11" fill="#475569">缩放定律：WAM R²=0.9983 对数线性</text>
+<circle cx="680" cy="453" r="4" fill="#0891b2"/>
+<text x="692" y="457" font-family="sans-serif" font-size="11" fill="#475569">数据效率：人类视频 + 30min微调 vs 数千条轨迹</text>
+<text x="920" y="497" text-anchor="end" font-family="sans-serif" font-size="10" fill="#94a3b8">图2：VLA vs WAM 架构对比</text>
+</svg>

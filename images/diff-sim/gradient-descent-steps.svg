@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" width="960" height="460">
+<style>
+  text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+</style>
+<defs>
+  <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+  </marker>
+</defs>
+
+<rect width="960" height="460" fill="#ffffff"/>
+<text x="480" y="35" fill="#111827" font-size="20" font-weight="600" text-anchor="middle">梯度下降：一步一步走向最小值</text>
+
+<!-- 主图区 -->
+<rect x="40" y="55" width="600" height="380" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+
+<!-- 坐标轴 -->
+<line x1="80" y1="360" x2="600" y2="360" stroke="#94a3b8" stroke-width="1.5"/>
+<line x1="80" y1="80" x2="80" y2="360" stroke="#94a3b8" stroke-width="1.5"/>
+
+<!-- 抛物线 y = x²，从 x=3 开始下降 -->
+<!-- 曲线 -->
+<path d="M 140 357 Q 200 330, 260 260 Q 300 210, 340 170 Q 380 130, 420 100" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+<!-- 对称轴虚线 -->
+<line x1="340" y1="80" x2="340" y2="360" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="340" y="395" fill="#93c5fd" font-size="11" text-anchor="middle">最优值</text>
+
+<!-- x轴刻度 -->
+<text x="140" y="380" fill="#6b7280" font-size="11" text-anchor="middle">-3</text>
+<text x="240" y="380" fill="#6b7280" font-size="11" text-anchor="middle">-2</text>
+<text x="340" y="380" fill="#6b7280" font-size="11" text-anchor="middle">0</text>
+<text x="440" y="380" fill="#6b7280" font-size="11" text-anchor="middle">1</text>
+<text x="540" y="380" fill="#6b7280" font-size="11" text-anchor="middle">2</text>
+<text x="580" y="380" fill="#6b7280" font-size="11" text-anchor="middle">3</text>
+
+<!-- y轴标签 -->
+<text x="65" y="100" fill="#6b7280" font-size="11" text-anchor="end">高</text>
+<text x="65" y="360" fill="#6b7280" font-size="11" text-anchor="end">低</text>
+
+<!-- 下降步点 -->
+<!-- 第1步：x=3 → y≈360 -->
+<circle cx="535" cy="357" r="5" fill="#dc2626"/>
+<text x="545" y="350" fill="#dc2626" font-size="11" font-weight="600">① x=3</text>
+<line x1="535" y1="357" x2="545" y2="350" stroke="#dc2626" stroke-width="0.5"/>
+
+<path d="M 535 357 L 510 340" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 第2步：x=2.4 -->
+<circle cx="490" cy="335" r="5" fill="#dc2626"/>
+<text x="500" y="325" fill="#dc2626" font-size="11" font-weight="600">② x=2.4</text>
+
+<path d="M 490 335 L 465 305" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 第3步：x=1.92 -->
+<circle cx="440" cy="295" r="5" fill="#dc2626"/>
+<text x="450" y="285" fill="#dc2626" font-size="11" font-weight="600">③ x=1.92</text>
+
+<path d="M 440 295 L 420 270" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 第4步：x=1.54 -->
+<circle cx="400" cy="255" r="5" fill="#f59e0b"/>
+<text x="410" y="245" fill="#f59e0b" font-size="11" font-weight="600">④ x=1.54</text>
+
+<path d="M 400 255 L 385 235" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 第5步：x=1.23 -->
+<circle cx="370" cy="215" r="5" fill="#f59e0b"/>
+<text x="380" y="205" fill="#f59e0b" font-size="11" font-weight="600">⑤ x=1.23</text>
+
+<path d="M 370 215 L 360 200" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 第6步：x→0 -->
+<circle cx="345" cy="175" r="5" fill="#16a34a"/>
+<text x="355" y="165" fill="#16a34a" font-size="11" font-weight="600">⑥ x→0</text>
+
+<path d="M 345 175 L 340 170" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+<!-- 最优值点 -->
+<circle cx="340" cy="168" r="7" fill="#16a34a"/>
+<text x="330" y="155" fill="#16a34a" font-size="12" font-weight="600" text-anchor="end">🎯 x=0</text>
+
+<!-- ===== 右侧说明面板 ===== -->
+<rect x="660" y="55" width="270" height="380" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+<text x="795" y="80" fill="#166534" font-size="16" font-weight="600" text-anchor="middle">步进过程</text>
+
+<line x1="680" y1="90" x2="910" y2="90" stroke="#bbf7d0" stroke-width="1"/>
+
+<!-- step 1 -->
+<rect x="680" y="100" width="230" height="35" rx="4" fill="#dcfce7" stroke="#86efac" stroke-width="0.5"/>
+<text x="690" y="114" fill="#166534" font-size="11" font-weight="600">① 起始点 x=3.00</text>
+<text x="690" y="128" fill="#16a34a" font-size="10">损失=9.0，梯度=6.0</text>
+
+<rect x="680" y="140" width="230" height="35" rx="4" fill="#dcfce7" stroke="#86efac" stroke-width="0.5"/>
+<text x="690" y="154" fill="#166534" font-size="11" font-weight="600">② x=3→2.4</text>
+<text x="690" y="168" fill="#16a34a" font-size="10">损失=5.76，梯度=4.8</text>
+
+<rect x="680" y="180" width="230" height="35" rx="4" fill="#dcfce7" stroke="#86efac" stroke-width="0.5"/>
+<text x="690" y="194" fill="#166534" font-size="11" font-weight="600">③ x=2.4→1.92</text>
+<text x="690" y="208" fill="#16a34a" font-size="10">损失=3.69，梯度=3.84</text>
+
+<rect x="680" y="220" width="230" height="20" rx="4" fill="#fef3c7" stroke="#fde68a" stroke-width="0.5"/>
+<text x="690" y="234" fill="#92400e" font-size="10">⋯ 继续下降，步长逐渐减小</text>
+
+<rect x="680" y="245" width="230" height="35" rx="4" fill="#fef3c7" stroke="#fde68a" stroke-width="0.5"/>
+<text x="690" y="259" fill="#92400e" font-size="11" font-weight="600">⑥ 收敛到 x≈0</text>
+<text x="690" y="273" fill="#92400e" font-size="10">损失≈0，梯度≈0 ✅</text>
+
+<!-- 总结 -->
+<rect x="680" y="300" width="230" height="115" rx="8" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+<text x="795" y="320" fill="#1e40af" font-size="13" font-weight="600" text-anchor="middle">💡 关键原理</text>
+<text x="690" y="340" fill="#1e40af" font-size="11">• 每一步都往"最陡"方向走</text>
+<text x="690" y="358" fill="#1e40af" font-size="11">• 越接近最低点，步长越小</text>
+<text x="690" y="376" fill="#1e40af" font-size="11">• 不需要手动决定下一步</text>
+<text x="690" y="394" fill="#1e40af" font-size="11">• 梯度=0 → 到达最优点 ✅</text>
+
+</svg>

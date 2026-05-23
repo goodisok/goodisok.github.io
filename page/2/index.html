@@ -1,0 +1,553 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="goodisok 的博客">
+<meta property="og:url" content="https://goodisok.github.io/page/2/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="goodisok">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.5-b1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'goodisok 的博客',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">137</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">570</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">goodisok 的博客</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/14/World-Model-Technical-Analysis-RSSM-Dreamer/" title="世界模型（World Model）完全技术解析：从RSSM到视频生成的演进之路">世界模型（World Model）完全技术解析：从RSSM到视频生成的演进之路</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-14T04:00:00.000Z" title="发表于 2026-05-14 12:00:00">2026-05-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/AI%E6%8A%80%E6%9C%AF/">AI技术</a></span></div><div class="content">一、什么是世界模型——三句话定义世界模型（World Model）是智能体对其所处环境的内部表征，能够预测状态转移、模拟未来轨迹，并在”想象”中完成规划与决策。 三个本质特征：  状态预测：给定当前状态 sts_tst​ 和动作 ata_tat​，预测下一时刻状态 st+1s_{t+1}st+1​ 隐空间表征：不操作原始观测（像素），而是在压缩的隐空间 ztz_tzt​ 中进行推理 想象规划：在学到的世界模型中”做梦”——通过 rollout 生成虚拟轨迹，无需真实环境交互  这一思想最早可追溯至 1990 年 Schmidhuber 的”好奇心驱动学习”，但真正将世界模型推向实用化的是 2018 年 Ha &amp; Schmidhuber 的经典论文 World Models（arXiv:1803.10122）——该文仅用简单的 VAE+RNN 架构便在 VizDoom 和 CarRacing 上展示了在”梦境”中训练的可行性。 今天的”世界模型”已远不止于此：从 PlaNet 的纯模型预测，到 Dreamer 系列的隐想象（latent imagination），再到 So...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/14/advanced-math-2/" title="高等数学（下）· 从向量到无穷级数">高等数学（下）· 从向量到无穷级数</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-14T00:00:00.000Z" title="发表于 2026-05-14 08:00:00">2026-05-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></span></div><div class="content">参考教材：同济大学数学系《高等数学》第七版 下册（第8–12章）。GitHub 配套课本：github.com&#x2F;goodisok&#x2F;ChinaTextbook  一、向量代数与空间解析几何——从平面到空间概念直觉上册的函数都是 y=f(x)y=f(x)y=f(x)：一个输入、一个输出。但世界不是一维的。一架无人机的位置是 (x,y,z)(x,y,z)(x,y,z)，姿态是 (ϕ,θ,ψ)(\phi,\theta,\psi)(ϕ,θ,ψ)——六个输入。我们需要一种能在三维空间里做数学的工具，这就是向量。 向量基本运算点积（内积）： a⋅b=∣a∣∣b∣cos⁡θ\mathbf{a}\cdot\mathbf{b} = |\mathbf{a}||\mathbf{b}|\cos\thetaa⋅b=∣a∣∣b∣cosθ  物理意义：力 F\mathbf{F}F 沿位移 s\mathbf{s}s 做的功 W=F⋅sW = \mathbf{F}\cdot\mathbf{s}W=F⋅s。如果力和位移垂直，不做功——这就是为什么轨道速度不改变轨道高度。 叉积（外积）： a×b=∣...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/13/%E4%BB%8E%E6%9C%AC%E5%9C%B0Ollama%E5%88%B0%E4%BA%91%E7%AB%AFDeepSeek-V4-Pro-AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B%E7%9A%84%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88%E9%80%89%E6%8B%A9/" title="从本地Ollama到云端DeepSeek-V4-Pro-AI编程助手的部署方案选择">从本地Ollama到云端DeepSeek-V4-Pro-AI编程助手的部署方案选择</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-13T08:00:00.000Z" title="发表于 2026-05-13 16:00:00">2026-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%8A%80%E6%9C%AF%E5%AE%9E%E8%B7%B5/">技术实践</a></span></div><div class="content">一、背景：为什么要折腾本地部署Hermes Agent 是我日常编程的主力工具——代码重构、仿真调试、博客写作都靠它。免费的云端模型时好时坏，一个自然的问题浮现：能不能把模型跑在自己电脑上，彻底告别 API 限流和网络波动？ 这个想法很诱人。数据不出本地、零延迟、零费用——听起来完美。于是我在一台 WSL2 环境下启动了本地部署实验。  机器配置：Z790 + i9-13900KF + RTX 4090 24GB，内存 单条 16GB DDR5-4800（单通道未升级）。WSL2 分配 8GB。  选取的路线是当前最成熟的本地推理方案：Ollama + DeepSeek-R1。 二、第一次尝试：Ollama + DeepSeek-R1 本地运行Ollama 的安装非常顺畅： 123curl -fsSL https://ollama.com/install.sh | shollama pull deepseek-r1:8bollama serve  模型拉下来大约 4.9GB，8B 参数版本在 RTX 4090 上加载毫无压力。ollama run deepseek-r1:8b 启...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/13/hermes-agent-advanced-workflows/" title="Hermes Agent 进阶用法：工具联动的十种实战模式">Hermes Agent 进阶用法：工具联动的十种实战模式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-13T05:20:00.000Z" title="发表于 2026-05-13 13:20:00">2026-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/AI%E5%B7%A5%E5%85%B7/">AI工具</a></span></div><div class="content"> 官方文档教你每个工具的用法，但不教你工具之间怎么衔接。这篇文章补上这一块——基于真实使用中沉淀出来的联动模式，不讲概念，只讲能跑通的组合。  一、为什么工具联动比单工具重要Hermes Agent 提供了二十多种工具：memory、skill、delegate_task、cron、session_search、web_search、browser、terminal、send_message……单独看每个工具的文档，你能学会怎么调用它。但你不会知道：  哪些工具天然就该成对使用 哪些组合能替掉原本需要人工盯着的重复劳动 一个工具的输出怎样自动成为另一个工具的输入  这篇文章不讲”memory 命令怎么敲”，而讲”memory + cron + delegate_task 怎么串成一条自动研究管线”。所有模式均来自实际使用，能直接复现。   图 1：Hermes Agent 工具生态系统分层架构 — 输入层、核心层、记忆层、工具层、存储层 二、知识底座：Wiki + Cron 自动化研究管线2.1 单用 Wiki 的问题Wiki 是 LLM 驱动的关系型知识库。你可以往里面存论文摘...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/13/%E5%90%AF%E5%8F%91%E5%BC%8F%E5%AD%A6%E4%B9%A0-OpenAI%E7%BF%81%E5%AE%B6%E7%BF%8C%E6%8F%90%E5%87%BA%E8%84%B1%E7%A6%BB%E5%8F%82%E6%95%B0%E7%9A%84%E6%96%B0AI%E8%8C%83%E5%BC%8F/" title="启发式学习——OpenAI翁家翌提出脱离参数的新AI范式">启发式学习——OpenAI翁家翌提出脱离参数的新AI范式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-13T02:00:00.000Z" title="发表于 2026-05-13 10:00:00">2026-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a></span></div><div class="content">  摘要：2026年5月，OpenAI后训练工程师翁家翌（Weng Jiayi）提出了 Heuristic Learning（HL，启发式学习）——一种不依赖神经网络参数更新的全新AI学习范式。与梯度下降驱动参数更新的传统深度学习不同，HL由 Codex（GPT-5.4 驱动）自主迭代维护一个由显式状态检测器、规则逻辑和测试用例组成的智能软件系统，每次迭代通过分析性能反馈直接对代码进行结构性调整。在以 Atari Breakout 为基准的实验中，HL 达到了理论满分（864分），同时天然解决了增量学习中的灾难性遗忘问题。本文系统梳理 HL 的核心思想与技术机制，并将其置于监督学习、无监督学习、强化学习和自监督学习的历史演进脉络中进行对比分析。  引言：一个反直觉的问题自 Hinton 等人2006年在 Science 上宣告深度学习时代以来，有一条几乎被视为公理的信念：AI系统的智能来自于它的参数。模型的权重矩阵越大、参数越多、训练数据越海量，”智能”就越强。从 AlexNet 的六千万参数到 GPT-4 的万亿参数，这条 Scaling Law 似乎不可动摇。 但翁家翌在20...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/13/end-to-end-robotics-concepts-guide/" title="端到端机器人学习核心概念全解：VLA、WAM、世界模型与训练范式">端到端机器人学习核心概念全解：VLA、WAM、世界模型与训练范式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-13T01:00:00.000Z" title="发表于 2026-05-13 09:00:00">2026-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%AD%A6%E4%B9%A0/">端到端学习</a></span></div><div class="content">  一、问题背景：从模块化到端到端的范式迁移传统机器人系统采用感知→规划→控制的模块化架构：视觉模块检测目标，规划模块计算轨迹，控制模块执行命令。每个模块独立设计、独立调试，模块间通过结构化接口通信。 这种架构有三个根本性局限：  信息瓶颈：每个模块只传递下游需要的信息，上游的丰富感知在下游被截断。视觉模块输出边界框，但丢弃了纹理、光照、场景语义等可达百万维的信号。 复合误差：每个模块各有误差，级联后总误差不是加法关系，而是非线性放大——前置模块的微小错误可能使后置模块的输入彻底偏离设计域。 不可端到端优化：模块间界面是离散符号而非可微张量，梯度无法从任务目标反向传播至原始感知。  端到端学习的核心思想是一次性解决这些问题：用一个神经网络直接从原始感知映射到动作指令，所有参数通过任务损失联合优化。 这场范式迁移的驱动力来自三个方向的同时成熟：    驱动力 代表工作 关键能力    大语言模型的推理能力 GPT-4, Gemini 将常识推理和任务分解注入机器人动作   视觉基础模型的感知能力 DINOv2, SAM, SigLIP 像素级场景理解不再需要手工特征   大规模机器...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/13/advanced-math-1/" title="高等数学（上）· 从极限到微分方程">高等数学（上）· 从极限到微分方程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-13T00:00:00.000Z" title="发表于 2026-05-13 08:00:00">2026-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80/">数学基础</a></span></div><div class="content">参考教材：同济大学数学系《高等数学》第七版 上册（第1–7章）。GitHub 配套课本：github.com&#x2F;goodisok&#x2F;ChinaTextbook  一、极限——微积分的唯一入口概念直觉先忘掉 ε\varepsilonε-δ\deltaδ。极限的直觉很简单：  一个数列 xnx_nxn​，”最终”稳定在某个值附近，无论多靠近，只要走足够远，就能进到那个范围内。  想象你朝一堵墙走，每一步走剩下距离的一半。你永远碰不到墙——但你离墙的距离趋向于零。这就是极限。 定义（直观版）数列极限：lim⁡n→∞xn=A\lim\limits_{n\to\infty}x_n = An→∞lim​xn​=A 当且仅当：对任意小的距离 ε&gt;0\varepsilon&gt;0ε&gt;0，总能找到一个 NNN，使得 n&gt;Nn&gt;Nn&gt;N 时 ∣xn−A∣&lt;ε|x_n - A|&lt;\varepsilon∣xn​−A∣&lt;ε。 函数极限：lim⁡x→af(x)=L\lim\limits_{x\to a}f(x)=Lx→alim​f(x)=L ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/12/ducted-fan-aerodynamics/" title="涵道风扇空气动力学：推力增广的物理机制与工程设计">涵道风扇空气动力学：推力增广的物理机制与工程设计</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-12T06:00:00.000Z" title="发表于 2026-05-12 14:00:00">2026-05-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8A%80%E6%9C%AF/">无人机技术</a></span></div><div class="content">一、一个违反直觉的事实开放螺旋桨的推进效率已经很高，为什么还要在外面加一个环？ 答案是：涵道在悬停状态下可以将推力提升 30-80%，而且在相同推力下桨盘面积更小。 这个数字来自 Pereira[1] 的实验测量——在相同输入功率下，10英寸涵道风扇的静推力比同直径开放螺旋桨高出约 50%。 这违反常规直觉。直觉会说”加一个环增加了重量和阻力，效率应该更低”。但涵道不是简单的环——它改变了经过桨盘的气流结构。 二、涵道推力的物理解构 2.1 推力不是来自一个地方传统螺旋桨的推力来自桨叶对气流做功。涵道风扇的推力来自两个独立物理来源： Ttotal=Trotor+Tduct T_{\text{total}} = T_{\text{rotor}} + T_{\text{duct}} Ttotal​=Trotor​+Tduct​  其中 TrotorT_{\text{rotor}}Trotor​ 是旋翼推力（与开放螺旋桨相同），TductT_{\text{duct}}Tduct​ 是涵道壁面上的压力积分产生的额外推力。 更准确的三分分解（Kriebel[2] 模型）： Tduct=Tl...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/12/hexacopter-control-allocation-fault-tolerance/" title="六旋翼构型、控制分配与故障容错：从数学模型到飞行汽车应用">六旋翼构型、控制分配与故障容错：从数学模型到飞行汽车应用</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-12T04:00:00.000Z" title="发表于 2026-05-12 12:00:00">2026-05-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%97%A0%E4%BA%BA%E6%9C%BA%E6%8A%80%E6%9C%AF/">无人机技术</a></span></div><div class="content">一、为什么需要六旋翼四旋翼无人机是最常见的多旋翼构型，但它有一个致命缺陷：任何单个电机或螺旋桨失效，飞行器必然失控坠毁。 这不是工程优化问题，而是数学约束问题。 一个四旋翼有 4 个独立旋翼，产生 4 个控制输入（推力 f1,f2,f3,f4f_1, f_2, f_3, f_4f1​,f2​,f3​,f4​），而刚体飞行器在三维空间中有 6 个自由度（位置 x,y,zx, y, zx,y,z 和姿态 ϕ,θ,ψ\phi, \theta, \psiϕ,θ,ψ）。但由于多旋翼的欠驱动特性，4 个旋翼实际可控的自由度只有 4 个（通常为总推力 + 三个力矩），恰好满足悬停和基本机动的必要条件。 四旋翼一旦失去一个电机，控制输入数降到 3，无法独立控制三个力矩轴——飞行器必然失控。这是 Freddi 等[1]严格证明过的结论。 六旋翼有 6 个独立旋翼，产生 6 个控制输入，而悬停和姿态控制只需 4 个虚拟控制量（u1u_1u1​ 总推力，u2,u3,u4u_2, u_3, u_4u2​,u3​,u4​ 三轴力矩）。多余的两个自由度就是容错空间——即使某个旋翼完全失效，剩余 5 个旋翼仍...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2026/05/12/3D%E9%AB%98%E6%96%AF%E6%B3%BC%E6%BA%853DGS%E5%AE%8C%E5%85%A8%E5%85%A5%E9%97%A8-%E4%BB%8E%E9%9B%B6%E7%90%86%E8%A7%A3%E5%AE%9E%E6%97%B6%E6%96%B0%E8%A7%86%E8%A7%92%E5%90%88%E6%88%90/" title="3D高斯泼溅（3DGS）完全入门：从零理解实时新视角合成">3D高斯泼溅（3DGS）完全入门：从零理解实时新视角合成</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-05-12T02:00:00.000Z" title="发表于 2026-05-12 10:00:00">2026-05-12</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a></span></div><div class="content"> 本文适合谁：完全不知道 3DGS 是什么的读者。读完你能理解它为什么让学术界和工业界同时兴奋——从只能靠神经网络慢慢查询，进化到用”高斯颜料球”直接往屏幕上泼。   一、这门技术解决了什么问题你的手机拍了一张照片。照片是一张二维的图像，记录的是相机在那个位置、那个角度看到的东西。换个位置——哪怕只挪半米——拍出来的就是另一张完全不同的照片。 新视角合成（Novel View Synthesis, NVS） 解决的问题是：给你若干张从已知位置拍的照片，你能生成从任意新位置、新角度看到的画面吗？ 听起来像科幻。但是：能。而且 2023 年之后，能实时做了。 3DGS 之前的王者是 NeRF（Neural Radiance Fields, Mildenhall et al., ECCV 2020）——用神经网络记住一个场景。查询摄像头光线上每个点的颜色和透明度，然后把一整条光线上的点”捏合”成像素。效果惊艳，但一个致命问题：渲染一帧需要几秒甚至几十秒。原因是每条光线要跑几百次神经网络——这是个几百次MLP前向传播的问题。 3DGS 换了条完全不同的路。问的不是”这条光线经过哪些点”，...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/#content-inner">14</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">137</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">570</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/visual-simulation-3d-scene-methods-survey/" title="无人机视觉仿真3D场景方案调研与选型对比">无人机视觉仿真3D场景方案调研与选型对比</a><time datetime="2026-06-03T12:00:00.000Z" title="发表于 2026-06-03 20:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/23/2026-05-23-airsim-px4-sitl-closed-loop/" title="AirSim源码深度解析：PX4 SITL四旋翼仿真闭环——从锁步同步到旋翼动力学">AirSim源码深度解析：PX4 SITL四旋翼仿真闭环——从锁步同步到旋翼动力学</a><time datetime="2026-05-23T10:00:00.000Z" title="发表于 2026-05-23 18:00:00">2026-05-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/19/2026-05-19-airsim-px4-sitl-integration/" title="AirSim↔PX4 SITL集成架构：锁步同步、数据流与MAVLink通信全解析">AirSim↔PX4 SITL集成架构：锁步同步、数据流与MAVLink通信全解析</a><time datetime="2026-05-18T16:01:00.000Z" title="发表于 2026-05-19 00:01:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/18/cfd-surrogate-model-comparison/" title="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</a><time datetime="2026-05-18T01:00:00.000Z" title="发表于 2026-05-18 09:00:00">2026-05-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/17/cfd-surrogate-modeling-tutorial/" title="CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程">CFD代理模型实战——翼型气动代理模型从采样到ONNX部署的全流程</a><time datetime="2026-05-17T01:00:00.000Z" title="发表于 2026-05-17 09:00:00">2026-05-17</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI%E4%B8%8E%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/"><span class="card-category-list-name">AI与机器学习</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI%E5%B7%A5%E5%85%B7/"><span class="card-category-list-name">AI工具</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI%E6%8A%80%E6%9C%AF/"><span class="card-category-list-name">AI技术</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/"><span class="card-category-list-name">人工智能</span><span class="card-category-list-count">10</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E6%9C%BA%E5%99%A8%E4%BA%BA/"><span class="card-category-list-name">机器人</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF/"><span class="card-category-list-name">仿真技术</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%B7%E8%BA%AB%E6%99%BA%E8%83%BD/"><span class="card-category-list-name">具身智能</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BC%80%E5%8F%91%E8%BF%90%E7%BB%B4/"><span class="card-category-list-name">开发运维</span><span class="card-category-list-count">7</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/TensorRT/" style="font-size: 1.1em; color: #999">TensorRT</a> <a href="/tags/%E6%AD%A3%E6%80%81%E5%88%86%E5%B8%83/" style="font-size: 1.1em; color: #999">正态分布</a> <a href="/tags/HEVC/" style="font-size: 1.1em; color: #999">HEVC</a> <a href="/tags/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/" style="font-size: 1.1em; color: #999">经验分享</a> <a href="/tags/%E5%85%B1%E6%8C%AF/" style="font-size: 1.1em; color: #999">共振</a> <a href="/tags/Newton/" style="font-size: 1.1em; color: #999">Newton</a> <a href="/tags/%E7%9B%B8%E6%9C%BA%E4%BC%A0%E6%84%9F%E5%99%A8/" style="font-size: 1.1em; color: #999">相机传感器</a> <a href="/tags/NVIDIA/" style="font-size: 1.5em; color: #99a9bf">NVIDIA</a> <a href="/tags/%E4%BC%A0%E6%84%9F%E5%99%A8%E6%A8%A1%E5%9E%8B/" style="font-size: 1.1em; color: #999">传感器模型</a> <a href="/tags/rclcpp/" style="font-size: 1.1em; color: #999">rclcpp</a> <a href="/tags/%E8%9E%BA%E6%97%8B%E6%A1%A8/" style="font-size: 1.37em; color: #99a4b2">螺旋桨</a> <a href="/tags/PEARL/" style="font-size: 1.1em; color: #999">PEARL</a> <a href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" style="font-size: 1.1em; color: #999">中间件</a> <a href="/tags/MAVROS/" style="font-size: 1.1em; color: #999">MAVROS</a> <a href="/tags/%E6%8E%A8%E6%B5%81/" style="font-size: 1.1em; color: #999">推流</a> <a href="/tags/%E5%9C%B0%E9%9D%A2%E7%AB%99/" style="font-size: 1.23em; color: #999ea6">地面站</a> <a href="/tags/Hyper-V/" style="font-size: 1.1em; color: #999">Hyper-V</a> <a href="/tags/%E6%93%8D%E7%BA%B5%E6%80%A7/" style="font-size: 1.1em; color: #999">操纵性</a> <a href="/tags/%E6%B7%B1%E5%BA%A6%E7%9B%B8%E6%9C%BA/" style="font-size: 1.37em; color: #99a4b2">深度相机</a> <a href="/tags/%E4%B8%89%E7%BA%BF%E6%91%86/" style="font-size: 1.1em; color: #999">三线摆</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/06/">
+            <span class="card-archive-list-date">
+              六月 2026
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/05/">
+            <span class="card-archive-list-date">
+              五月 2026
+            </span>
+            <span class="card-archive-list-count">42</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/04/">
+            <span class="card-archive-list-date">
+              四月 2026
+            </span>
+            <span class="card-archive-list-count">30</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/03/">
+            <span class="card-archive-list-date">
+              三月 2026
+            </span>
+            <span class="card-archive-list-count">30</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/02/">
+            <span class="card-archive-list-date">
+              二月 2026
+            </span>
+            <span class="card-archive-list-count">28</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2026/01/">
+            <span class="card-archive-list-date">
+              一月 2026
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">137</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-23T16:01:59.951Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5-b1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5-b1"></script><script src="/js/main.js?v=5.5.5-b1"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

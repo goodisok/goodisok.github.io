@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 520">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <rect width="1020" height="520" fill="#ffffff"/>
+  <text x="510" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">五大方法对比矩阵</text>
+  <text x="480" y="55" text-anchor="middle" font-size="12" fill="#6b7280">从实施难度、数据需求、适用场景、代表工作四个维度横向对比</text>
+  <rect x="25" y="70" width="190" height="36" rx="5" fill="#111827" fill-opacity="0.12" stroke="#111827" stroke-width="1"/>
+  <text x="117.5" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">方法</text>
+  <rect x="225" y="70" width="165" height="36" rx="5" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="1"/>
+  <text x="290.0" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">实施难度</text>
+  <rect x="400" y="70" width="210" height="36" rx="5" fill="#ea580c" fill-opacity="0.12" stroke="#ea580c" stroke-width="1"/>
+  <text x="472.5" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="#ea580c">数据需求</text>
+  <rect x="620" y="70" width="185" height="36" rx="5" fill="#059669" fill-opacity="0.12" stroke="#059669" stroke-width="1"/>
+  <text x="665.0" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="#059669">适合场景</text>
+  <rect x="815" y="70" width="175" height="36" rx="5" fill="#7c3aed" fill-opacity="0.12" stroke="#7c3aed" stroke-width="1"/>
+  <text x="840.0" y="93" text-anchor="middle" font-size="13" font-weight="600" fill="#7c3aed">代表工作</text>
+  <rect x="25" y="115" width="960" height="44" rx="4" fill="#f9fafb"/>
+  <text x="117.5" y="143" text-anchor="middle" font-size="12" fill="#111827">零样本迁移</text>
+  <text x="290.0" y="143" text-anchor="middle" font-size="12" fill="#2563eb">★☆☆ 低</text>
+  <text x="472.5" y="143" text-anchor="middle" font-size="12" fill="#ea580c">需要校准数据</text>
+  <text x="665.0" y="143" text-anchor="middle" font-size="12" fill="#059669">封闭工业场景</text>
+  <text x="840.0" y="143" text-anchor="middle" font-size="12" fill="#7c3aed">Kaspar peg-in-hole</text>
+  <rect x="25" y="165" width="960" height="44" rx="4" fill="#ffffff"/>
+  <text x="117.5" y="193" text-anchor="middle" font-size="12" fill="#111827">域随机化</text>
+  <text x="290.0" y="193" text-anchor="middle" font-size="12" fill="#2563eb">★★☆ 中低</text>
+  <text x="472.5" y="193" text-anchor="middle" font-size="12" fill="#ea580c">不需要</text>
+  <text x="665.0" y="193" text-anchor="middle" font-size="12" fill="#059669">视觉为主任务</text>
+  <text x="840.0" y="193" text-anchor="middle" font-size="12" fill="#7c3aed">Tobin; OpenAI Rubik</text>
+  <rect x="25" y="165" width="4" height="44" rx="2" fill="#2563eb"/>
+  <rect x="25" y="215" width="960" height="44" rx="4" fill="#f9fafb"/>
+  <text x="117.5" y="243" text-anchor="middle" font-size="12" fill="#111827">域自适应</text>
+  <text x="290.0" y="243" text-anchor="middle" font-size="12" fill="#2563eb">★★★ 中高</text>
+  <text x="472.5" y="243" text-anchor="middle" font-size="12" fill="#ea580c">需要少量</text>
+  <text x="665.0" y="243" text-anchor="middle" font-size="12" fill="#059669">风格/外观差异</text>
+  <text x="840.0" y="243" text-anchor="middle" font-size="12" fill="#7c3aed">CycleGAN; ICRA 2026</text>
+  <rect x="25" y="265" width="960" height="44" rx="4" fill="#ffffff"/>
+  <text x="117.5" y="293" text-anchor="middle" font-size="12" fill="#111827">模仿学习</text>
+  <text x="290.0" y="293" text-anchor="middle" font-size="12" fill="#2563eb">★★☆ 中低</text>
+  <text x="472.5" y="293" text-anchor="middle" font-size="12" fill="#ea580c">需要专家示范</text>
+  <text x="665.0" y="293" text-anchor="middle" font-size="12" fill="#059669">难定义奖励</text>
+  <text x="840.0" y="293" text-anchor="middle" font-size="12" fill="#7c3aed">Rajeswaran ADROIT</text>
+  <rect x="25" y="315" width="960" height="44" rx="4" fill="#f9fafb"/>
+  <text x="117.5" y="343" text-anchor="middle" font-size="12" fill="#111827">元学习+蒸馏</text>
+  <text x="290.0" y="343" text-anchor="middle" font-size="12" fill="#2563eb">★★★★ 高</text>
+  <text x="472.5" y="343" text-anchor="middle" font-size="12" fill="#ea580c">不需要</text>
+  <text x="665.0" y="343" text-anchor="middle" font-size="12" fill="#059669">动态变化环境</text>
+  <text x="840.0" y="343" text-anchor="middle" font-size="12" fill="#7c3aed">MAVEN 2026; MAML</text>
+  <rect x="40" y="425" width="940" height="55" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <text x="510" y="450" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">最佳实践: 域随机化(基线) + 域自适应(有真数据时) + 真实微调</text>
+  <text x="510" y="470" text-anchor="middle" font-size="11" fill="#6b7280">绝大多数成功 Sim-to-Real 项目使用组合方法, 而非单一方法</text>
+</svg>

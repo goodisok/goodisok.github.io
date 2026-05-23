@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+  </style>
+  <defs>
+    <marker id="m-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="m-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#059669"/>
+    </marker>
+    <marker id="m-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="m-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="960" height="640" fill="#ffffff"/>
+  <text x="480" y="36" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">工具联动配对关系图</text>
+  <circle cx="480" cy="340" r="50" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="480" y="334" text-anchor="middle" font-size="13" font-weight="600" fill="#1e40af">Agent</text>
+  <text x="480" y="354" text-anchor="middle" font-size="11" fill="#3b82f6">Core</text>
+  <line x1="480.0" y1="240.0" x2="575.1056516295154" y2="309.09830056250524" stroke="#2563eb" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-blue)"/>
+  <rect x="473.82333564600606" y="296.08084577010726" width="66" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="506.82333564600606" y="306.08084577010726" text-anchor="middle" font-size="9" fill="#6b7280">定时触发检索</text>
+  <line x1="480.0" y1="240.0" x2="359.79184719828686" y2="219.79184719828692" stroke="#059669" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-green)"/>
+  <rect x="402.95836943965736" y="186.83347775862953" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="425.95836943965736" y="196.83347775862953" text-anchor="middle" font-size="9" fill="#6b7280">投递结果</text>
+  <line x1="575.1056516295154" y1="309.09830056250524" x2="639.7477455336044" y2="398.14342436536367" stroke="#ea580c" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-orange)"/>
+  <rect x="547.7131614407024" y="366.0134906351612" width="66" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="580.7131614407024" y="376.0134906351612" text-anchor="middle" font-size="9" fill="#6b7280">并行分析输入</text>
+  <line x1="575.1056516295154" y1="309.09830056250524" x2="600.2081528017131" y2="219.79184719828692" stroke="#ea580c" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-orange)"/>
+  <rect x="591.4488382248799" y="264.9758242320554" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="614.4488382248799" y="274.9758242320554" text-anchor="middle" font-size="9" fill="#6b7280">页面抓取</text>
+  <line x1="639.7477455336044" y1="398.14342436536367" x2="538.7785252292473" y2="420.90169943749476" stroke="#059669" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-green)"/>
+  <rect x="559.4356528597865" y="372.23179581012204" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="582.4356528597865" y="382.23179581012204" text-anchor="middle" font-size="9" fill="#6b7280">去重检查</text>
+  <line x1="639.7477455336044" y1="398.14342436536367" x2="320.2522544663956" y2="398.1434243653637" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-purple)"/>
+  <rect x="457.0" y="295.29477704520104" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="480.0" y="305.29477704520104" text-anchor="middle" font-size="9" fill="#6b7280">入库存储</text>
+  <line x1="639.7477455336044" y1="398.14342436536367" x2="384.89434837048464" y2="309.0983005625053" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-purple)"/>
+  <rect x="516.034584092902" y="270.16484331499856" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="539.034584092902" y="280.16484331499856" text-anchor="middle" font-size="9" fill="#6b7280">调用流程</text>
+  <line x1="538.7785252292473" y1="420.90169943749476" x2="320.2522544663956" y2="398.1434243653637" stroke="#059669" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-green)"/>
+  <rect x="413.34287236946074" y="336.96468067257376" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="436.34287236946074" y="346.96468067257376" text-anchor="middle" font-size="9" fill="#6b7280">知识底座</text>
+  <line x1="538.7785252292473" y1="420.90169943749476" x2="384.89434837048464" y2="309.0983005625053" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-purple)"/>
+  <rect x="447.37745646236283" y="311.8347469423712" width="96" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="495.37745646236283" y="321.8347469423712" text-anchor="middle" font-size="9" fill="#6b7280">驱动Skill选择</text>
+  <line x1="480.0" y1="510.0" x2="384.89434837048464" y2="309.0983005625053" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-purple)"/>
+  <rect x="464.7176840164907" y="374.01745479239804" width="56" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="492.7176840164907" y="384.01745479239804" text-anchor="middle" font-size="9" fill="#6b7280">踩坑→沉淀</text>
+  <line x1="421.2214747707527" y1="420.90169943749476" x2="480.0" y2="510.0" stroke="#ea580c" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-orange)"/>
+  <rect x="390.8812472166248" y="476.0844072875215" width="66" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="423.8812472166248" y="486.0844072875215" text-anchor="middle" font-size="9" fill="#6b7280">复用历史方案</text>
+  <line x1="320.2522544663956" y1="398.1434243653637" x2="359.79184719828686" y2="219.79184719828692" stroke="#059669" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-green)"/>
+  <rect x="370.5275239824643" y="313.8295136013927" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="393.5275239824643" y="323.8295136013927" text-anchor="middle" font-size="9" fill="#6b7280">增量通知</text>
+  <line x1="384.89434837048464" y1="309.0983005625053" x2="639.7477455336044" y2="398.14342436536367" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-purple)"/>
+  <rect x="462.607509811187" y="423.0768816128704" width="46" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="485.607509811187" y="433.0768816128704" text-anchor="middle" font-size="9" fill="#6b7280">链式加载</text>
+  <line x1="480.0" y1="240.0" x2="639.7477455336044" y2="398.14342436536367" stroke="#2563eb" stroke-width="1" stroke-opacity="0.5" marker-end="url(#m-blue)"/>
+  <rect x="479.4308454571931" y="359.99603584276315" width="66" height="13" rx="2" fill="#ffffff" opacity="0.9"/>
+  <text x="512.4308454571931" y="369.99603584276315" text-anchor="middle" font-size="9" fill="#6b7280">定时并行处理</text>
+  <rect x="425.0" y="217.0" width="110" height="46" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="480.0" y="235.0" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">Cron</text>
+  <text x="480.0" y="251.0" text-anchor="middle" font-size="10" fill="#6b7280">定时任务</text>
+  <rect x="520.1056516295154" y="286.09830056250524" width="110" height="46" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="575.1056516295154" y="304.09830056250524" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">搜索</text>
+  <text x="575.1056516295154" y="320.09830056250524" text-anchor="middle" font-size="10" fill="#6b7280">网络检索</text>
+  <rect x="545.2081528017131" y="196.79184719828692" width="110" height="46" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="600.2081528017131" y="214.79184719828692" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">浏览器</text>
+  <text x="600.2081528017131" y="230.79184719828692" text-anchor="middle" font-size="10" fill="#6b7280">页面操作</text>
+  <rect x="584.7477455336044" y="375.14342436536367" width="110" height="46" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="639.7477455336044" y="393.14342436536367" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">并行代理</text>
+  <text x="639.7477455336044" y="409.14342436536367" text-anchor="middle" font-size="10" fill="#6b7280">子任务分发</text>
+  <rect x="483.7785252292473" y="397.90169943749476" width="110" height="46" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="538.7785252292473" y="415.90169943749476" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">Memory</text>
+  <text x="538.7785252292473" y="431.90169943749476" text-anchor="middle" font-size="10" fill="#6b7280">持久事实</text>
+  <rect x="366.2214747707527" y="397.90169943749476" width="110" height="46" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="421.2214747707527" y="415.90169943749476" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">会话搜索</text>
+  <text x="421.2214747707527" y="431.90169943749476" text-anchor="middle" font-size="10" fill="#6b7280">历史回溯</text>
+  <rect x="425.0" y="487.0" width="110" height="46" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="480.0" y="505.0" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">终端</text>
+  <text x="480.0" y="521.0" text-anchor="middle" font-size="10" fill="#6b7280">命令执行</text>
+  <rect x="265.2522544663956" y="375.1434243653637" width="110" height="46" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="320.2522544663956" y="393.1434243653637" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">Wiki</text>
+  <text x="320.2522544663956" y="409.1434243653637" text-anchor="middle" font-size="10" fill="#6b7280">知识库</text>
+  <rect x="329.89434837048464" y="286.0983005625053" width="110" height="46" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="384.89434837048464" y="304.0983005625053" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">Skill 库</text>
+  <text x="384.89434837048464" y="320.0983005625053" text-anchor="middle" font-size="10" fill="#6b7280">流程沉淀</text>
+  <rect x="304.79184719828686" y="196.79184719828692" width="110" height="46" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="359.79184719828686" y="214.79184719828692" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">消息</text>
+  <text x="359.79184719828686" y="230.79184719828692" text-anchor="middle" font-size="10" fill="#6b7280">多平台投递</text>
+  <text x="480" y="520" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">高频联动配对</text>
+  <rect x="190" y="534" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="202" y="550" font-size="11" fill="#1e40af">Cron + 搜索</text>
+  <text x="202" y="550" font-size="11" fill="#64748b">  →  每周自动扫描 → 新论文发现</text>
+  <rect x="490" y="534" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="502" y="550" font-size="11" fill="#1e40af">搜索 + 并行代理</text>
+  <text x="502" y="550" font-size="11" fill="#64748b">  →  检索结果 → 三路同步分析</text>
+  <rect x="190" y="564" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="202" y="580" font-size="11" fill="#1e40af">并行代理 + Memory</text>
+  <text x="202" y="580" font-size="11" fill="#64748b">  →  分析结论 → 去重检查</text>
+  <rect x="490" y="564" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="502" y="580" font-size="11" fill="#1e40af">Memory + Wiki</text>
+  <text x="502" y="580" font-size="11" fill="#64748b">  →  确认新条目 → 结构化入库</text>
+  <rect x="190" y="594" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="202" y="610" font-size="11" fill="#1e40af">终端 + Skill</text>
+  <text x="202" y="610" font-size="11" fill="#64748b">  →  踩坑修复 → 沉淀为 Skill</text>
+  <rect x="490" y="594" width="280" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="502" y="610" font-size="11" fill="#1e40af">会话搜索 + 终端</text>
+  <text x="502" y="610" font-size="11" fill="#64748b">  →  找回历史方案 → 直接复用</text>
+</svg>

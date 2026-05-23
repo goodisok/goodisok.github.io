@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720">
+<style>
+text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+</style>
+<defs>
+<filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/></filter>
+</defs>
+<rect width="960" height="720" fill="#ffffff"/>
+<text x="480" y="36" text-anchor="middle" font-size="20" font-weight="600" fill="#111827">Physical AI 关键创新时间线</text>
+<text x="480" y="58" text-anchor="middle" font-size="12" fill="#6b7280">2023-2026：从 VLA 到世界模型、从仿真到部署的全栈突破</text>
+<rect x="30" y="80" width="120" height="30" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+<text x="90.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">VLA基础模型</text>
+<rect x="160" y="80" width="120" height="30" rx="6" fill="#fef3c7" stroke="#fcd34d" stroke-width="1"/>
+<text x="220.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">世界模型</text>
+<rect x="290" y="80" width="120" height="30" rx="6" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+<text x="350.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">扩散策略</text>
+<rect x="420" y="80" width="120" height="30" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+<text x="480.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">可微仿真</text>
+<rect x="550" y="80" width="120" height="30" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+<text x="610.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">人形机器人</text>
+<rect x="680" y="80" width="120" height="30" rx="6" fill="#e0e7ff" stroke="#a5b4fc" stroke-width="1"/>
+<text x="740.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">3D表征</text>
+<rect x="810" y="80" width="140" height="30" rx="6" fill="#fce7f3" stroke="#f9a8d4" stroke-width="1"/>
+<text x="880.0" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">Sim-to-Real</text>
+<rect x="10" y="125" width="940" height="60" fill="#f9fafb"/>
+<text x="18" y="159.0" font-size="10" font-weight="600" fill="#6b7280">2023 Q3</text>
+<rect x="10" y="185" width="940" height="60" fill="#ffffff"/>
+<text x="18" y="219.0" font-size="10" font-weight="600" fill="#6b7280">2023 Q4</text>
+<rect x="10" y="245" width="940" height="60" fill="#f9fafb"/>
+<text x="18" y="279.0" font-size="10" font-weight="600" fill="#6b7280">2024 Q1</text>
+<rect x="10" y="305" width="940" height="60" fill="#ffffff"/>
+<text x="18" y="339.0" font-size="10" font-weight="600" fill="#6b7280">2024 Q2</text>
+<rect x="10" y="365" width="940" height="60" fill="#f9fafb"/>
+<text x="18" y="399.0" font-size="10" font-weight="600" fill="#6b7280">2024 Q3</text>
+<rect x="10" y="425" width="940" height="60" fill="#ffffff"/>
+<text x="18" y="459.0" font-size="10" font-weight="600" fill="#6b7280">2024 Q4</text>
+<rect x="10" y="485" width="940" height="60" fill="#f9fafb"/>
+<text x="18" y="519.0" font-size="10" font-weight="600" fill="#6b7280">2025 Q1</text>
+<rect x="10" y="545" width="940" height="60" fill="#ffffff"/>
+<text x="18" y="579.0" font-size="10" font-weight="600" fill="#6b7280">2025 Q2</text>
+<rect x="10" y="605" width="940" height="60" fill="#f9fafb"/>
+<text x="18" y="639.0" font-size="10" font-weight="600" fill="#6b7280">2025 Q3</text>
+<circle cx="90.0" cy="149.0" r="5" fill="#93c5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="90.0" y="137.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">RT-2</text>
+<text x="90.0" y="165.0" text-anchor="middle" font-size="9" fill="#6b7280">Google DM</text>
+<text x="90.0" y="176.0" text-anchor="middle" font-size="9" fill="#6b7280">55B VLA</text>
+<circle cx="90.0" cy="269.0" r="5" fill="#93c5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="90.0" y="257.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Octo</text>
+<text x="90.0" y="285.0" text-anchor="middle" font-size="9" fill="#6b7280">UC Berkeley</text>
+<text x="90.0" y="296.0" text-anchor="middle" font-size="9" fill="#6b7280">开源 27M</text>
+<circle cx="90.0" cy="329.0" r="5" fill="#93c5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="90.0" y="317.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">OpenVLA</text>
+<text x="90.0" y="345.0" text-anchor="middle" font-size="9" fill="#6b7280">Stanford</text>
+<text x="90.0" y="356.0" text-anchor="middle" font-size="9" fill="#6b7280">7B 开源</text>
+<circle cx="90.0" cy="389.0" r="5" fill="#93c5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="90.0" y="377.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Pi0</text>
+<text x="90.0" y="405.0" text-anchor="middle" font-size="9" fill="#6b7280">Physical Int.</text>
+<text x="90.0" y="416.0" text-anchor="middle" font-size="9" fill="#6b7280">流匹配 3B</text>
+<circle cx="90.0" cy="509.0" r="5" fill="#93c5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="90.0" y="497.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">GR00T N1</text>
+<text x="90.0" y="525.0" text-anchor="middle" font-size="9" fill="#6b7280">NVIDIA</text>
+<text x="90.0" y="536.0" text-anchor="middle" font-size="9" fill="#6b7280">双系统架构</text>
+<circle cx="220.0" cy="209.0" r="5" fill="#fcd34d" stroke="#ffffff" stroke-width="2"/>
+<text x="220.0" y="197.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">UniSim</text>
+<text x="220.0" y="225.0" text-anchor="middle" font-size="9" fill="#6b7280">Google DM</text>
+<text x="220.0" y="236.0" text-anchor="middle" font-size="9" fill="#6b7280">视频预测</text>
+<circle cx="220.0" cy="389.0" r="5" fill="#fcd34d" stroke="#ffffff" stroke-width="2"/>
+<text x="220.0" y="377.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Genie 2</text>
+<text x="220.0" y="405.0" text-anchor="middle" font-size="9" fill="#6b7280">Google DM</text>
+<text x="220.0" y="416.0" text-anchor="middle" font-size="9" fill="#6b7280">交互世界</text>
+<circle cx="220.0" cy="509.0" r="5" fill="#fcd34d" stroke="#ffffff" stroke-width="2"/>
+<text x="220.0" y="497.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Cosmos</text>
+<text x="220.0" y="525.0" text-anchor="middle" font-size="9" fill="#6b7280">NVIDIA</text>
+<text x="220.0" y="536.0" text-anchor="middle" font-size="9" fill="#6b7280">20M小时</text>
+<circle cx="350.0" cy="149.0" r="5" fill="#c4b5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="350.0" y="137.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Diff.Policy</text>
+<text x="350.0" y="165.0" text-anchor="middle" font-size="9" fill="#6b7280">Columbia/TRI</text>
+<text x="350.0" y="176.0" text-anchor="middle" font-size="9" fill="#6b7280">DDPM动作</text>
+<circle cx="350.0" cy="329.0" r="5" fill="#c4b5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="350.0" y="317.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">3D Diff</text>
+<text x="350.0" y="345.0" text-anchor="middle" font-size="9" fill="#6b7280">UT Austin</text>
+<text x="350.0" y="356.0" text-anchor="middle" font-size="9" fill="#6b7280">点云到动作</text>
+<circle cx="350.0" cy="449.0" r="5" fill="#c4b5fd" stroke="#ffffff" stroke-width="2"/>
+<text x="350.0" y="437.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">DP3</text>
+<text x="350.0" y="465.0" text-anchor="middle" font-size="9" fill="#6b7280">清华</text>
+<text x="350.0" y="476.0" text-anchor="middle" font-size="9" fill="#6b7280">3D视觉扩散</text>
+<circle cx="480.0" cy="269.0" r="5" fill="#86efac" stroke="#ffffff" stroke-width="2"/>
+<text x="480.0" y="257.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">MuJoCo MJX</text>
+<text x="480.0" y="285.0" text-anchor="middle" font-size="9" fill="#6b7280">Google DM</text>
+<text x="480.0" y="296.0" text-anchor="middle" font-size="9" fill="#6b7280">JAX可微</text>
+<circle cx="480.0" cy="389.0" r="5" fill="#86efac" stroke="#ffffff" stroke-width="2"/>
+<text x="480.0" y="377.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Isaac Diff</text>
+<text x="480.0" y="405.0" text-anchor="middle" font-size="9" fill="#6b7280">NVIDIA</text>
+<text x="480.0" y="416.0" text-anchor="middle" font-size="9" fill="#6b7280">Omniverse</text>
+<circle cx="480.0" cy="509.0" r="5" fill="#86efac" stroke="#ffffff" stroke-width="2"/>
+<text x="480.0" y="497.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">E2EFly</text>
+<text x="480.0" y="525.0" text-anchor="middle" font-size="9" fill="#6b7280">ETH/CMU</text>
+<text x="480.0" y="536.0" text-anchor="middle" font-size="9" fill="#6b7280">无人机可微</text>
+<circle cx="610.0" cy="269.0" r="5" fill="#fca5a5" stroke="#ffffff" stroke-width="2"/>
+<text x="610.0" y="257.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Figure 02</text>
+<text x="610.0" y="285.0" text-anchor="middle" font-size="9" fill="#6b7280">Figure+OpenAI</text>
+<text x="610.0" y="296.0" text-anchor="middle" font-size="9" fill="#6b7280">VLA驱动</text>
+<circle cx="610.0" cy="389.0" r="5" fill="#fca5a5" stroke="#ffffff" stroke-width="2"/>
+<text x="610.0" y="377.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Optimus G2</text>
+<text x="610.0" y="405.0" text-anchor="middle" font-size="9" fill="#6b7280">Tesla</text>
+<text x="610.0" y="416.0" text-anchor="middle" font-size="9" fill="#6b7280">FSD芯片</text>
+<circle cx="610.0" cy="449.0" r="5" fill="#fca5a5" stroke="#ffffff" stroke-width="2"/>
+<text x="610.0" y="437.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Unitree H1</text>
+<text x="610.0" y="465.0" text-anchor="middle" font-size="9" fill="#6b7280">Unitree</text>
+<text x="610.0" y="476.0" text-anchor="middle" font-size="9" fill="#6b7280">RL后空翻</text>
+<circle cx="610.0" cy="509.0" r="5" fill="#fca5a5" stroke="#ffffff" stroke-width="2"/>
+<text x="610.0" y="497.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">IRON</text>
+<text x="610.0" y="525.0" text-anchor="middle" font-size="9" fill="#6b7280">小鹏</text>
+<text x="610.0" y="536.0" text-anchor="middle" font-size="9" fill="#6b7280">汽车感知栈</text>
+<circle cx="740.0" cy="269.0" r="5" fill="#a5b4fc" stroke="#ffffff" stroke-width="2"/>
+<text x="740.0" y="257.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">NeRF-SLAM</text>
+<text x="740.0" y="285.0" text-anchor="middle" font-size="9" fill="#6b7280">ETH</text>
+<text x="740.0" y="296.0" text-anchor="middle" font-size="9" fill="#6b7280">隐式建图</text>
+<circle cx="740.0" cy="389.0" r="5" fill="#a5b4fc" stroke="#ffffff" stroke-width="2"/>
+<text x="740.0" y="377.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">3DGS Manip</text>
+<text x="740.0" y="405.0" text-anchor="middle" font-size="9" fill="#6b7280">Stanford</text>
+<text x="740.0" y="416.0" text-anchor="middle" font-size="9" fill="#6b7280">SplatSim</text>
+<circle cx="740.0" cy="509.0" r="5" fill="#a5b4fc" stroke="#ffffff" stroke-width="2"/>
+<text x="740.0" y="497.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">GR-MG</text>
+<text x="740.0" y="525.0" text-anchor="middle" font-size="9" fill="#6b7280">NVIDIA</text>
+<text x="740.0" y="536.0" text-anchor="middle" font-size="9" fill="#6b7280">语言+3DGS</text>
+<circle cx="880.0" cy="209.0" r="5" fill="#f9a8d4" stroke="#ffffff" stroke-width="2"/>
+<text x="880.0" y="197.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">Auto DR</text>
+<text x="880.0" y="225.0" text-anchor="middle" font-size="9" fill="#6b7280">MIT</text>
+<text x="880.0" y="236.0" text-anchor="middle" font-size="9" fill="#6b7280">自动域随机化</text>
+<circle cx="880.0" cy="329.0" r="5" fill="#f9a8d4" stroke="#ffffff" stroke-width="2"/>
+<text x="880.0" y="317.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">R2S2R</text>
+<text x="880.0" y="345.0" text-anchor="middle" font-size="9" fill="#6b7280">Google</text>
+<text x="880.0" y="356.0" text-anchor="middle" font-size="9" fill="#6b7280">真机仿真真机</text>
+<circle cx="880.0" cy="449.0" r="5" fill="#f9a8d4" stroke="#ffffff" stroke-width="2"/>
+<text x="880.0" y="437.0" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">DistillSim</text>
+<text x="880.0" y="465.0" text-anchor="middle" font-size="9" fill="#6b7280">NVIDIA</text>
+<text x="880.0" y="476.0" text-anchor="middle" font-size="9" fill="#6b7280">teacher2student</text>
+</svg>

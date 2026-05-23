@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 700">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="960" height="700" fill="#ffffff"/>
+  <text x="480" y="36" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1e293b">RSSM架构：确定性路径与随机路径的融合</text>
+  <text x="480" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#64748b">Recurrent State Space Model — Hafner et al. 2019 (PlaNet)</text>
+  <rect x="50" y="100" width="140" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="120.0" y="128.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">观测 o_t</text>
+  <text x="120.0" y="144.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">Observation</text>
+  <rect x="50" y="240" width="140" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="120.0" y="268.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">动作 a_{t-1}</text>
+  <line x1="190" y1="130" x2="250" y2="130" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <rect x="260" y="80" width="160" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="340.0" y="128.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Encoder q_φ</text>
+  <text x="340.0" y="144.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">CNN/MLP → μ_φ, σ_φ</text>
+  <rect x="260" y="240" width="160" height="60" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="340.0" y="268.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Posterior z_t</text>
+  <text x="340.0" y="284.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">q_φ(z_t|h_t, o_t)</text>
+  <line x1="340" y1="180" x2="340" y2="230" stroke="#ea580c" stroke-width="1.8" marker-end="url(#arrow-orange)"/>
+  <rect x="470" y="80" width="140" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="540.0" y="108.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">h_{t-1}</text>
+  <text x="540.0" y="124.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">Previous hidden</text>
+  <rect x="470" y="180" width="140" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="540.0" y="218.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">GRU / RNN f_θ</text>
+  <text x="540.0" y="234.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">Deterministic</text>
+  <rect x="470" y="300" width="140" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="540.0" y="328.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">h_t</text>
+  <text x="540.0" y="344.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">Hidden state</text>
+  <line x1="540" y1="140" x2="540" y2="170" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="540" y1="260" x2="540" y2="290" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <rect x="660" y="80" width="160" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="740.0" y="108.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Prior p_ψ</text>
+  <text x="740.0" y="124.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">p_ψ(z_t|h_t)</text>
+  <rect x="660" y="180" width="160" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="740.0" y="203.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Prior ẑ_t</text>
+  <text x="740.0" y="219.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">p_ψ(·|h_t)</text>
+  <rect x="660" y="270" width="160" height="60" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="740.0" y="298.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Decoder</text>
+  <text x="740.0" y="314.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">ô_t → p(o_t|h_t,z_t)</text>
+  <rect x="660" y="370" width="160" height="50" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="740.0" y="393.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">Reward r̂_t</text>
+  <text x="740.0" y="409.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">p(r_t|h_t,z_t)</text>
+  <rect x="870" y="300" width="80" height="50" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="910.0" y="323.0" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1e293b">h_{t+1}</text>
+  <text x="910.0" y="339.0" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">→ Next</text>
+  <line x1="610" y1="110" x2="650" y2="110" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="610" y1="205" x2="650" y2="205" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <path d="M 610,330 C 630,330 630,300 650,300" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <path d="M 610,330 C 630,330 630,395 650,395" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <path d="M 340,270 C 340,350 470,350 470,250" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-orange)"/>
+  <rect x="350" y="332" width="100" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
+  <text x="400" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#ea580c">z_t, a_t → next</text>
+  <path d="M 190,270 C 250,270 250,220 460,220" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 660,210 Q 640,225 420,270" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <rect x="500" y="218" width="130" height="20" rx="3" fill="#faf5ff"/>
+  <text x="565" y="233" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#7c3aed">KL(q_φ ∥ p_ψ)</text>
+  <line x1="610" y1="330" x2="862" y2="325" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <text x="735" y="318" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#64748b">unroll →</text>
+  <rect x="50" y="440" width="860" height="60" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="70" y="463" font-family="sans-serif" font-size="12" font-weight="bold" fill="#1e293b">图例</text>
+  <line x1="150" y1="460" x2="200" y2="460" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="200,456 210,460 200,464" fill="#2563eb"/>
+  <text x="218" y="464" font-family="sans-serif" font-size="11" fill="#1e293b">确定性路径 (Deterministic)</text>
+  <line x1="400" y1="460" x2="450" y2="460" stroke="#ea580c" stroke-width="2"/>
+  <polygon points="450,456 460,460 450,464" fill="#ea580c"/>
+  <text x="468" y="464" font-family="sans-serif" font-size="11" fill="#1e293b">随机路径 (Stochastic)</text>
+  <line x1="620" y1="460" x2="680" y2="460" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="690" y="464" font-family="sans-serif" font-size="11" fill="#1e293b">KL 散度损失</text>
+  <line x1="150" y1="488" x2="190" y2="488" stroke="#059669" stroke-width="1.8"/>
+  <polygon points="190,484 200,488 190,492" fill="#059669"/>
+  <text x="208" y="492" font-family="sans-serif" font-size="11" fill="#1e293b">输出预测 (解码/奖励)</text>
+  <text x="70" y="540" font-family="sans-serif" font-size="11" fill="#64748b">训练时使用 posterior z_t（有观测）；想象时使用 prior ẑ_t（无观测）→ KL约束确保二者对齐</text>
+  <rect x="50" y="570" width="860" height="110" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="480" y="593" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#1e293b">核心公式</text>
+  <text x="80" y="616" font-family="sans-serif" font-size="11" fill="#334155">确定性路径：</text>
+  <text x="180" y="616" font-family="sans-serif" font-size="11" fill="#2563eb">h_t = f_θ(h_{t-1}, z_{t-1}, a_{t-1})</text>
+  <text x="80" y="638" font-family="sans-serif" font-size="11" fill="#334155">随机状态后验：</text>
+  <text x="180" y="638" font-family="sans-serif" font-size="11" fill="#ea580c">z_t ~ q_φ(z_t | h_t, o_t)</text>
+  <text x="80" y="660" font-family="sans-serif" font-size="11" fill="#334155">随机状态先验：</text>
+  <text x="180" y="660" font-family="sans-serif" font-size="11" fill="#2563eb">ẑ_t ~ p_ψ(z_t | h_t)</text>
+</svg>
