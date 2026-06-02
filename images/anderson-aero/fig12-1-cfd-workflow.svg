@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><style>text{font-family:'WenQuanYi Zen Hei','Droid Sans Fallback','Noto Sans CJK SC',sans-serif;}</style>
+<defs><marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker></defs>
+<rect width="800" height="450" fill="#ffffff"/>
+<text x="400" y="30" text-anchor="middle" fill="#111827" font-size="16" font-weight="600">工业级CFD工作流程</text>
+<rect x="60" y="60" width="200" height="50" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+<text x="160" y="83" text-anchor="middle" fill="#16a34a" font-size="12" font-weight="600">几何准备</text>
+<text x="160" y="100" text-anchor="middle" fill="#6b7280" font-size="10">CAD→清理→简化</text>
+<line x1="260" y1="85" x2="300" y2="85" stroke="#2563eb" stroke-width="2" marker-end="url(#a)"/>
+<rect x="305" y="60" width="200" height="50" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>
+<text x="405" y="83" text-anchor="middle" fill="#0284c7" font-size="12" font-weight="600">网格生成</text>
+<text x="405" y="100" text-anchor="middle" fill="#6b7280" font-size="10">表面→体网格→边界层</text>
+<line x1="505" y1="85" x2="540" y2="85" stroke="#2563eb" stroke-width="2" marker-end="url(#a)"/>
+<rect x="545" y="60" width="200" height="50" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+<text x="645" y="83" text-anchor="middle" fill="#d97706" font-size="12" font-weight="600">求解器设置</text>
+<text x="645" y="100" text-anchor="middle" fill="#6b7280" font-size="10">BC+turbulence+格式</text>
+<line x1="645" y1="110" x2="645" y2="140" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="520" y="145" width="250" height="50" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+<text x="645" y="168" text-anchor="middle" fill="#dc2626" font-size="12" font-weight="600">迭代求解与收敛监控</text>
+<text x="645" y="185" text-anchor="middle" fill="#6b7280" font-size="10">残差&lt;1e-6, CL/CD稳定</text>
+<line x1="645" y1="195" x2="645" y2="225" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="520" y="230" width="250" height="50" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+<text x="645" y="253" text-anchor="middle" fill="#7c3aed" font-size="12" font-weight="600">后处理与验证</text>
+<text x="645" y="270" text-anchor="middle" fill="#6b7280" font-size="10">Cp,Cf,流线→网格收敛</text>
+<rect x="100" y="320" width="600" height="80" rx="8" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+<text x="400" y="343" text-anchor="middle" fill="#374151" font-size="13" font-weight="600">湍流模型层级（精度↑·成本↑）</text>
+<text x="160" y="368" fill="#6b7280" font-size="11">RANS(k-ω SST) → DES(混合RANS+LES) → LES → DNS</text>
+<text x="160" y="388" fill="#6b7280" font-size="11">常用工业: ANSYS Fluent｜STAR-CCM+ ｜开源: OpenFOAM｜SU2</text>
+</svg>

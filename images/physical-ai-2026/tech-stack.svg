@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720">
+<style>
+text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Microsoft JhengHei", "SimHei", sans-serif; }
+</style>
+<defs>
+<marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/></marker>
+<marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/></marker>
+<marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#059669"/></marker>
+<filter id="shadow"><feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.08"/></filter>
+</defs>
+<rect width="960" height="720" fill="#ffffff"/>
+
+<text x="480" y="36" text-anchor="middle" font-size="20" font-weight="600" fill="#111827">Physical AI 五层技术栈架构</text>
+<text x="480" y="58" text-anchor="middle" font-size="12" fill="#6b7280">从硬件执行到任务规划的全栈分层</text>
+
+<rect x="40" y="600" width="880" height="90" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="60" y="622" font-size="13" font-weight="600" fill="#dc2626">第 0 层：硬件执行</text>
+<text x="60" y="642" font-size="12" fill="#6b7280">电机 / 舵机 / IMU / 摄像头 / 激光雷达 / 力传感器 — 物理世界的因果边界</text>
+<text x="60" y="662" font-size="11" fill="#9ca3af">约束：延迟 ≤5ms | 精度 ≤0.1° | 不可重试 | 失效模式不可逆</text>
+
+<rect x="40" y="490" width="880" height="90" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="60" y="512" font-size="13" font-weight="600" fill="#2563eb">第 1 层：物理动力学</text>
+<text x="60" y="532" font-size="12" fill="#6b7280">F=ma | 力矩平衡 | 气动模型 | 碰撞检测 | 可微仿真引擎（MuJoCo MJX / Isaac Sim / Brax）</text>
+<text x="60" y="552" font-size="11" fill="#9ca3af">关键问题：Sim-to-Real gap — 仿真 f_s 和真实 f_r 之间的误差 Δ = ||f_r(x,u) − f_s(x,u)||</text>
+
+<rect x="40" y="380" width="880" height="90" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="60" y="402" font-size="13" font-weight="600" fill="#059669">第 2 层：感知→动作映射</text>
+<text x="60" y="422" font-size="12" fill="#6b7280">VLA 基础模型 | 扩散策略 | 端到端 π(a|o) | 传感器融合 | 3DGS/NeRF 场景表征</text>
+<text x="60" y="442" font-size="11" fill="#9ca3af">核心范式：p(a|o) = ∫ p(a|z) p(z|o) dz — 从高维观测压缩到潜变量再解码为动作</text>
+
+<rect x="40" y="270" width="880" height="90" rx="8" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="60" y="292" font-size="13" font-weight="600" fill="#7c3aed">第 3 层：策略生成</text>
+<text x="60" y="312" font-size="12" fill="#6b7280">RL（PPO/SAC/GRPO）| 模型预测控制（MPC）| 世界模型规划（DreamerV3/TD-MPC2）| PN/EPN 制导</text>
+<text x="60" y="332" font-size="11" fill="#9ca3af">核心挑战：长期规划 — 在当前动作影响未来 N 步状态的条件下优化累积回报</text>
+
+<rect x="40" y="160" width="880" height="90" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" filter="url(#shadow)"/>
+<text x="60" y="182" font-size="13" font-weight="600" fill="#ea580c">第 4 层：任务规划</text>
+<text x="60" y="202" font-size="12" fill="#6b7280">LLM/VLM 推理 | 任务分解 | 符号 AI | 自然语言指令 → 子目标序列</text>
+<text x="60" y="222" font-size="11" fill="#9ca3af">"拦截西南方向的靶机" → [起飞, 巡航, 检测目标, 计算拦截轨迹, 执行机动]</text>
+
+<text x="940" y="205" text-anchor="end" font-size="11" fill="#9ca3af" transform="rotate(-90, 940, 205)">↑ 抽象层次递增</text>
+
+<path d="M 480 635 L 480 600" stroke="#dc2626" stroke-width="1.5" fill="none" marker-end="url(#arrow-red)"/>
+<path d="M 480 525 L 480 490" stroke="#2563eb" stroke-width="1.5" fill="none" marker-end="url(#arrow-blue)"/>
+<path d="M 480 415 L 480 380" stroke="#059669" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)"/>
+<path d="M 480 305 L 480 270" stroke="#7c3aed" stroke-width="1.5" fill="none" marker-end="url(#arrow-blue)"/>
+
+<path d="M 900 555 L 900 330" stroke="#6b7280" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+<text x="910" y="450" font-size="10" fill="#9ca3af">实飞数据反馈</text>
+<text x="910" y="464" font-size="10" fill="#9ca3af">（系统辨识回灌）</text>
+
+<rect x="40" y="90" width="400" height="48" rx="4" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+<text x="56" y="108" font-size="11" font-weight="600" fill="#374151">图例</text>
+<rect x="56" y="116" width="12" height="12" rx="2" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+<text x="74" y="127" font-size="10" fill="#6b7280">硬件层</text>
+<rect x="130" y="116" width="12" height="12" rx="2" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+<text x="148" y="127" font-size="10" fill="#6b7280">物理层</text>
+<rect x="204" y="116" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+<text x="222" y="127" font-size="10" fill="#6b7280">感知层</text>
+<rect x="278" y="116" width="12" height="12" rx="2" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1"/>
+<text x="296" y="127" font-size="10" fill="#6b7280">策略层</text>
+<rect x="352" y="116" width="12" height="12" rx="2" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
+<text x="370" y="127" font-size="10" fill="#6b7280">任务层</text>
+
+</svg>

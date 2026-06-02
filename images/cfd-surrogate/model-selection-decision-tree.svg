@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 650">
+  <defs>
+    <marker id="a4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect width="960" height="650" fill="#ffffff"/>
+  <text x="480" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#111827" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>代理模型方法选型决策树</text>
+  <rect x="320" y="70" width="320" height="40" rx="20" fill="#1e40af" stroke="#1e3a8a" stroke-width="1.5"/>
+  <text x="480" y="96" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>需要不确定性估计？</text>
+  <line x1="400" y1="110" x2="200" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="325" y="112" width="28" height="18" rx="3" fill="#dcfce7"/>
+  <text x="339" y="126" text-anchor="middle" font-size="11" font-weight="bold" fill="#166534">是</text>
+  <line x1="560" y1="110" x2="760" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="607" y="112" width="28" height="18" rx="3" fill="#fef2f2"/>
+  <text x="621" y="126" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">否</text>
+  <rect x="110" y="150" width="180" height="55" rx="8" fill="#dcfce7" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="200" y="172" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>高斯过程 GP</text>
+  <text x="200" y="192" text-anchor="middle" font-size="10" fill="#166534" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>贝叶斯优化 / 主动学习</text>
+  <rect x="80" y="212" width="240" height="26" rx="4" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="200" y="230" text-anchor="middle" font-size="10" fill="#6b7280" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>需部署时: GP主动学习 + MLP最终部署</text>
+  <rect x="635" y="150" width="250" height="40" rx="20" fill="#1e40af" stroke="#1e3a8a" stroke-width="1.5"/>
+  <text x="760" y="176" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>需要梯度（逆设计/优化）？</text>
+  <line x1="700" y1="190" x2="650" y2="230" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="660" y="194" width="28" height="18" rx="3" fill="#dcfce7"/>
+  <text x="674" y="208" text-anchor="middle" font-size="11" font-weight="bold" fill="#166534">是</text>
+  <line x1="820" y1="190" x2="870" y2="230" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="832" y="194" width="28" height="18" rx="3" fill="#fef2f2"/>
+  <text x="846" y="208" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">否</text>
+  <rect x="555" y="230" width="190" height="55" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="650" y="252" text-anchor="middle" font-size="14" font-weight="bold" fill="#5b21b6" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>MLP + 物理约束</text>
+  <text x="650" y="272" text-anchor="middle" font-size="10" fill="#5b21b6" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>生产部署 / 实时推理 / ONNX</text>
+  <rect x="725" y="230" width="290" height="40" rx="20" fill="#1e40af" stroke="#1e3a8a" stroke-width="1.5"/>
+  <text x="870" y="256" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>输入中有分类变量？</text>
+  <line x1="800" y1="270" x2="780" y2="310" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="755" y="274" width="28" height="18" rx="3" fill="#dcfce7"/>
+  <text x="769" y="288" text-anchor="middle" font-size="11" font-weight="bold" fill="#166534">是</text>
+  <line x1="940" y1="270" x2="960" y2="310" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="957" y="274" width="28" height="18" rx="3" fill="#fef2f2"/>
+  <text x="971" y="288" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">否</text>
+  <rect x="690" y="310" width="180" height="55" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="780" y="332" text-anchor="middle" font-size="14" font-weight="bold" fill="#92400e" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>随机森林 RF</text>
+  <text x="780" y="352" text-anchor="middle" font-size="10" fill="#92400e" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>混合特征 / 异常值稳健</text>
+  <rect x="855" y="310" width="210" height="40" rx="20" fill="#1e40af" stroke="#1e3a8a" stroke-width="1.5"/>
+  <text x="960" y="336" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>数据预算？</text>
+  <line x1="910" y1="350" x2="880" y2="390" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="878" y="354" width="50" height="18" rx="3" fill="#e0f2fe"/>
+  <text x="903" y="368" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">&lt;200</text>
+  <line x1="1010" y1="350" x2="1040" y2="390" stroke="#374151" stroke-width="1.5" marker-end="url(#a4)"/>
+  <rect x="992" y="354" width="50" height="18" rx="3" fill="#fef3c7"/>
+  <text x="1017" y="368" text-anchor="middle" font-size="10" font-weight="bold" fill="#92400e">&gt;500</text>
+  <rect x="790" y="390" width="180" height="55" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="880" y="412" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>GP 或 MLP</text>
+  <text x="880" y="432" text-anchor="middle" font-size="10" fill="#1e40af" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>+ 物理约束优先</text>
+  <rect x="955" y="390" width="170" height="55" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="1040" y="412" text-anchor="middle" font-size="14" font-weight="bold" fill="#991b1b" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>梯度提升 GB</text>
+  <text x="1040" y="432" text-anchor="middle" font-size="10" fill="#991b1b" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>最高表格精度</text>
+  <text x="480" y="485" text-anchor="middle" font-size="13" font-weight="bold" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>快速速查：数据预算 vs 推荐方法</text>
+  <rect x="250" y="490" width="90" height="26" fill="#1e40af" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="295" y="508" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>样本数</text>
+  <rect x="340" y="490" width="110" height="26" fill="#1e40af" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="395" y="508" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>GP R^2</text>
+  <rect x="450" y="490" width="110" height="26" fill="#1e40af" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="505" y="508" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>MLP R^2</text>
+  <rect x="560" y="490" width="80" height="26" fill="#1e40af" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="600" y="508" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>RF R^2</text>
+  <rect x="640" y="490" width="70" height="26" fill="#1e40af" stroke="#1e3a8a" stroke-width="1"/>
+  <text x="675" y="508" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>推荐</text>
+  <rect x="250" y="516" width="90" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="295" y="533" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>50</text>
+  <rect x="340" y="516" width="110" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="395" y="533" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.85-0.92</text>
+  <rect x="450" y="516" width="110" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="505" y="533" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.75-0.85</text>
+  <rect x="560" y="516" width="80" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="600" y="533" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.70-0.80</text>
+  <rect x="640" y="516" width="70" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="675" y="533" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>GP</text>
+  <rect x="250" y="540" width="90" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="295" y="557" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>100</text>
+  <rect x="340" y="540" width="110" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="395" y="557" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.92-0.96</text>
+  <rect x="450" y="540" width="110" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="505" y="557" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.85-0.93</text>
+  <rect x="560" y="540" width="80" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="600" y="557" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.80-0.88</text>
+  <rect x="640" y="540" width="70" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="675" y="557" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>GP</text>
+  <rect x="250" y="564" width="90" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="295" y="581" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>200</text>
+  <rect x="340" y="564" width="110" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="395" y="581" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.95-0.98</text>
+  <rect x="450" y="564" width="110" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="505" y="581" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.93-0.97</text>
+  <rect x="560" y="564" width="80" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="600" y="581" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.88-0.94</text>
+  <rect x="640" y="564" width="70" height="24" fill="#f9fafb" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="675" y="581" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>MLP+GP</text>
+  <rect x="250" y="588" width="90" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="295" y="605" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>500</text>
+  <rect x="340" y="588" width="110" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="395" y="605" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.97-0.99</text>
+  <rect x="450" y="588" width="110" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="505" y="605" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.96-0.99</text>
+  <rect x="560" y="588" width="80" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="600" y="605" text-anchor="middle" font-size="11" font-weight="normal" fill="#374151" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>0.93-0.97</text>
+  <rect x="640" y="588" width="70" height="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="675" y="605" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family='WenQuanYi Zen Hei, Droid Sans Fallback, sans-serif'>MLP/GB</text>
+</svg>

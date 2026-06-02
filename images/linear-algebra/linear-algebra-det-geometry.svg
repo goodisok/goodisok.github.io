@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 430">
+<rect width="500" height="430" fill="#0d1117"/>
+<line x1="10" y1="420" x2="10" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="80" y1="420" x2="80" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="150" y1="420" x2="150" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="220" y1="420" x2="220" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="290" y1="420" x2="290" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="360" y1="420" x2="360" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="430" y1="420" x2="430" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="420" x2="430" y2="420" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="350" x2="430" y2="350" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="280" x2="430" y2="280" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="210" x2="430" y2="210" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="140" x2="430" y2="140" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="10" y1="70" x2="430" y2="70" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="45.0" y1="350" x2="465.0" y2="350" stroke="#4a5568" stroke-width="1.5"/>
+<line x1="80" y1="385.0" x2="80" y2="35.0" stroke="#4a5568" stroke-width="1.5"/>
+<polygon points="465.0,350 444.0,345 444.0,355" fill="#4a5568"/>
+<polygon points="80,35.0 75,56.0 85,56.0" fill="#4a5568"/>
+<text x="472.0" y="368" fill="#8b949e" font-size="13" text-anchor="middle">x</text>
+<text x="72" y="40.0" fill="#8b949e" font-size="13" text-anchor="end">y</text>
+<line x1="150" y1="346" x2="150" y2="354" stroke="#4a5568" stroke-width="1"/>
+<text x="150" y="366" fill="#8b949e" font-size="11" text-anchor="middle">1</text>
+<line x1="220" y1="346" x2="220" y2="354" stroke="#4a5568" stroke-width="1"/>
+<text x="220" y="366" fill="#8b949e" font-size="11" text-anchor="middle">2</text>
+<line x1="290" y1="346" x2="290" y2="354" stroke="#4a5568" stroke-width="1"/>
+<text x="290" y="366" fill="#8b949e" font-size="11" text-anchor="middle">3</text>
+<line x1="360" y1="346" x2="360" y2="354" stroke="#4a5568" stroke-width="1"/>
+<text x="360" y="366" fill="#8b949e" font-size="11" text-anchor="middle">4</text>
+<line x1="430" y1="346" x2="430" y2="354" stroke="#4a5568" stroke-width="1"/>
+<text x="430" y="366" fill="#8b949e" font-size="11" text-anchor="middle">5</text>
+<line x1="76" y1="280" x2="84" y2="280" stroke="#4a5568" stroke-width="1"/>
+<text x="72" y="284" fill="#8b949e" font-size="11" text-anchor="end">1</text>
+<line x1="76" y1="210" x2="84" y2="210" stroke="#4a5568" stroke-width="1"/>
+<text x="72" y="214" fill="#8b949e" font-size="11" text-anchor="end">2</text>
+<line x1="76" y1="140" x2="84" y2="140" stroke="#4a5568" stroke-width="1"/>
+<text x="72" y="144" fill="#8b949e" font-size="11" text-anchor="end">3</text>
+<line x1="76" y1="70" x2="84" y2="70" stroke="#4a5568" stroke-width="1"/>
+<text x="72" y="74" fill="#8b949e" font-size="11" text-anchor="end">4</text>
+<polygon points="80,350 290.0,280.0 360.0,140.0 150.0,210.0" fill="#58a6ff" fill-opacity="0.15" stroke="none"/>
+<line x1="290.0" y1="280.0" x2="360.0" y2="140.0" stroke="#58a6ff" stroke-width="1" stroke-dasharray="5,5" opacity="0.6"/>
+<line x1="150.0" y1="210.0" x2="360.0" y2="140.0" stroke="#ffa198" stroke-width="1" stroke-dasharray="5,5" opacity="0.6"/>
+<line x1="80" y1="350" x2="290.0" y2="280.0" stroke="#58a6ff" stroke-width="3"/>
+<polygon points="290.0,280.0 281.8287169750214,288.78806769009526 278.19013296595995,277.872315662911" fill="#58a6ff"/>
+<text x="302.0" y="270.0" fill="#58a6ff" font-size="14" font-weight="bold">v₁=(3,1)</text>
+<line x1="80" y1="350" x2="150.0" y2="210.0" stroke="#ffa198" stroke-width="3"/>
+<polygon points="150.0,210.0 150.43613261923585,221.99207189514968 140.14466291233876,216.8463370417011" fill="#ffa198"/>
+<text x="100.0" y="194.0" fill="#ffa198" font-size="14" font-weight="bold">v₂=(1,2)</text>
+<text x="220.0" y="237.0" fill="#e6edf3" font-size="15" font-weight="bold" text-anchor="middle">面积 = |det| = |3×2 − 1×1| = 5</text>
+<text x="305" y="402" fill="#8b949e" font-size="13" font-family="monospace">      ⎡3 1⎤</text>
+<text x="305" y="418" fill="#8b949e" font-size="13" font-family="monospace">A = [v₁ v₂] = ⎣1 2⎦</text>
+<text x="250" y="30" fill="#e6edf3" font-size="17" font-weight="bold" text-anchor="middle">行列式的几何意义：平行四边形的面积</text>
+</svg>

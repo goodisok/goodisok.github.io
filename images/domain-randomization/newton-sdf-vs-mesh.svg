@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <filter id="s2" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="960" height="400" fill="#ffffff"/>
+  <text x="480" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">SDF 碰撞 vs 传统网格 — 为什么精度是关键</text>
+  <text x="480" y="55" text-anchor="middle" font-size="12" fill="#6b7280">Newton 的核心创新之一: 连续距离场替代离散三角网格</text>
+  <rect x="30" y="80" width="430" height="280" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="245" y="108" text-anchor="middle" font-size="14" font-weight="600" fill="#dc2626">传统网格碰撞</text>
+  <text x="245" y="140" text-anchor="middle" font-size="11" fill="#dc2626">三角面片近似几何</text>
+  <text x="245" y="170" text-anchor="middle" font-size="11" fill="#dc2626">精度 = 网格分辨率</text>
+  <text x="245" y="205" text-anchor="middle" font-size="11" fill="#ef4444">❌ 尖角处假阳性碰撞</text>
+  <text x="245" y="235" text-anchor="middle" font-size="11" fill="#ef4444">❌ 细小特征被平滑掉</text>
+  <text x="245" y="265" text-anchor="middle" font-size="11" fill="#ef4444">❌ 接触点离散, 力不稳定</text>
+  <text x="245" y="300" text-anchor="middle" font-size="11" fill="#dc2626">精密装配 (0.1mm) → 不可靠</text>
+  <rect x="500" y="80" width="430" height="280" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="715" y="108" text-anchor="middle" font-size="14" font-weight="600" fill="#16a34a">SDF 符号距离场</text>
+  <text x="715" y="140" text-anchor="middle" font-size="11" fill="#16a34a">连续距离函数 d(x)</text>
+  <text x="715" y="170" text-anchor="middle" font-size="11" fill="#16a34a">精度 = 浮点精度</text>
+  <text x="715" y="205" text-anchor="middle" font-size="11" fill="#22c55e">✓ 亚毫米级碰撞检测</text>
+  <text x="715" y="235" text-anchor="middle" font-size="11" fill="#22c55e">✓ 任意形状精确表示</text>
+  <text x="715" y="265" text-anchor="middle" font-size="11" fill="#22c55e">✓ 接触力平滑分布</text>
+  <text x="715" y="300" text-anchor="middle" font-size="11" fill="#16a34a">精密装配 (0.1mm) → 可靠</text>
+  <rect x="100" y="370" width="760" height="22" rx="6" fill="#fef3c7" stroke="#fcd34d" stroke-width="1"/>
+  <text x="480" y="385" text-anchor="middle" font-size="11" fill="#d97706">Hydroelastic 接触 (TRI/Drake): 连续压力分布替代点力模型 → 接触力对离散化不敏感, 更适合可微仿真</text>
+</svg>

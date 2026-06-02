@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500">
+<style>text{font-family:"WenQuanYi Zen Hei","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif}</style>
+<rect width="720" height="500" fill="#ffffff"/>
+<text x="360" y="32" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">全等三角形的五种判定方法</text>
+<rect x="20" y="48" width="215" height="200" rx="8" fill="#f8fafc" stroke="#16a34a" stroke-width="1.5"/>
+<text x="127" y="73" text-anchor="middle" font-size="14" font-weight="700" fill="#16a34a">SSS（边边边）</text>
+<polygon points="127,125 90,180 164,180" fill="#16a34a" opacity="0.08" stroke="#16a34a" stroke-width="1.5"/>
+<line x1="109" y1="152" x2="111" y2="154" stroke="#16a34a" stroke-width="1.3"/>
+<line x1="145" y1="152" x2="143" y2="154" stroke="#16a34a" stroke-width="1.3"/>
+<line x1="127" y1="180" x2="127" y2="182" stroke="#16a34a" stroke-width="1.3"/>
+<text x="127" y="210" text-anchor="middle" font-size="11" fill="#374151">三边分别相等</text>
+<text x="127" y="228" text-anchor="middle" font-size="10" fill="#6b7280">三组边→全等</text>
+<rect x="252" y="48" width="215" height="200" rx="8" fill="#f8fafc" stroke="#2563eb" stroke-width="1.5"/>
+<text x="359" y="73" text-anchor="middle" font-size="14" font-weight="700" fill="#2563eb">SAS（边角边）</text>
+<polygon points="359,125 322,180 396,180" fill="#2563eb" opacity="0.08" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="341" y1="152" x2="343" y2="154" stroke="#2563eb" stroke-width="1.3"/>
+<line x1="377" y1="152" x2="375" y2="154" stroke="#2563eb" stroke-width="1.3"/>
+<line x1="359" y1="180" x2="359" y2="182" stroke="#2563eb" stroke-width="1.3"/>
+<text x="359" y="210" text-anchor="middle" font-size="11" fill="#374151">两边及夹角相等</text>
+<text x="359" y="228" text-anchor="middle" font-size="10" fill="#6b7280">两邻边+夹角→全等</text>
+<rect x="485" y="48" width="215" height="200" rx="8" fill="#f8fafc" stroke="#d97706" stroke-width="1.5"/>
+<text x="592" y="73" text-anchor="middle" font-size="14" font-weight="700" fill="#d97706">ASA（角边角）</text>
+<polygon points="592,125 555,180 629,180" fill="#d97706" opacity="0.08" stroke="#d97706" stroke-width="1.5"/>
+<line x1="574" y1="152" x2="576" y2="154" stroke="#d97706" stroke-width="1.3"/>
+<line x1="610" y1="152" x2="608" y2="154" stroke="#d97706" stroke-width="1.3"/>
+<line x1="592" y1="180" x2="592" y2="182" stroke="#d97706" stroke-width="1.3"/>
+<text x="592" y="210" text-anchor="middle" font-size="11" fill="#374151">两角及夹边相等</text>
+<text x="592" y="228" text-anchor="middle" font-size="10" fill="#6b7280">两角+夹边→全等</text>
+<rect x="80" y="270" width="215" height="200" rx="8" fill="#f8fafc" stroke="#db2777" stroke-width="1.5"/>
+<text x="187" y="295" text-anchor="middle" font-size="14" font-weight="700" fill="#db2777">AAS（角角边）</text>
+<polygon points="187,347 150,402 224,402" fill="#db2777" opacity="0.08" stroke="#db2777" stroke-width="1.5"/>
+<line x1="169" y1="374" x2="171" y2="376" stroke="#db2777" stroke-width="1.3"/>
+<line x1="205" y1="374" x2="203" y2="376" stroke="#db2777" stroke-width="1.3"/>
+<line x1="187" y1="402" x2="187" y2="404" stroke="#db2777" stroke-width="1.3"/>
+<text x="187" y="432" text-anchor="middle" font-size="11" fill="#374151">两角及对边相等</text>
+<text x="187" y="450" text-anchor="middle" font-size="10" fill="#6b7280">两角+非夹边→全等</text>
+<rect x="312" y="270" width="215" height="200" rx="8" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.5"/>
+<text x="419" y="295" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed">HL（斜边直角边）</text>
+<polygon points="419,347 382,402 456,402" fill="#7c3aed" opacity="0.08" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="401" y1="374" x2="403" y2="376" stroke="#7c3aed" stroke-width="1.3"/>
+<line x1="437" y1="374" x2="435" y2="376" stroke="#7c3aed" stroke-width="1.3"/>
+<line x1="419" y1="402" x2="419" y2="404" stroke="#7c3aed" stroke-width="1.3"/>
+<text x="419" y="432" text-anchor="middle" font-size="11" fill="#374151">斜边和一直角边</text>
+<text x="419" y="450" text-anchor="middle" font-size="10" fill="#6b7280">仅Rt△适用</text>
+<rect x="544" y="270" width="155" height="200" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1"/>
+<text x="621" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#111827">注意</text>
+<text x="621" y="330" text-anchor="middle" font-size="11" fill="#374151">需3个独立条件</text>
+<line x1="564" y1="345" x2="678" y2="345" stroke="#e5e7eb" stroke-width="1"/>
+<text x="621" y="370" text-anchor="middle" font-size="11" fill="#dc2626">✗ AAA（仅相似）</text>
+<text x="621" y="395" text-anchor="middle" font-size="11" fill="#dc2626">✗ SSA（不一定）</text>
+</svg>

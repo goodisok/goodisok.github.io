@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 520">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  </style>
+  <defs>
+    <filter id="s" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="1020" height="520" fill="#ffffff"/>
+  <text x="510" y="35" text-anchor="middle" font-size="18" font-weight="600" fill="#111827">Newton 物理引擎 — 四大求解器</text>
+  <text x="510" y="55" text-anchor="middle" font-size="12" fill="#6b7280">NVIDIA × Google DeepMind × Disney Research · 2026.03 GA · Apache 2.0</text>
+  <rect x="267" y="80" width="230" height="190" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="267" y="80" width="230" height="40" rx="10" fill="#2563eb" fill-opacity="0.12"/>
+  <rect x="267" y="112" width="230" height="8" fill="#2563eb" fill-opacity="0.12"/>
+  <text x="382.0" y="107" text-anchor="middle" font-size="16" font-weight="600" fill="#2563eb">MuJoCo Warp</text>
+  <text x="382.0" y="138" text-anchor="middle" font-size="11" fill="#6b7280">Google DeepMind</text>
+  <text x="282" y="160" font-size="11" fill="#4b5563">可微刚体动力学</text>
+  <text x="282" y="180" font-size="11" fill="#4b5563">接触求解 · 关节约束</text>
+  <text x="282" y="200" font-size="11" fill="#4b5563">比 MJX 快 152–475x</text>
+  <text x="282" y="220" font-size="11" fill="#4b5563">梯度穿过物理引擎</text>
+  <rect x="522" y="80" width="230" height="190" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="522" y="80" width="230" height="40" rx="10" fill="#7c3aed" fill-opacity="0.12"/>
+  <rect x="522" y="112" width="230" height="8" fill="#7c3aed" fill-opacity="0.12"/>
+  <text x="637.0" y="107" text-anchor="middle" font-size="16" font-weight="600" fill="#7c3aed">Kamino</text>
+  <text x="637.0" y="138" text-anchor="middle" font-size="11" fill="#6b7280">Disney Research</text>
+  <text x="537" y="160" font-size="11" fill="#4b5563">复杂闭链机构</text>
+  <text x="537" y="180" font-size="11" fill="#4b5563">并联机构 · 四连杆</text>
+  <text x="537" y="200" font-size="11" fill="#4b5563">Stewart 平台</text>
+  <text x="537" y="220" font-size="11" fill="#4b5563">数值稳定低自由度建模</text>
+  <rect x="267" y="290" width="230" height="190" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="267" y="290" width="230" height="40" rx="10" fill="#ea580c" fill-opacity="0.12"/>
+  <rect x="267" y="322" width="230" height="8" fill="#ea580c" fill-opacity="0.12"/>
+  <text x="382.0" y="317" text-anchor="middle" font-size="16" font-weight="600" fill="#ea580c">VBD</text>
+  <text x="382.0" y="348" text-anchor="middle" font-size="11" fill="#6b7280">NVIDIA</text>
+  <text x="282" y="370" font-size="11" fill="#4b5563">布料 · 线缆 · 绳索</text>
+  <text x="282" y="390" font-size="11" fill="#4b5563">无穿透接触保证</text>
+  <text x="282" y="410" font-size="11" fill="#4b5563">30 FPS 实时仿真</text>
+  <text x="282" y="430" font-size="11" fill="#4b5563">Samsung 线缆装配</text>
+  <rect x="522" y="290" width="230" height="190" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#s)"/>
+  <rect x="522" y="290" width="230" height="40" rx="10" fill="#059669" fill-opacity="0.12"/>
+  <rect x="522" y="322" width="230" height="8" fill="#059669" fill-opacity="0.12"/>
+  <text x="637.0" y="317" text-anchor="middle" font-size="16" font-weight="600" fill="#059669">MPM</text>
+  <text x="637.0" y="348" text-anchor="middle" font-size="11" fill="#6b7280">NVIDIA</text>
+  <text x="537" y="370" font-size="11" fill="#4b5563">颗粒 · 沙土 · 流体</text>
+  <text x="537" y="390" font-size="11" fill="#4b5563">大变形物质仿真</text>
+  <text x="537" y="410" font-size="11" fill="#4b5563">双向刚体耦合</text>
+  <text x="537" y="430" font-size="11" fill="#4b5563">ETH 挖掘任务</text>
+  <rect x="40" y="475" width="227" height="30" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="153.5" y="494" text-anchor="middle" font-size="11" fill="#16a34a">SDF 碰撞 (CAD 精度)</text>
+  <rect x="275" y="475" width="227" height="30" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="388.5" y="494" text-anchor="middle" font-size="11" fill="#16a34a">Hydroelastic 接触 (连续压力分布)</text>
+  <rect x="510" y="475" width="227" height="30" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="623.5" y="494" text-anchor="middle" font-size="11" fill="#16a34a">两向耦合求解 (刚体+软体)</text>
+  <rect x="745" y="475" width="227" height="30" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="858.5" y="494" text-anchor="middle" font-size="11" fill="#16a34a">4000+ 并行环境</text>
+</svg>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 440">
+<rect width="740" height="440" fill="#0d1117"/>
+<line x1="380" y1="50" y2="415" x2="380" stroke="#30363d" stroke-width="2" stroke-dasharray="8,4"/>
+<text x="370" y="25" fill="#e6edf3" font-size="18" font-weight="bold" text-anchor="middle">A𝐯 = λ𝐯：特征向量的方向不变性</text>
+<line x1="27" y1="432" x2="27" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="75" y1="432" x2="75" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="123" y1="432" x2="123" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="171" y1="432" x2="171" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="219" y1="432" x2="219" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="267" y1="432" x2="267" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="315" y1="432" x2="315" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="363" y1="432" x2="363" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="432" x2="363" y2="432" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="384" x2="363" y2="384" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="336" x2="363" y2="336" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="288" x2="363" y2="288" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="240" x2="363" y2="240" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="192" x2="363" y2="192" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="144" x2="363" y2="144" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="96" x2="363" y2="96" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="27" y1="48" x2="363" y2="48" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="51.0" y1="240" x2="387.0" y2="240" stroke="#4a5568" stroke-width="1.5"/>
+<line x1="75" y1="456.0" x2="75" y2="24.0" stroke="#4a5568" stroke-width="1.5"/>
+<circle cx="75" cy="240" r="3" fill="#8b949e"/>
+<text x="220" y="55" fill="#e6edf3" font-size="15" font-weight="bold" text-anchor="middle">变换前（原向量）</text>
+<line x1="75" y1="240" x2="123" y2="192" stroke="#58a6ff" stroke-width="2.5"/>
+<polygon points="123,192 120.46614421971569,200.6359466698631 114.36405333013688,194.5338557802843" fill="#58a6ff"/>
+<text x="131" y="184" fill="#58a6ff" font-size="12" font-weight="bold">v₁=(1,1)</text>
+<line x1="75" y1="240" x2="123" y2="336" stroke="#3fb950" stroke-width="2.5"/>
+<polygon points="123,336 115.60849718425406,330.86524721872416 123.3270994644269,327.00594607863775" fill="#3fb950"/>
+<text x="131" y="346" fill="#3fb950" font-size="12" font-weight="bold">v₂=(1,−2)</text>
+<line x1="75" y1="240" x2="171" y2="216.0" stroke="#d2a8ff" stroke-width="2.5"/>
+<polygon points="171,216.0 164.38407868788732,222.10160513241664 162.2910787799398,213.72960550062658" fill="#d2a8ff"/>
+<text x="179" y="204.0" fill="#d2a8ff" font-size="12" font-weight="bold">w=(2,0.5)</text>
+<line x1="375" y1="480" x2="375" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="405" y1="480" x2="405" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="435" y1="480" x2="435" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="465" y1="480" x2="465" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="495" y1="480" x2="495" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="525" y1="480" x2="525" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="555" y1="480" x2="555" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="585" y1="480" x2="585" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="615" y1="480" x2="615" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="645" y1="480" x2="645" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="675" y1="480" x2="675" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="705" y1="480" x2="705" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="735" y1="480" x2="735" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="480" x2="735" y2="480" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="450" x2="735" y2="450" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="420" x2="735" y2="420" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="390" x2="735" y2="390" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="360" x2="735" y2="360" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="330" x2="735" y2="330" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="300" x2="735" y2="300" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="270" x2="735" y2="270" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="240" x2="735" y2="240" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="210" x2="735" y2="210" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="180" x2="735" y2="180" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="150" x2="735" y2="150" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="120" x2="735" y2="120" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="90" x2="735" y2="90" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="60" x2="735" y2="60" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="30" x2="735" y2="30" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="375" y1="0" x2="735" y2="0" stroke="#1a2233" stroke-width="0.5"/>
+<line x1="390.0" y1="240" x2="750.0" y2="240" stroke="#4a5568" stroke-width="1.5"/>
+<line x1="405" y1="495.0" x2="405" y2="-15.0" stroke="#4a5568" stroke-width="1.5"/>
+<circle cx="405" cy="240" r="3" fill="#8b949e"/>
+<text x="570" y="55" fill="#e6edf3" font-size="15" font-weight="bold" text-anchor="middle">变换后 A=[[4,1],[2,3]]</text>
+<line x1="405" y1="240" x2="555" y2="90" stroke="#58a6ff" stroke-width="2.5"/>
+<polygon points="555,90 552.184604688573,99.59549629984791 545.4045037001521,92.81539531142701" fill="#58a6ff"/>
+<text x="563" y="80" fill="#58a6ff" font-size="12" font-weight="bold">Av₁=(5,5)</text>
+<text x="563" y="96" fill="#58a6ff" font-size="11" font-style="italic">λ₁=5 ✓</text>
+<line x1="405" y1="240" x2="465" y2="360" stroke="#3fb950" stroke-width="2.5"/>
+<polygon points="465,360 456.78721909361565,354.2947191319157 465.3634438493632,350.00660675404197" fill="#3fb950"/>
+<text x="470" y="354" fill="#3fb950" font-size="12" font-weight="bold">Av₂=(2,−4)</text>
+<text x="470" y="368" fill="#3fb950" font-size="11" font-style="italic">λ₂=2 ✓</text>
+<line x1="405" y1="240" x2="660.0" y2="75.0" stroke="#d2a8ff" stroke-width="2.5"/>
+<polygon points="660.0,75.0 655.2365640722769,83.79259223224166 650.0275933397174,75.74236473646795" fill="#d2a8ff"/>
+<text x="625.0" y="70.0" fill="#d2a8ff" font-size="12" font-weight="bold">Aw</text>
+<text x="625.0" y="84.0" fill="#d2a8ff" font-size="11">方向改变 ✗</text>
+<rect x="140" y="410" width="12" height="12" fill="#58a6ff" rx="2"/>
+<text x="158" y="420" fill="#e6edf3" font-size="12">特征向量（方向不变）</text>
+<rect x="360" y="410" width="12" height="12" fill="#d2a8ff" rx="2"/>
+<text x="378" y="420" fill="#e6edf3" font-size="12">普通向量（方向改变）</text>
+</svg>
