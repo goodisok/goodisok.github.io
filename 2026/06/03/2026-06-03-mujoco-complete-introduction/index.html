@@ -1,0 +1,769 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MuJoCo 完全入门 — 从零开始跑起灵巧手仿真 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、MuJoCo 是什么？为什么灵巧手仿真都用它？MuJoCo 全称 Multi-Joint dynamics with Contact，是 Roboti LLC 开发、后被 DeepMind 收购并开源的物理引擎。它专门为 机器人、多体系统、接触丰富 的场景设计。 1.1 和其他引擎的对比   引擎 特点 适合什么    MuJoCo 快、稳、接触处理优秀 机器人、灵巧手、抓取   PyBull">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MuJoCo 完全入门 — 从零开始跑起灵巧手仿真">
+<meta property="og:url" content="https://goodisok.github.io/2026/06/03/2026-06-03-mujoco-complete-introduction/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="一、MuJoCo 是什么？为什么灵巧手仿真都用它？MuJoCo 全称 Multi-Joint dynamics with Contact，是 Roboti LLC 开发、后被 DeepMind 收购并开源的物理引擎。它专门为 机器人、多体系统、接触丰富 的场景设计。 1.1 和其他引擎的对比   引擎 特点 适合什么    MuJoCo 快、稳、接触处理优秀 机器人、灵巧手、抓取   PyBull">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-06-03T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-03T06:00:17.224Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="DeepMind">
+<meta property="article:tag" content="MuJoCo">
+<meta property="article:tag" content="Shadow Hand">
+<meta property="article:tag" content="Sim2Real">
+<meta property="article:tag" content="强化学习">
+<meta property="article:tag" content="机器人仿真">
+<meta property="article:tag" content="灵巧手">
+<meta property="article:tag" content="物理引擎">
+<meta property="article:tag" content="触觉仿真">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MuJoCo 完全入门 — 从零开始跑起灵巧手仿真",
+  "url": "https://goodisok.github.io/2026/06/03/2026-06-03-mujoco-complete-introduction/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-06-03T09:00:00.000Z",
+  "dateModified": "2026-06-03T06:00:17.224Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/06/03/2026-06-03-mujoco-complete-introduction/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MuJoCo 完全入门 — 从零开始跑起灵巧手仿真',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">MuJoCo 完全入门 — 从零开始跑起灵巧手仿真</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">MuJoCo 完全入门 — 从零开始跑起灵巧手仿真</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-03T09:00:00.000Z" title="发表于 2026-06-03 17:00:00">2026-06-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-03T06:00:17.224Z" title="更新于 2026-06-03 14:00:17">2026-06-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%BB%BF%E7%9C%9F/">机器人仿真</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="一、MuJoCo-是什么？为什么灵巧手仿真都用它？"><a href="#一、MuJoCo-是什么？为什么灵巧手仿真都用它？" class="headerlink" title="一、MuJoCo 是什么？为什么灵巧手仿真都用它？"></a>一、MuJoCo 是什么？为什么灵巧手仿真都用它？</h2><p>MuJoCo 全称 <strong>Multi-Joint dynamics with Contact</strong>，是 Roboti LLC 开发、后被 DeepMind 收购并开源的物理引擎。它专门为 <strong>机器人、多体系统、接触丰富</strong> 的场景设计。</p>
+<h3 id="1-1-和其他引擎的对比"><a href="#1-1-和其他引擎的对比" class="headerlink" title="1.1 和其他引擎的对比"></a>1.1 和其他引擎的对比</h3><table>
+<thead>
+<tr>
+<th align="left">引擎</th>
+<th align="left">特点</th>
+<th align="left">适合什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>MuJoCo</strong></td>
+<td align="left">快、稳、接触处理优秀</td>
+<td align="left">机器人、灵巧手、抓取</td>
+</tr>
+<tr>
+<td align="left">PyBullet</td>
+<td align="left">Python 接口友好，功能全面</td>
+<td align="left">教学、入门</td>
+</tr>
+<tr>
+<td align="left">Isaac Sim</td>
+<td align="left">高保真、GPU 加速、光线追踪</td>
+<td align="left">Sim2Real、视觉仿真</td>
+</tr>
+<tr>
+<td align="left">Gazebo</td>
+<td align="left">传感器模型丰富，ROS 生态好</td>
+<td align="left">工业级移动操作平台</td>
+</tr>
+</tbody></table>
+<p><strong>灵巧手仿真为什么选 MuJoCo？</strong></p>
+<ul>
+<li><strong>快</strong>：单环境 1000+ FPS，RL 训练的基础</li>
+<li><strong>接触稳定</strong>：灵巧手每天和物体接触几百次，其他引擎容易炸</li>
+<li><strong>开源、免费</strong>：改代码无限制</li>
+<li><strong>DeepMind 背书</strong>：OpenAI Dactyl 用它训练的 Shadow Hand 策略直接迁移到真机</li>
+</ul>
+<h3 id="1-2-版本说明"><a href="#1-2-版本说明" class="headerlink" title="1.2 版本说明"></a>1.2 版本说明</h3><p>2022 年 DeepMind 收购后，MuJoCo 进入 2.2+ 时代：</p>
+<ul>
+<li>完全开源（Apache 2.0 许可证）</li>
+<li><code>pip install mujoco</code> 直接安装</li>
+<li>每天全球数以万计的科研&#x2F;工业用户</li>
+</ul>
+<hr>
+<h2 id="二、安装"><a href="#二、安装" class="headerlink" title="二、安装"></a>二、安装</h2><h3 id="2-1-最简单的安装方式"><a href="#2-1-最简单的安装方式" class="headerlink" title="2.1 最简单的安装方式"></a>2.1 最简单的安装方式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install mujoco</span><br></pre></td></tr></table></figure>
+
+<p>等待 30 秒到 1 分钟即可完成。</p>
+<h3 id="2-2-验证安装"><a href="#2-2-验证安装" class="headerlink" title="2.2 验证安装"></a>2.2 验证安装</h3><p>打开 Python，运行：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mujoco</span><br><span class="line"><span class="built_in">print</span>(mujoco.__version__)</span><br><span class="line"><span class="comment"># 应该是 3.x（2025 年最新是 3.x 系列）</span></span><br></pre></td></tr></table></figure>
+
+<p>如果没报错，说明装好了。</p>
+<h3 id="2-3-GPU-与显示需求"><a href="#2-3-GPU-与显示需求" class="headerlink" title="2.3 GPU 与显示需求"></a>2.3 GPU 与显示需求</h3><p>MuJoCo 的物理仿真跑在 CPU 上——<strong>不需要 GPU 也能跑 1000+ FPS</strong>。GPU 只在可视化渲染时用到。如果没有显示器（如 SSH 服务器），可以关闭渲染只跑物理。</p>
+<h3 id="2-4-无显示器（SSH-服务器）也能用"><a href="#2-4-无显示器（SSH-服务器）也能用" class="headerlink" title="2.4 无显示器（SSH 服务器）也能用"></a>2.4 无显示器（SSH 服务器）也能用</h3><p>MuJoCo 可以纯 Python 运行，无需任何 GUI：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mujoco</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用 XML 字符串定义一个简单的掉落实验</span></span><br><span class="line">xml = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&lt;mujoco&gt;</span></span><br><span class="line"><span class="string">  &lt;worldbody&gt;</span></span><br><span class="line"><span class="string">    &lt;light name=&quot;top&quot; pos=&quot;0 0 1&quot;/&gt;</span></span><br><span class="line"><span class="string">    &lt;body name=&quot;box&quot; pos=&quot;0 0 0.5&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;freejoint/&gt;</span></span><br><span class="line"><span class="string">      &lt;geom type=&quot;box&quot; size=&quot;0.2 0.2 0.2&quot; rgba=&quot;1 0 0 1&quot;/&gt;</span></span><br><span class="line"><span class="string">    &lt;/body&gt;</span></span><br><span class="line"><span class="string">    &lt;geom name=&quot;floor&quot; type=&quot;plane&quot; size=&quot;1 1 0.1&quot;/&gt;</span></span><br><span class="line"><span class="string">  &lt;/worldbody&gt;</span></span><br><span class="line"><span class="string">&lt;/mujoco&gt;</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">m = mujoco.MjModel.from_xml_string(xml)</span><br><span class="line">d = mujoco.MjData(m)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    mujoco.mj_step(m, d)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;最终高度:&quot;</span>, d.geom_xpos[<span class="number">1</span>][<span class="number">2</span>])  <span class="comment"># 盒子应该掉到地板上了</span></span><br></pre></td></tr></table></figure>
+
+<p>这段代码不需要显示器，在服务器上也能跑。MuJoCo 的 <code>MjModel.from_xml_string()</code> 是一个极其有用的函数，允许你在不创建文件的情况下直接在内存中构建场景。</p>
+<hr>
+<h2 id="三、核心概念：4-个你必须搞清楚的构件"><a href="#三、核心概念：4-个你必须搞清楚的构件" class="headerlink" title="三、核心概念：4 个你必须搞清楚的构件"></a>三、核心概念：4 个你必须搞清楚的构件</h2><h3 id="3-1-MjModel（模型）——-机器人的「骨架和肌肉」"><a href="#3-1-MjModel（模型）——-机器人的「骨架和肌肉」" class="headerlink" title="3.1 MjModel（模型）—— 机器人的「骨架和肌肉」"></a>3.1 MjModel（模型）—— 机器人的「骨架和肌肉」</h3><p><code>MjModel</code> 是 MuJoCo 的核心数据对象，包含：</p>
+<ul>
+<li><strong>运动学</strong>：每个关节的类型、限位、父-子关系</li>
+<li><strong>动力学</strong>：连杆的质量、惯量</li>
+<li><strong>碰撞</strong>：几何体的形状、尺寸、摩擦系数</li>
+<li><strong>控制</strong>：电机增益、力矩限幅</li>
+</ul>
+<p><code>MjModel</code> 是<strong>不可变的</strong>——加载后你一般不改它。它描述了机器人长什么样，能怎么动。可以把 <code>MjModel</code> 理解为硬件规格书。</p>
+<h3 id="3-2-MjData（数据）——-机器人的「当前状态」"><a href="#3-2-MjData（数据）——-机器人的「当前状态」" class="headerlink" title="3.2 MjData（数据）—— 机器人的「当前状态」"></a>3.2 MjData（数据）—— 机器人的「当前状态」</h3><p><code>MjData</code> 包含：</p>
+<ul>
+<li><code>qpos</code>：所有关节的当前位置（角度&#x2F;位置）</li>
+<li><code>qvel</code>：所有关节的当前速度</li>
+<li><code>ctrl</code>：你发给关节的控制信号</li>
+<li><code>contact</code>：当前的接触信息（位置、力、法向）</li>
+<li><code>sensor</code>：传感器读数（如果有定义）</li>
+</ul>
+<p><code>MjData</code> 每步都在变，代表了机器人现在的姿势和受力。可以把 <code>MjData</code> 理解为仪表盘读数。</p>
+<p><strong>二者关系：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MjModel = 你的灵巧手的「设计图纸」——不变的，加载一次用全程</span><br><span class="line">MjData  = 你的灵巧手的「当前状态」——每步在变，reset 就重置</span><br></pre></td></tr></table></figure>
+
+<p><strong>这个分离设计有一个重要优势：</strong> 想要多个并行仿真环境（RL 训练用），只需要 <strong>1 个 MjModel + N 个 MjData</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">model = mujoco.MjModel.from_xml_path(<span class="string">&#x27;hand.xml&#x27;</span>)</span><br><span class="line">datas = [mujoco.MjData(model) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1024</span>)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个 data 独立仿真</span></span><br><span class="line"><span class="keyword">for</span> d <span class="keyword">in</span> datas:</span><br><span class="line">    d.ctrl[:] = random_action()</span><br><span class="line">    mujoco.mj_step(model, d)</span><br></pre></td></tr></table></figure>
+
+<p>1024 个环境并行跑，这就是 RL 训练的基础。</p>
+<h3 id="3-3-mj-step-——-仿真的「心跳」"><a href="#3-3-mj-step-——-仿真的「心跳」" class="headerlink" title="3.3 mj_step —— 仿真的「心跳」"></a>3.3 mj_step —— 仿真的「心跳」</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mujoco.mj_step(m, d)</span><br></pre></td></tr></table></figure>
+
+<p>这一行做了 6 件事：</p>
+<ol>
+<li>读取 <code>d.ctrl</code> 里的控制信号</li>
+<li>解动力学方程（牛顿第二定律 + 欧拉方程）</li>
+<li>检测所有碰撞对</li>
+<li>解接触力（摩擦锥约束、法向力）</li>
+<li>更新 <code>d.qpos</code>、<code>d.qvel</code></li>
+<li>更新所有传感器</li>
+</ol>
+<p>每调一次 <code>mj_step</code>，仿真就前进一个时间步。默认时间步长 <code>m.opt.timestep = 0.002</code> 秒（2ms）。1000 步 &#x3D; 2 秒的真实时间。</p>
+<h3 id="3-4-XML-模型文件-——-你想要仿真的「一切定义」"><a href="#3-4-XML-模型文件-——-你想要仿真的「一切定义」" class="headerlink" title="3.4 XML 模型文件 —— 你想要仿真的「一切定义」"></a>3.4 XML 模型文件 —— 你想要仿真的「一切定义」</h3><p>XML 文件描述了整个仿真世界：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mujoco</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">compiler</span> <span class="attr">angle</span>=<span class="string">&quot;radian&quot;</span>/&gt;</span>              <span class="comment">&lt;!-- 用弧度制 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">option</span> <span class="attr">timestep</span>=<span class="string">&quot;0.002&quot;</span>/&gt;</span>              <span class="comment">&lt;!-- 仿真步长 2ms --&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">worldbody</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 地面 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">geom</span> <span class="attr">name</span>=<span class="string">&quot;floor&quot;</span> <span class="attr">type</span>=<span class="string">&quot;plane&quot;</span> <span class="attr">size</span>=<span class="string">&quot;0 0 0.05&quot;</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 灵巧手：外部引用 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">file</span>=<span class="string">&quot;hand.xml&quot;</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 被抓取的物体 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span> <span class="attr">name</span>=<span class="string">&quot;object&quot;</span> <span class="attr">pos</span>=<span class="string">&quot;0.3 0 0.1&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">freejoint</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">geom</span> <span class="attr">type</span>=<span class="string">&quot;cylinder&quot;</span> <span class="attr">size</span>=<span class="string">&quot;0.02 0.05&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">worldbody</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">actuator</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 电机定义 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">motor</span> <span class="attr">name</span>=<span class="string">&quot;finger_motor&quot;</span> <span class="attr">joint</span>=<span class="string">&quot;index_joint1&quot;</span> <span class="attr">gear</span>=<span class="string">&quot;1&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">actuator</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mujoco</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中几个关键元素：</p>
+<ul>
+<li><code>&lt;body&gt;</code>：刚体（连杆），有质量和惯量</li>
+<li><code>&lt;joint&gt;</code>：关节，连接父 body 和子 body</li>
+<li><code>&lt;geom&gt;</code>：几何体，用于碰撞检测和可视化</li>
+<li><code>&lt;actuator&gt;</code>：驱动器（电机&#x2F;肌肉）</li>
+<li><code>&lt;sensor&gt;</code>：虚拟传感器（力&#x2F;力矩&#x2F;触觉）</li>
+</ul>
+<hr>
+<h2 id="四、第一个完整示例：用-MuJoCo-跑灵巧手"><a href="#四、第一个完整示例：用-MuJoCo-跑灵巧手" class="headerlink" title="四、第一个完整示例：用 MuJoCo 跑灵巧手"></a>四、第一个完整示例：用 MuJoCo 跑灵巧手</h2><h3 id="4-1-加载官方-Shadow-Hand"><a href="#4-1-加载官方-Shadow-Hand" class="headerlink" title="4.1 加载官方 Shadow Hand"></a>4.1 加载官方 Shadow Hand</h3><p>MuJoCo 自带 Shadow Dexterous Hand 的模型文件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mujoco</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 Shadow Hand 模型（官方自带）</span></span><br><span class="line">xml_path = mujoco.models.get_path(<span class="string">&#x27;hand.xml&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;模型路径:&quot;</span>, xml_path)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建模型和数据的实例</span></span><br><span class="line">model = mujoco.MjModel.from_xml_path(xml_path)</span><br><span class="line">data = mujoco.MjData(model)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看模型有多少个自由度</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;关节数量 (nq):&quot;</span>, model.nq)       <span class="comment"># 位置自由度</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;控制数量 (nu):&quot;</span>, model.nu)       <span class="comment"># 控制通道数</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;身体数量:&quot;</span>, model.nbody)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;几何体数量:&quot;</span>, model.ngeom)</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">模型路径: /usr/lib/python3/dist-packages/mujoco/models/hand.xml</span><br><span class="line">关节数量 (nq): 26</span><br><span class="line">控制数量 (nu): 20</span><br><span class="line">身体数量: 49</span><br><span class="line">几何体数量: 54</span><br></pre></td></tr></table></figure>
+
+<p>26 个自由度、20 个控制通道——这就是灵巧手比普通机械臂复杂的地方。</p>
+<h3 id="4-2-查看并控制关节"><a href="#4-2-查看并控制关节" class="headerlink" title="4.2 查看并控制关节"></a>4.2 查看并控制关节</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mujoco</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">model = mujoco.MjModel.from_xml_path(mujoco.models.get_path(<span class="string">&#x27;hand.xml&#x27;</span>))</span><br><span class="line">data = mujoco.MjData(model)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看控制通道的名称</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(model.nu):</span><br><span class="line">    name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;控制通道 <span class="subst">&#123;i&#125;</span>: <span class="subst">&#123;name&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 让第一个电机工作（通常是拇指）</span></span><br><span class="line">data.ctrl[<span class="number">0</span>] = <span class="number">1.0</span>  <span class="comment"># 力矩 1.0 Nm</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 仿真 1000 步</span></span><br><span class="line"><span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    mujoco.mj_step(model, data)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> step % <span class="number">100</span> == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;步 <span class="subst">&#123;step&#125;</span>: 拇指关节角度 = <span class="subst">&#123;data.qpos[<span class="number">0</span>]:<span class="number">.3</span>f&#125;</span> rad&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">控制通道 0: TH</span><br><span class="line">控制通道 1: FF</span><br><span class="line">...</span><br><span class="line">步 0: 拇指关节角度 = 0.000 rad</span><br><span class="line">步 100: 拇指关节角度 = 0.037 rad</span><br><span class="line">步 200: 拇指关节角度 = 0.068 rad</span><br><span class="line">步 300: 拇指关节角度 = 0.094 rad</span><br></pre></td></tr></table></figure>
+
+<p>手指在你的控制下开始弯曲了！</p>
+<h3 id="4-3-用仿真频率和控制频率解耦"><a href="#4-3-用仿真频率和控制频率解耦" class="headerlink" title="4.3 用仿真频率和控制频率解耦"></a>4.3 用仿真频率和控制频率解耦</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">仿真频率：1000 Hz（mj_step 每步 1ms）</span><br><span class="line">控制频率：50 Hz（策略每 20ms 发一次指令）</span><br></pre></td></tr></table></figure>
+
+<p>你的策略不需要每步都发指令：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>):</span><br><span class="line">    <span class="keyword">if</span> step % <span class="number">20</span> == <span class="number">0</span>:  <span class="comment"># 每 20 步更新一次控制</span></span><br><span class="line">        data.ctrl[:] = policy(data)</span><br><span class="line">    mujoco.mj_step(model, data)</span><br></pre></td></tr></table></figure>
+
+<p>这模拟了真实机器人的控制频率限制——真机上的电机通常只能以 50-100 Hz 更新。</p>
+<hr>
+<h2 id="五、核心-API：你需要掌握的完整手册"><a href="#五、核心-API：你需要掌握的完整手册" class="headerlink" title="五、核心 API：你需要掌握的完整手册"></a>五、核心 API：你需要掌握的完整手册</h2><p>你不需要记住 MuJoCo 的所有 API，但需要熟练掌握下面这些：</p>
+<h3 id="5-1-模型加载"><a href="#5-1-模型加载" class="headerlink" title="5.1 模型加载"></a>5.1 模型加载</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从文件加载</span></span><br><span class="line">model = mujoco.MjModel.from_xml_path(<span class="string">&#x27;path/to/hand.xml&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从字符串加载（无需临时文件）</span></span><br><span class="line">model = mujoco.MjModel.from_xml_string(xml_string)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从官方示例加载</span></span><br><span class="line">model = mujoco.MjModel.from_xml_path(</span><br><span class="line">    mujoco.models.get_path(<span class="string">&#x27;hand.xml&#x27;</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从字节加载（网络传输等场景）</span></span><br><span class="line">model = mujoco.MjModel.from_xml_bytes(xml_bytes)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-仿真步进"><a href="#5-2-仿真步进" class="headerlink" title="5.2 仿真步进"></a>5.2 仿真步进</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">data = mujoco.MjData(model)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 单步（一个时间步长）</span></span><br><span class="line">mujoco.mj_step(model, data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 前进一步（指定步数）</span></span><br><span class="line">mujoco.mj_step(model, data, nstep=<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 前向运动学：只更新位置，不更新动力学</span></span><br><span class="line">mujoco.mj_forward(model, data)</span><br></pre></td></tr></table></figure>
+
+<p><code>mj_forward</code> 通常用于 reset 后或手动修改位置后，快速重新计算所有几何体的世界坐标。</p>
+<h3 id="5-3-控制"><a href="#5-3-控制" class="headerlink" title="5.3 控制"></a>5.3 控制</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 发控制指令（力矩控制，默认）</span></span><br><span class="line">data.ctrl[joint_index] = force_value</span><br><span class="line"></span><br><span class="line"><span class="comment"># 也可以批量发送</span></span><br><span class="line">data.ctrl[:] = desired_forces</span><br><span class="line"></span><br><span class="line"><span class="comment"># 位置控制模式（如果 XML 里用了 position actuator）</span></span><br><span class="line"><span class="comment"># 需要对应修改 actuator type</span></span><br><span class="line">data.ctrl[:] = desired_positions</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看关节名称 -&gt; 索引映射</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(model.nu):</span><br><span class="line">    name = mujoco.mj_id2name(</span><br><span class="line">        model, </span><br><span class="line">        mujoco.mjtObj.mjOBJ_ACTUATOR, </span><br><span class="line">        i</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;i&#125;</span>: <span class="subst">&#123;name&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-读取状态"><a href="#5-4-读取状态" class="headerlink" title="5.4 读取状态"></a>5.4 读取状态</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关节位置（弧度/米）</span></span><br><span class="line">data.qpos            <span class="comment"># 所有关节位置（nq 维向量）</span></span><br><span class="line">data.qpos[<span class="number">0</span>]         <span class="comment"># 第一个关节的位置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关节速度</span></span><br><span class="line">data.qvel            <span class="comment"># 所有关节速度</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 末端位置（世界坐标系）</span></span><br><span class="line">data.body_xpos[body_id]     <span class="comment"># 身体的 3D 位置</span></span><br><span class="line">data.body_xquat[body_id]    <span class="comment"># 身体的旋转（四元数）</span></span><br><span class="line">data.body_xmat[body_id]     <span class="comment"># 身体的旋转（3×3 矩阵）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 几何体位置</span></span><br><span class="line">data.geom_xpos[geom_id]     <span class="comment"># 几何体的 3D 位置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关节所受的力/力矩</span></span><br><span class="line">data.qfrc_actuator          <span class="comment"># 电机施加在关节上的力矩</span></span><br><span class="line">data.qfrc_passive           <span class="comment"># 被动力（重力+摩擦+惯性）</span></span><br><span class="line">data.qfrc_constraint        <span class="comment"># 约束力</span></span><br><span class="line">data.qfrc_bias              <span class="comment"># 科里奥利力+离心力+重力</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>获取末端执行器（指尖）位置的完整方法：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方法一：通过 body name 获取</span></span><br><span class="line">body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, <span class="string">&#x27;fingertip&#x27;</span>)</span><br><span class="line">fingertip_pos = data.body_xpos[body_id].copy()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方法二：通过 site 获取（更精确，site 是定义在 body 上的参考点）</span></span><br><span class="line">site_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, <span class="string">&#x27;fingertip_site&#x27;</span>)</span><br><span class="line">fingertip_pos = data.site_xpos[site_id].copy()</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-接触信息"><a href="#5-5-接触信息" class="headerlink" title="5.5 接触信息"></a>5.5 接触信息</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 接触数量</span></span><br><span class="line">data.ncon</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历所有接触</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(data.ncon):</span><br><span class="line">    c = data.contact[i]</span><br><span class="line">    </span><br><span class="line">    c.pos          <span class="comment"># 接触点位置（3D 向量）</span></span><br><span class="line">    c.frame        <span class="comment"># 接触坐标系（9D 向量：法向 + 切向1 + 切向2）</span></span><br><span class="line">    c.dist         <span class="comment"># 穿透深度（负数表示穿透）</span></span><br><span class="line">    c.geom1        <span class="comment"># 第一个几何体 ID</span></span><br><span class="line">    c.geom2        <span class="comment"># 第二个几何体 ID</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 接触法向力（近似）</span></span><br><span class="line">    normal_force = c.frame[<span class="number">0</span>]  <span class="comment"># frame 的前 3 个元素是法向</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 获取接触力（更精确）</span></span><br><span class="line">    <span class="comment"># 需要设置 model.opt.enableflags 包含 contact</span></span><br><span class="line">    <span class="comment"># 然后从 data.efc_pos 中读取</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-传感器"><a href="#5-6-传感器" class="headerlink" title="5.6 传感器"></a>5.6 传感器</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 传感器数据维度</span></span><br><span class="line">model.nsensordata</span><br><span class="line"></span><br><span class="line"><span class="comment"># 所有传感器读数</span></span><br><span class="line">data.sensordata</span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过名称获取传感器索引和偏移</span></span><br><span class="line">sensor_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, <span class="string">&#x27;fingertip_force&#x27;</span>)</span><br><span class="line">sensor_adr = model.sensor_adr[sensor_id]  <span class="comment"># 在 sensordata 中的偏移</span></span><br><span class="line">sensor_dim = model.sensor_dim[sensor_id]  <span class="comment"># 数据维度</span></span><br><span class="line">force_reading = data.sensordata[sensor_adr:sensor_adr + sensor_dim]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、进阶：灵巧手仿真特有的配置"><a href="#六、进阶：灵巧手仿真特有的配置" class="headerlink" title="六、进阶：灵巧手仿真特有的配置"></a>六、进阶：灵巧手仿真特有的配置</h2><h3 id="6-1-域随机化（Domain-Randomization）"><a href="#6-1-域随机化（Domain-Randomization）" class="headerlink" title="6.1 域随机化（Domain Randomization）"></a>6.1 域随机化（Domain Randomization）</h3><p>域随机化是 Sim-to-Real 迁移最核心的技术之一。通过在训练时随机化物理参数，策略学会适应各种条件，从而在真机上也能工作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">randomize_physics</span>(<span class="params">model</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;随机化物理参数，提高策略对真实世界差异的鲁棒性&quot;&quot;&quot;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 随机化摩擦系数（默认 [0.5, 0.005, 0.0001]）</span></span><br><span class="line">    <span class="comment"># 分别对应：切向摩擦 / 扭转摩擦 / 滚动摩擦</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(model.ngeom):</span><br><span class="line">        factor = np.random.uniform(<span class="number">0.7</span>, <span class="number">1.3</span>)</span><br><span class="line">        model.geom_friction[i] = model.geom_friction[i] * factor</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 随机化关节阻尼</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(model.njnt):</span><br><span class="line">        model.damping[i] = model.damping[i] * np.random.uniform(<span class="number">0.5</span>, <span class="number">1.5</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 随机化物体质量（通过修改密度间接实现）</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(model.ngeom):</span><br><span class="line">        model.geom_density[i] = model.geom_density[i] * np.random.uniform(<span class="number">0.5</span>, <span class="number">2.0</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 随机化重力</span></span><br><span class="line">    gravity_scale = np.random.uniform(<span class="number">0.8</span>, <span class="number">1.2</span>)</span><br><span class="line">    model.opt.gravity[<span class="number">2</span>] = -<span class="number">9.81</span> * gravity_scale</span><br></pre></td></tr></table></figure>
+
+<p><strong>需要注意的是</strong>：<code>MjModel</code> 在文档中被描述为「不可变」，但实际上加载后可以修改部分数值字段（如摩擦系数、阻尼、重力等）。这是因为 MuJoCo 将这些参数暴露为可写的 numpy 数组，以便域随机化等训练场景使用。</p>
+<h3 id="6-2-添加力传感器（近似触觉）"><a href="#6-2-添加力传感器（近似触觉）" class="headerlink" title="6.2 添加力传感器（近似触觉）"></a>6.2 添加力传感器（近似触觉）</h3><p>MuJoCo 原生支持力&#x2F;力矩传感器，可以用来近似灵巧手的触觉反馈：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 在 XML 中定义传感器 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sensor</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 指尖力传感器 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">force</span> <span class="attr">name</span>=<span class="string">&quot;fingertip_force&quot;</span> <span class="attr">site</span>=<span class="string">&quot;fingertip_site&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">torque</span> <span class="attr">name</span>=<span class="string">&quot;fingertip_torque&quot;</span> <span class="attr">site</span>=<span class="string">&quot;fingertip_site&quot;</span>/&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!-- 触觉皮肤近似：多个接触点 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">touch</span> <span class="attr">name</span>=<span class="string">&quot;tactile_taxel_1&quot;</span> <span class="attr">site</span>=<span class="string">&quot;taxel_1&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">touch</span> <span class="attr">name</span>=<span class="string">&quot;tactile_taxel_2&quot;</span> <span class="attr">site</span>=<span class="string">&quot;taxel_2&quot;</span>/&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 可以扩展到 16×16 阵列 --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">sensor</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-软指尖模型（参考-FineManip-论文方法）"><a href="#6-3-软指尖模型（参考-FineManip-论文方法）" class="headerlink" title="6.3 软指尖模型（参考 FineManip 论文方法）"></a>6.3 软指尖模型（参考 FineManip 论文方法）</h3><p>在灵巧手仿真中，指尖通常是刚体——但真实的灵巧手有硅胶指套。可以通过调整接触参数来近似软接触：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 软指尖接触参数 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">geom</span> <span class="attr">type</span>=<span class="string">&quot;sphere&quot;</span> <span class="attr">size</span>=<span class="string">&quot;0.01&quot;</span> <span class="attr">pos</span>=<span class="string">&quot;0 0 -0.02&quot;</span> </span></span><br><span class="line"><span class="tag">      <span class="attr">solref</span>=<span class="string">&quot;0.01 1&quot;</span>     &lt;!<span class="attr">--</span> <span class="attr">接触硬度</span>：<span class="attr">时间常数</span> <span class="attr">0.01s</span>，<span class="attr">阻尼</span> <span class="attr">1</span> <span class="attr">--</span>&gt;</span></span><br><span class="line">      solimp=&quot;0.9 0.95 0.001&quot;  <span class="comment">&lt;!-- 接触力-穿透曲线 --&gt;</span></span><br><span class="line">      condim=&quot;4&quot;/&gt;        <span class="comment">&lt;!-- 接触维度：3=法向+剪切, 4=+扭转 --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>参数含义：</p>
+<ul>
+<li><code>solref</code>：参考时间常数和阻尼比，控制接触的「软硬程度」</li>
+<li><code>solimp</code>：接触力随穿透深度的增长曲线，控制「渐进接触」</li>
+<li><code>condim</code>：接触维度，影响摩擦力是否建模</li>
+</ul>
+<p>调整这些参数可以让指尖接触更像真实硅胶材料。这正是 FineManip（精细操作触觉皮肤）论文实现亚像元精度的物理基础。</p>
+<h3 id="6-4-设置腱绳约束"><a href="#6-4-设置腱绳约束" class="headerlink" title="6.4 设置腱绳约束"></a>6.4 设置腱绳约束</h3><p>MuJoCo 原生支持 <code>tendon</code>（腱绳）约束，这正是腱绳驱动灵巧手（如帕西尼感知科技的产品）需要的：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tendon</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 定义一条腱绳：从关节 A 到关节 B --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">spatial</span> <span class="attr">name</span>=<span class="string">&quot;tendon_1&quot;</span> <span class="attr">limited</span>=<span class="string">&quot;true&quot;</span> <span class="attr">range</span>=<span class="string">&quot;0 0.05&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">geom</span> <span class="attr">site</span>=<span class="string">&quot;joint_A_pos&quot;</span> <span class="attr">site</span>=<span class="string">&quot;joint_B_pos&quot;</span> </span></span><br><span class="line"><span class="tag">          <span class="attr">width</span>=<span class="string">&quot;0.002&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">pulley</span> <span class="attr">divisor</span>=<span class="string">&quot;1&quot;</span> <span class="attr">multiplier</span>=<span class="string">&quot;1&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">spatial</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tendon</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在仿真中，腱绳可以配合 TendonForce 论文的方法，用 Transformer 模型预测真实腱绳力，替代理想力的假设。具体做法：</p>
+<ol>
+<li>在 MuJoCo 的 <code>mjData.ctrl</code> 中设置电机位置</li>
+<li>从 Transformer 模型读取预测的腱绳力</li>
+<li>将该力应用到对应的 <code>qfrc_actuator</code> 上</li>
+<li>执行 <code>mj_step</code> 时，运动学受腱绳约束影响</li>
+</ol>
+<hr>
+<h2 id="七、一个典型的灵巧手仿真工作流"><a href="#七、一个典型的灵巧手仿真工作流" class="headerlink" title="七、一个典型的灵巧手仿真工作流"></a>七、一个典型的灵巧手仿真工作流</h2><p>你在灵巧手公司（如帕西尼感知科技）的日常仿真工作流大致如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">① 加载灵巧手 XML</span><br><span class="line">② 创建待抓取物体（球/圆柱/不规则形状）</span><br><span class="line">③ 设置初始位姿（手张开、物体在掌心）</span><br><span class="line">④ 运行控制策略（随机/PPO/示教）</span><br><span class="line">⑤ 采集数据（接触力、关节角度、触觉读数）</span><br><span class="line">⑥ 训练或验证策略</span><br><span class="line">     ↓</span><br><span class="line">①-⑥ 循环，每天跑几千次抓取验证</span><br></pre></td></tr></table></figure>
+
+<p>下面是一个完整的抓取仿真器骨架：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mujoco</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DexterousGraspSimulator</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;灵巧手抓取仿真器骨架&quot;&quot;&quot;</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, xml_path</span>):</span><br><span class="line">        <span class="variable language_">self</span>.model = mujoco.MjModel.from_xml_path(xml_path)</span><br><span class="line">        <span class="variable language_">self</span>.data = mujoco.MjData(<span class="variable language_">self</span>.model)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 记录数据</span></span><br><span class="line">        <span class="variable language_">self</span>.contact_history = []</span><br><span class="line">        <span class="variable language_">self</span>.reward_history = []</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 获取一些关键的 ID</span></span><br><span class="line">        <span class="variable language_">self</span>._cache_ids()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_cache_ids</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;预缓存常用的 ID，避免重复查询&quot;&quot;&quot;</span></span><br><span class="line">        <span class="variable language_">self</span>.object_geom_id = mujoco.mj_name2id(</span><br><span class="line">            <span class="variable language_">self</span>.model, mujoco.mjtObj.mjOBJ_GEOM, <span class="string">&#x27;object&#x27;</span></span><br><span class="line">        )</span><br><span class="line">        <span class="variable language_">self</span>.fingertip_site_ids = [</span><br><span class="line">            mujoco.mj_name2id(<span class="variable language_">self</span>.model, mujoco.mjtObj.mjOBJ_SITE, <span class="string">f&#x27;fingertip_<span class="subst">&#123;i&#125;</span>&#x27;</span>)</span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>)  <span class="comment"># 四指灵巧手</span></span><br><span class="line">        ]</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">reset</span>(<span class="params">self, randomize=<span class="literal">True</span></span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;重置到初始状态&quot;&quot;&quot;</span></span><br><span class="line">        mujoco.mj_resetData(<span class="variable language_">self</span>.model, <span class="variable language_">self</span>.data)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> randomize:</span><br><span class="line">            <span class="comment"># 域随机化：物体初始位置小幅度随机</span></span><br><span class="line">            <span class="variable language_">self</span>.data.qpos[-<span class="number">7</span>:] += np.random.uniform(-<span class="number">0.02</span>, <span class="number">0.02</span>, size=<span class="number">7</span>)</span><br><span class="line">        </span><br><span class="line">        mujoco.mj_forward(<span class="variable language_">self</span>.model, <span class="variable language_">self</span>.data)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">step</span>(<span class="params">self, action</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;执行一步控制&quot;&quot;&quot;</span></span><br><span class="line">        <span class="variable language_">self</span>.data.ctrl[:] = np.clip(action, -<span class="number">1.0</span>, <span class="number">1.0</span>)</span><br><span class="line">        mujoco.mj_step(<span class="variable language_">self</span>.model, <span class="variable language_">self</span>.data)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 计算奖励</span></span><br><span class="line">        reward = <span class="variable language_">self</span>._compute_reward()</span><br><span class="line">        <span class="variable language_">self</span>.reward_history.append(reward)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 记录接触信息</span></span><br><span class="line">        <span class="variable language_">self</span>.contact_history.append(<span class="variable language_">self</span>.data.ncon)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_compute_reward</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;计算抓取质量&quot;&quot;&quot;</span></span><br><span class="line">        <span class="comment"># 物体是否被抬离桌面？</span></span><br><span class="line">        object_height = <span class="variable language_">self</span>.data.geom_xpos[<span class="variable language_">self</span>.object_geom_id][<span class="number">2</span>]</span><br><span class="line">        lift_reward = <span class="number">1.0</span> <span class="keyword">if</span> object_height &gt; <span class="number">0.1</span> <span class="keyword">else</span> <span class="number">0.0</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 指尖接触是否稳定？（避免握力过大或过小）</span></span><br><span class="line">        contact_force = <span class="variable language_">self</span>._get_total_fingertip_force()</span><br><span class="line">        optimal_force = <span class="number">5.0</span>  <span class="comment"># N，合适的抓握力</span></span><br><span class="line">        force_penalty = -<span class="number">0.01</span> * <span class="built_in">abs</span>(contact_force - optimal_force)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 物体是否偏离中心（防止滑落）</span></span><br><span class="line">        xy_dist = np.linalg.norm(<span class="variable language_">self</span>.data.geom_xpos[<span class="variable language_">self</span>.object_geom_id][:<span class="number">2</span>])</span><br><span class="line">        drift_penalty = -<span class="number">0.1</span> * xy_dist</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> lift_reward + force_penalty + drift_penalty</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">_get_total_fingertip_force</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;获取指尖总接触力&quot;&quot;&quot;</span></span><br><span class="line">        total_force = <span class="number">0.0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="variable language_">self</span>.data.ncon):</span><br><span class="line">            c = <span class="variable language_">self</span>.data.contact[i]</span><br><span class="line">            <span class="comment"># 只考虑指尖-物体的接触</span></span><br><span class="line">            geom1_name = mujoco.mj_id2name(</span><br><span class="line">                <span class="variable language_">self</span>.model, mujoco.mjtObj.mjOBJ_GEOM, c.geom1</span><br><span class="line">            )</span><br><span class="line">            geom2_name = mujoco.mj_id2name(</span><br><span class="line">                <span class="variable language_">self</span>.model, mujoco.mjtObj.mjOBJ_GEOM, c.geom2</span><br><span class="line">            )</span><br><span class="line">            <span class="keyword">if</span> <span class="string">&#x27;fingertip&#x27;</span> <span class="keyword">in</span> geom1_name <span class="keyword">or</span> <span class="string">&#x27;fingertip&#x27;</span> <span class="keyword">in</span> geom2_name:</span><br><span class="line">                <span class="comment"># 接触法向力近似</span></span><br><span class="line">                normal_force = np.linalg.norm(c.frame[:<span class="number">3</span>])</span><br><span class="line">                total_force += normal_force</span><br><span class="line">        <span class="keyword">return</span> total_force</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用示例</span></span><br><span class="line">sim = DexterousGraspSimulator(<span class="string">&#x27;hand_with_object.xml&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> episode <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    sim.reset()</span><br><span class="line">    done = <span class="literal">False</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">not</span> done:</span><br><span class="line">        <span class="comment"># 用随机策略（实际工作中会换成 PPO 等）</span></span><br><span class="line">        action = np.random.uniform(-<span class="number">1.0</span>, <span class="number">1.0</span>, size=sim.model.nu)</span><br><span class="line">        sim.step(action)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 检查是否超时或物体掉落</span></span><br><span class="line">        object_pos = sim.data.geom_xpos[sim.object_geom_id][<span class="number">2</span>]</span><br><span class="line">        done = object_pos &lt; <span class="number">0.01</span>  <span class="comment"># 掉到地上了</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Episode <span class="subst">&#123;episode&#125;</span>: 平均奖励 = <span class="subst">&#123;np.mean(sim.reward_history[-<span class="number">50</span>:]):<span class="number">.3</span>f&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、常见问题与调试技巧"><a href="#八、常见问题与调试技巧" class="headerlink" title="八、常见问题与调试技巧"></a>八、常见问题与调试技巧</h2><h3 id="8-1-手指穿透物体"><a href="#8-1-手指穿透物体" class="headerlink" title="8.1 手指穿透物体"></a>8.1 手指穿透物体</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">现象：手指穿过物体而不是推开它</span><br><span class="line">原因：碰撞检测开启太少，或时间步长太大</span><br><span class="line"></span><br><span class="line">解决：</span><br><span class="line">  • 减小 timestep（0.001 而不是 0.002）</span><br><span class="line">  • 增大接触检测范围（model.opt.tolerance）</span><br><span class="line">  • 检查 geom 类型是否都设了 type</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-物体抖动-爆炸"><a href="#8-2-物体抖动-爆炸" class="headerlink" title="8.2 物体抖动&#x2F;爆炸"></a>8.2 物体抖动&#x2F;爆炸</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">现象：物体在接触后剧烈抖动或飞走</span><br><span class="line">原因：接触刚度太高，或质量设置不合理</span><br><span class="line"></span><br><span class="line">解决：</span><br><span class="line">  • 减小 solref 中的刚度值</span><br><span class="line">  • 确保物体的质量和惯性矩是合理的</span><br><span class="line">  • 检查是否有两个 geom 重叠初始位置</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-控制信号没反应"><a href="#8-3-控制信号没反应" class="headerlink" title="8.3 控制信号没反应"></a>8.3 控制信号没反应</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">现象：设置了 data.ctrl 但关节不动</span><br><span class="line">原因：actuator 没连到正确的 joint 上</span><br><span class="line"></span><br><span class="line">解决：</span><br><span class="line">  • 检查 actuator 中的 joint/transmission 名称是否正确</span><br><span class="line">  • 检查 actuator 的 gear 值是否合理</span><br><span class="line">  • 使用 mujoco.mj_id2name 验证名称映射</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-仿真速度太慢"><a href="#8-4-仿真速度太慢" class="headerlink" title="8.4 仿真速度太慢"></a>8.4 仿真速度太慢</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">现象：FPS 低于预期</span><br><span class="line"></span><br><span class="line">解决：</span><br><span class="line">  • 减少 geom 的数量（尤其是复杂 mesh）</span><br><span class="line">  • 增大 timestep（但不要超过接触稳定性极限）</span><br><span class="line">  • 关闭不必要的传感器</span><br><span class="line">  • 使用 model.opt.cone = mujoco.mjtCone.mjCONE_PYRAMIDAL </span><br><span class="line">    （金字塔摩擦锥比椭球锥更快）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、我该去哪里进一步学习？"><a href="#九、我该去哪里进一步学习？" class="headerlink" title="九、我该去哪里进一步学习？"></a>九、我该去哪里进一步学习？</h2><h3 id="官方资源（最好的）："><a href="#官方资源（最好的）：" class="headerlink" title="官方资源（最好的）："></a>官方资源（最好的）：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1. MuJoCo 官方文档</span><br><span class="line">   https://mujoco.readthedocs.io/</span><br><span class="line">   必读章节：XML 参考、Python 接口</span><br><span class="line"></span><br><span class="line">2. MuJoCo 官方 Python 示例</span><br><span class="line">   https://github.com/google-deepmind/mujoco/tree/main/python/examples</span><br><span class="line">   推荐文件：body_interactions.py, marker.py, actuator.py</span><br><span class="line"></span><br><span class="line">3. MuJoCo Menagerie（官方模型库）</span><br><span class="line">   https://github.com/google-deepmind/mujoco_menagerie</span><br><span class="line">   包含 Shadow Hand、Allegro Hand、Franka 等多种模型</span><br></pre></td></tr></table></figure>
+
+<h3 id="社区资源："><a href="#社区资源：" class="headerlink" title="社区资源："></a>社区资源：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">4. Roboti 论坛</span><br><span class="line">   https://roboti.us/forum/</span><br><span class="line">   搜索 &quot;dexterous hand&quot; 有大量讨论</span><br><span class="line"></span><br><span class="line">5. 论文源码中的 MuJoCo 使用</span><br><span class="line">   OpenAI Dactyl（Shadow Hand + MuJoCo 的奠基工作）</span><br><span class="line">   T-Dex（触觉预训练 + MuJoCo）</span><br><span class="line">   TendonForce（腱绳力建模 + MuJoCo）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十、速查表"><a href="#十、速查表" class="headerlink" title="十、速查表"></a>十、速查表</h2><table>
+<thead>
+<tr>
+<th align="left">你想做什么</th>
+<th align="left">代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">加载模型</td>
+<td align="left"><code>m = mujoco.MjModel.from_xml_path(&#39;file.xml&#39;)</code></td>
+</tr>
+<tr>
+<td align="left">从字符串加载</td>
+<td align="left"><code>m = mujoco.MjModel.from_xml_string(xml_str)</code></td>
+</tr>
+<tr>
+<td align="left">初始化数据</td>
+<td align="left"><code>d = mujoco.MjData(m)</code></td>
+</tr>
+<tr>
+<td align="left">前进一步</td>
+<td align="left"><code>mujoco.mj_step(m, d)</code></td>
+</tr>
+<tr>
+<td align="left">给关节发指令</td>
+<td align="left"><code>d.ctrl[i] = value</code></td>
+</tr>
+<tr>
+<td align="left">读关节角度</td>
+<td align="left"><code>d.qpos[i]</code></td>
+</tr>
+<tr>
+<td align="left">读接触数量</td>
+<td align="left"><code>d.ncon</code></td>
+</tr>
+<tr>
+<td align="left">读接触力</td>
+<td align="left"><code>d.contact[i].frame[:3]</code></td>
+</tr>
+<tr>
+<td align="left">重置</td>
+<td align="left"><code>mujoco.mj_resetData(m, d)</code></td>
+</tr>
+<tr>
+<td align="left">前向运动学</td>
+<td align="left"><code>mujoco.mj_forward(m, d)</code></td>
+</tr>
+<tr>
+<td align="left">获取 body 位置</td>
+<td align="left"><code>d.body_xpos[body_id]</code></td>
+</tr>
+<tr>
+<td align="left">通过名称找 ID</td>
+<td align="left"><code>mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, &#39;name&#39;)</code></td>
+</tr>
+<tr>
+<td align="left">通过 ID 找名称</td>
+<td align="left"><code>mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_BODY, id)</code></td>
+</tr>
+<tr>
+<td align="left">获取传感器值</td>
+<td align="left"><code>d.sensordata[adr:adr+dim]</code></td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>本文为 MuJoCo 零基础入门指南，结合了官方文档（mujoco.readthedocs.io）和学术界常用的最佳实践编写而成。</strong> 核心建议：不要试图学完所有 MuJoCo 知识再开始。安装→跑通示例→让手指动一下，三步就够了，遇到具体问题再查文档。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/06/03/2026-06-03-mujoco-complete-introduction/">https://goodisok.github.io/2026/06/03/2026-06-03-mujoco-complete-introduction/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/">强化学习</a><a class="post-meta__tags" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%BB%BF%E7%9C%9F/">机器人仿真</a><a class="post-meta__tags" href="/tags/%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E/">物理引擎</a><a class="post-meta__tags" href="/tags/MuJoCo/">MuJoCo</a><a class="post-meta__tags" href="/tags/%E7%81%B5%E5%B7%A7%E6%89%8B/">灵巧手</a><a class="post-meta__tags" href="/tags/Sim2Real/">Sim2Real</a><a class="post-meta__tags" href="/tags/Shadow-Hand/">Shadow Hand</a><a class="post-meta__tags" href="/tags/%E8%A7%A6%E8%A7%89%E4%BB%BF%E7%9C%9F/">触觉仿真</a><a class="post-meta__tags" href="/tags/DeepMind/">DeepMind</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/06/02/2026-06-02-nvidia-isaac-sim-complete-introduction/" title="NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流</div></div><div class="info-2"><div class="info-item-1"> 摘要：本文基于 Isaac Sim 5.1.0 官方文档，深入分析其扩展（Extension）架构、PhysX 5 GPU 物理引擎的求解器与碰撞管线、基于光线追踪的传感器仿真框架、Articulation API 的关节控制机制、ROS2 Bridge 的 OmniGraph 与 Python 双模式集成、Isaac Lab 的 GPU 原生 RL 训练管线，以及 Replicator 合成数据生成工作流。区别于”入门介绍”，本文聚焦技术细节、API 签名与工作流模式，旨在为开发者提供可直接映射到代码实现的技术参考。   参考文档：https://docs.isaacsim.omniverse.nvidia.com/5.1.0/index.html   一、平台架构：从扩展系统到运行时模型1.1 Extension（扩展）系统Isaac Sim 的所有功能都以 Extension 形式组织。Extension 是 Omniverse Kit 框架的一等公民——每个 Extension 是一个独立的 Python 模块，有自身的生命周期（on_startup &#x2F; on...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/03/06/%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%BB%BF%E7%9C%9F%E5%89%8D%E6%B2%BF%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90-10%E7%AF%87%E9%AB%98%E8%B4%A8%E9%87%8F%E8%AE%BA%E6%96%87%E4%B8%8E%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" title="无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-06</div><div class="info-item-2">无人机仿真前沿技术深度解析：10篇高质量论文与开源框架分析（2023-2026）</div></div><div class="info-2"><div class="info-item-1"> 无人机仿真正经历从物理引擎到AI驱动、从单机到群体、从离线到实时的深刻变革。本文深度解析2023-2026年间10篇高质量前沿学术论文与开源技术，涵盖高保真物理仿真、神经渲染、强化学习训练、多机协同、数字孪生等关键技术，为无人机自主系统研发提供全面技术参考。  引言：无人机仿真的范式演进与前沿挑战1.1 技术演进脉络无人机仿真技术经历了三个主要发展阶段：  物理引擎主导期（2010-2018）：Gazebo、FlightGear等传统物理引擎，专注于动力学模型精度 AI训练平台期（2018-2022）：AirSim、CARLA等视觉丰富仿真环境，服务于强化学习与计算机视觉 高保真综合期（2022-至今）：NVIDIA Isaac Sim、Unreal Engine 5+无人机插件，融合物理精度、视觉真实、AI训练一体化  1.2 2026年前沿挑战 物理-视觉一致性：高保真渲染与精确物理仿真的同步优化 实时性能瓶颈：大规模多机仿真与复杂环境交互的实时性保证 Sim-to-Real鸿沟：神经网络仿真器到真实无人机的可靠迁移 数字孪生应用：仿真系统与真实无人机实时双向数据同步  二...</div></div></div></a><a class="pagination-related" href="/2026/02/27/%E5%8F%AF%E5%BE%AE%E7%89%A9%E7%90%86%E5%BC%95%E6%93%8E%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90-%E5%8E%9F%E7%90%86-%E4%B8%BB%E6%B5%81%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84%E4%B8%8E%E6%97%A0%E4%BA%BA%E6%9C%BAsim2real%E5%AE%9E%E6%88%98%E8%B7%AF%E5%BE%84/" title="可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-27</div><div class="info-item-2">可微物理引擎完全解析：原理、三大技术难点、主流工具横评与无人机 sim2real 实战路径</div></div><div class="info-2"><div class="info-item-1"> 本文目标：把”可微物理引擎”这件事讲透——它是什么、它和传统物理引擎到底有什么区别、它的数学本质、它最难解决的三个问题、当前 2026 年主流工具的优劣势，以及对一个具体的无人机工程团队，到底该怎么选、怎么用。 预设读者：做过物理仿真（PX4 SITL、Gazebo、Bullet、ODE 之类），听过”可微仿真”但没真用过；或者已经知道概念但纠结选 Brax 还是 Warp。 配套阅读：可微仿真完全入门 讲名词，本篇讲引擎本身。    一、先把”可微物理引擎”这五个字拆开1.1 什么是物理引擎？任何物理仿真本质上是一个状态递推： st+1=f(st, ut, θ)s_{t+1} = f(s_t,\, u_t,\, \theta)st+1​=f(st​,ut​,θ)   sts_tst​：当前状态（位置、速度、姿态、角速度……） utu_tut​：当前控制输入（电机指令、舵面偏转……） θ\thetaθ：物理参数（质量、惯量、摩擦、空气阻力、电机系数……） fff：物理引擎本身——给定当前状态和输入，告诉你下一时刻的状态  PhysX、Bullet、ODE、MuJoCo、Drak...</div></div></div></a><a class="pagination-related" href="/2026/02/03/2026%E5%B9%B4%E6%97%A0%E4%BA%BA%E6%9C%BA%E4%B8%8E%E4%BB%BF%E7%9C%9F%E6%8A%80%E6%9C%AF%E5%89%8D%E6%B2%BF%EF%BC%9A%E5%8D%81%E5%A4%A7%E7%AA%81%E7%A0%B4%E6%80%A7%E8%BF%9B%E5%B1%95%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="2026年无人机与仿真技术前沿：十大突破性进展深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-03</div><div class="info-item-2">2026年无人机与仿真技术前沿：十大突破性进展深度解析</div></div><div class="info-2"><div class="info-item-1">2026年无人机与仿真技术前沿：十大突破性进展深度解析 摘要：本文系统分析2026年无人机技术与仿真领域最具突破性的十大前沿进展，涵盖硬件创新、传感器技术、仿真平台、AI算法四个维度。基于对2023-2026年顶级学术会议（ICRA、IROS、CVPR、NeurIPS）150+篇论文的梳理，结合行业技术报告与开源项目进展，为无人机系统开发者提供全面的技术参考与应用指南。所有引用均提供完整学术出处，确保技术信息的准确性与可验证性。  引言：2026年无人机技术演进格局无人机技术正经历从”遥控飞行器”到”空中自主智能体”的范式转变。根据国际无人机系统协会（AUVSI）2025年技术报告，全球无人机市场规模预计在2026年达到580亿美元，其中自主飞行系统占比首次超过50%。这一增长背后的技术驱动力主要来自三个方向的协同创新：  硬件微型化与能源效率突破：氢燃料电池、固态电池等技术使无人机续航时间突破8小时门槛 仿真-现实差距大幅缩小：数字孪生与实时渲染技术将仿真环境逼真度提升至95%以上 AI算法从实验室走向产业化：端到端学习模型在实际任务中展现出超越传统方法的性能  本文选取的十大...</div></div></div></a><a class="pagination-related" href="/2026/03/13/%E6%9C%BA%E8%BD%BDAI%E7%AE%97%E6%B3%95%E5%89%8D%E6%B2%BF-%E8%A7%86%E8%A7%89%E5%AF%BC%E8%88%AA%E4%B8%8E%E6%99%BA%E8%83%BD%E5%88%B6%E5%AF%BC%E6%8A%80%E6%9C%AF%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" title="机载AI算法前沿：视觉导航与智能制导技术深度解析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-13</div><div class="info-item-2">机载AI算法前沿：视觉导航与智能制导技术深度解析</div></div><div class="info-2"><div class="info-item-1"> 本文系统综述机载AI算法的前沿进展，重点分析视觉导航、智能制导、强化学习控制等核心技术。通过引用权威学术研究（IEEE IROS、CVPR、ICRA、Science Robotics等顶级会议期刊），探讨从感知到决策的完整自主飞行技术栈，为无人机自主系统开发提供理论依据与技术参考。  引言：从遥控飞行到自主智能的范式转变传统无人机依赖GPS和遥控操作，在复杂环境（城市峡谷、室内、电磁干扰）中面临严重限制。机载人工智能通过将感知、决策、控制能力嵌入飞行平台，实现真正意义上的自主飞行。这一转变的核心技术包括：  环境感知：基于计算机视觉的实时场景理解 状态估计：多传感器融合的精确定位与建图 决策规划：动态环境下的最优路径生成 运动控制：适应复杂动力学的智能控制策略 多机协同：分布式群体智能与任务分配  根据IEEE Transactions on Robotics 2022年特刊《Autonomous Aerial Robots》的统计，过去五年机载AI论文发表量增长超过300%，其中视觉导航和强化学习制导成为最主要的技术方向。 一、 视觉导航：从像素到位姿的智能感知1.1 单目视...</div></div></div></a><a class="pagination-related" href="/2026/05/10/domain-randomization-sim-to-real-1/" title="Domain Randomization — 弥合 Sim-to-Real 差距的最简方法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-10</div><div class="info-item-2">Domain Randomization — 弥合 Sim-to-Real 差距的最简方法</div></div><div class="info-2"><div class="info-item-1"> 一、一个反直觉的问题你花了两周校准仿真器参数——质量、惯量、摩擦系数、气动导数——每一项都精确匹配实测数据。然后你把在仿真里训练好的控制器部署到真机上。 真机第一次启动，控制器就崩了。 问题不在于你的参数不准确。问题在于真实世界有仿真器永远无法建模的东西：齿轮间隙、材料磨损、温度漂移、光照变化、摄像头噪声、地面纹理……这个列表无穷无尽。 那么反过来想：如果不去追求仿真更”真”，而是让它足够”乱”，乱到真实世界看上去只是其中一种情况呢？ 这就是 Domain Randomization（域随机化）的核心思想。 二、核心思想：一句话说清楚 如果仿真中的变异性足够大，真实世界对模型来说就只是仿真中的另一个变体。   2017 年，OpenAI 的 Josh Tobin 等人在论文《Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World》中首次系统性地验证了这个想法。这篇只有 8 页的论文，至今被引用超过 3600 次。 他们做了一件看似不可能的事：完全不使...</div></div></div></a><a class="pagination-related" href="/2026/05/13/%E5%90%AF%E5%8F%91%E5%BC%8F%E5%AD%A6%E4%B9%A0-OpenAI%E7%BF%81%E5%AE%B6%E7%BF%8C%E6%8F%90%E5%87%BA%E8%84%B1%E7%A6%BB%E5%8F%82%E6%95%B0%E7%9A%84%E6%96%B0AI%E8%8C%83%E5%BC%8F/" title="启发式学习——OpenAI翁家翌提出脱离参数的新AI范式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-13</div><div class="info-item-2">启发式学习——OpenAI翁家翌提出脱离参数的新AI范式</div></div><div class="info-2"><div class="info-item-1">  摘要：2026年5月，OpenAI后训练工程师翁家翌（Weng Jiayi）提出了 Heuristic Learning（HL，启发式学习）——一种不依赖神经网络参数更新的全新AI学习范式。与梯度下降驱动参数更新的传统深度学习不同，HL由 Codex（GPT-5.4 驱动）自主迭代维护一个由显式状态检测器、规则逻辑和测试用例组成的智能软件系统，每次迭代通过分析性能反馈直接对代码进行结构性调整。在以 Atari Breakout 为基准的实验中，HL 达到了理论满分（864分），同时天然解决了增量学习中的灾难性遗忘问题。本文系统梳理 HL 的核心思想与技术机制，并将其置于监督学习、无监督学习、强化学习和自监督学习的历史演进脉络中进行对比分析。  引言：一个反直觉的问题自 Hinton 等人2006年在 Science 上宣告深度学习时代以来，有一条几乎被视为公理的信念：AI系统的智能来自于它的参数。模型的权重矩阵越大、参数越多、训练数据越海量，”智能”就越强。从 AlexNet 的六千万参数到 GPT-4 的万亿参数，这条 Scaling Law 似乎不可动摇。 但翁家翌在20...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">138</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">575</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">23</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81MuJoCo-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E7%81%B5%E5%B7%A7%E6%89%8B%E4%BB%BF%E7%9C%9F%E9%83%BD%E7%94%A8%E5%AE%83%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">一、MuJoCo 是什么？为什么灵巧手仿真都用它？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%92%8C%E5%85%B6%E4%BB%96%E5%BC%95%E6%93%8E%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 和其他引擎的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 版本说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%89%E8%A3%85"><span class="toc-number">2.</span> <span class="toc-text">二、安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E5%AE%89%E8%A3%85%E6%96%B9%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 最简单的安装方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 验证安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-GPU-%E4%B8%8E%E6%98%BE%E7%A4%BA%E9%9C%80%E6%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 GPU 与显示需求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%97%A0%E6%98%BE%E7%A4%BA%E5%99%A8%EF%BC%88SSH-%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%89%E4%B9%9F%E8%83%BD%E7%94%A8"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 无显示器（SSH 服务器）也能用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%EF%BC%9A4-%E4%B8%AA%E4%BD%A0%E5%BF%85%E9%A1%BB%E6%90%9E%E6%B8%85%E6%A5%9A%E7%9A%84%E6%9E%84%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">三、核心概念：4 个你必须搞清楚的构件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-MjModel%EF%BC%88%E6%A8%A1%E5%9E%8B%EF%BC%89%E2%80%94%E2%80%94-%E6%9C%BA%E5%99%A8%E4%BA%BA%E7%9A%84%E3%80%8C%E9%AA%A8%E6%9E%B6%E5%92%8C%E8%82%8C%E8%82%89%E3%80%8D"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 MjModel（模型）—— 机器人的「骨架和肌肉」</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-MjData%EF%BC%88%E6%95%B0%E6%8D%AE%EF%BC%89%E2%80%94%E2%80%94-%E6%9C%BA%E5%99%A8%E4%BA%BA%E7%9A%84%E3%80%8C%E5%BD%93%E5%89%8D%E7%8A%B6%E6%80%81%E3%80%8D"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 MjData（数据）—— 机器人的「当前状态」</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-mj-step-%E2%80%94%E2%80%94-%E4%BB%BF%E7%9C%9F%E7%9A%84%E3%80%8C%E5%BF%83%E8%B7%B3%E3%80%8D"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 mj_step —— 仿真的「心跳」</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-XML-%E6%A8%A1%E5%9E%8B%E6%96%87%E4%BB%B6-%E2%80%94%E2%80%94-%E4%BD%A0%E6%83%B3%E8%A6%81%E4%BB%BF%E7%9C%9F%E7%9A%84%E3%80%8C%E4%B8%80%E5%88%87%E5%AE%9A%E4%B9%89%E3%80%8D"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 XML 模型文件 —— 你想要仿真的「一切定义」</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%EF%BC%9A%E7%94%A8-MuJoCo-%E8%B7%91%E7%81%B5%E5%B7%A7%E6%89%8B"><span class="toc-number">4.</span> <span class="toc-text">四、第一个完整示例：用 MuJoCo 跑灵巧手</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8A%A0%E8%BD%BD%E5%AE%98%E6%96%B9-Shadow-Hand"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 加载官方 Shadow Hand</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9F%A5%E7%9C%8B%E5%B9%B6%E6%8E%A7%E5%88%B6%E5%85%B3%E8%8A%82"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 查看并控制关节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E7%94%A8%E4%BB%BF%E7%9C%9F%E9%A2%91%E7%8E%87%E5%92%8C%E6%8E%A7%E5%88%B6%E9%A2%91%E7%8E%87%E8%A7%A3%E8%80%A6"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 用仿真频率和控制频率解耦</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%A0%B8%E5%BF%83-API%EF%BC%9A%E4%BD%A0%E9%9C%80%E8%A6%81%E6%8E%8C%E6%8F%A1%E7%9A%84%E5%AE%8C%E6%95%B4%E6%89%8B%E5%86%8C"><span class="toc-number">5.</span> <span class="toc-text">五、核心 API：你需要掌握的完整手册</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A8%A1%E5%9E%8B%E5%8A%A0%E8%BD%BD"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 模型加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%BB%BF%E7%9C%9F%E6%AD%A5%E8%BF%9B"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 仿真步进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%8E%A7%E5%88%B6"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%AF%BB%E5%8F%96%E7%8A%B6%E6%80%81"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 读取状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E6%8E%A5%E8%A7%A6%E4%BF%A1%E6%81%AF"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 接触信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-%E4%BC%A0%E6%84%9F%E5%99%A8"><span class="toc-number">5.6.</span> <span class="toc-text">5.6 传感器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BF%9B%E9%98%B6%EF%BC%9A%E7%81%B5%E5%B7%A7%E6%89%8B%E4%BB%BF%E7%9C%9F%E7%89%B9%E6%9C%89%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-number">6.</span> <span class="toc-text">六、进阶：灵巧手仿真特有的配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%9F%E9%9A%8F%E6%9C%BA%E5%8C%96%EF%BC%88Domain-Randomization%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 域随机化（Domain Randomization）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B7%BB%E5%8A%A0%E5%8A%9B%E4%BC%A0%E6%84%9F%E5%99%A8%EF%BC%88%E8%BF%91%E4%BC%BC%E8%A7%A6%E8%A7%89%EF%BC%89"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 添加力传感器（近似触觉）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%BD%AF%E6%8C%87%E5%B0%96%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%8F%82%E8%80%83-FineManip-%E8%AE%BA%E6%96%87%E6%96%B9%E6%B3%95%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 软指尖模型（参考 FineManip 论文方法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%AE%BE%E7%BD%AE%E8%85%B1%E7%BB%B3%E7%BA%A6%E6%9D%9F"><span class="toc-number">6.4.</span> <span class="toc-text">6.4 设置腱绳约束</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%80%E4%B8%AA%E5%85%B8%E5%9E%8B%E7%9A%84%E7%81%B5%E5%B7%A7%E6%89%8B%E4%BB%BF%E7%9C%9F%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">7.</span> <span class="toc-text">七、一个典型的灵巧手仿真工作流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">8.</span> <span class="toc-text">八、常见问题与调试技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%89%8B%E6%8C%87%E7%A9%BF%E9%80%8F%E7%89%A9%E4%BD%93"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 手指穿透物体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E7%89%A9%E4%BD%93%E6%8A%96%E5%8A%A8-%E7%88%86%E7%82%B8"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 物体抖动&#x2F;爆炸</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%8E%A7%E5%88%B6%E4%BF%A1%E5%8F%B7%E6%B2%A1%E5%8F%8D%E5%BA%94"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 控制信号没反应</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E4%BB%BF%E7%9C%9F%E9%80%9F%E5%BA%A6%E5%A4%AA%E6%85%A2"><span class="toc-number">8.4.</span> <span class="toc-text">8.4 仿真速度太慢</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%88%91%E8%AF%A5%E5%8E%BB%E5%93%AA%E9%87%8C%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%AD%A6%E4%B9%A0%EF%BC%9F"><span class="toc-number">9.</span> <span class="toc-text">九、我该去哪里进一步学习？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%98%E6%96%B9%E8%B5%84%E6%BA%90%EF%BC%88%E6%9C%80%E5%A5%BD%E7%9A%84%EF%BC%89%EF%BC%9A"><span class="toc-number">9.1.</span> <span class="toc-text">官方资源（最好的）：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BE%E5%8C%BA%E8%B5%84%E6%BA%90%EF%BC%9A"><span class="toc-number">9.2.</span> <span class="toc-text">社区资源：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">10.</span> <span class="toc-text">十、速查表</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/2026-06-03-mujoco-complete-introduction/" title="MuJoCo 完全入门 — 从零开始跑起灵巧手仿真">MuJoCo 完全入门 — 从零开始跑起灵巧手仿真</a><time datetime="2026-06-03T09:00:00.000Z" title="发表于 2026-06-03 17:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/02/2026-06-02-nvidia-isaac-sim-complete-introduction/" title="NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流">NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流</a><time datetime="2026-06-02T15:30:00.000Z" title="发表于 2026-06-02 23:30:00">2026-06-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/23/2026-05-23-airsim-px4-sitl-closed-loop/" title="AirSim源码深度解析：PX4 SITL四旋翼仿真闭环——从锁步同步到旋翼动力学">AirSim源码深度解析：PX4 SITL四旋翼仿真闭环——从锁步同步到旋翼动力学</a><time datetime="2026-05-23T10:00:00.000Z" title="发表于 2026-05-23 18:00:00">2026-05-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/19/2026-05-19-airsim-px4-sitl-integration/" title="AirSim↔PX4 SITL集成架构：锁步同步、数据流与MAVLink通信全解析">AirSim↔PX4 SITL集成架构：锁步同步、数据流与MAVLink通信全解析</a><time datetime="2026-05-18T16:01:00.000Z" title="发表于 2026-05-19 00:01:00">2026-05-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/18/cfd-surrogate-model-comparison/" title="四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南">四种CFD代理模型全面对比——GP vs MLP vs 随机森林 vs 梯度提升的选型决策指南</a><time datetime="2026-05-18T01:00:00.000Z" title="发表于 2026-05-18 09:00:00">2026-05-18</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
