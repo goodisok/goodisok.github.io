@@ -1,0 +1,882 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破 | goodisok 的博客</title><meta name="author" content="goodisok"><meta name="copyright" content="goodisok"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="摘要：2024年是AI数学推理的”iPhone时刻”。AlphaProof在IMO 2024上获得银牌，AlphaGeometry在几何领域超越人类金牌水平，DeepSeek系列开源模型将形式化证明的入门门槛降到几乎为零。本文系统梳理了这场正在发生的”AI数学革命”的技术脉络：从神经符号方法到强化学习证明搜索，从Lean社区爆发到AI辅助数学家的工作流变革，并给出我对”AI是否会取代数学家”的判">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破">
+<meta property="og:url" content="https://goodisok.github.io/2026/06/04/ai-mathematical-theorem-proving-2024-2025/index.html">
+<meta property="og:site_name" content="goodisok 的博客">
+<meta property="og:description" content="摘要：2024年是AI数学推理的”iPhone时刻”。AlphaProof在IMO 2024上获得银牌，AlphaGeometry在几何领域超越人类金牌水平，DeepSeek系列开源模型将形式化证明的入门门槛降到几乎为零。本文系统梳理了这场正在发生的”AI数学革命”的技术脉络：从神经符号方法到强化学习证明搜索，从Lean社区爆发到AI辅助数学家的工作流变革，并给出我对”AI是否会取代数学家”的判">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://goodisok.github.io/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-06-04T12:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-04T09:06:03.134Z">
+<meta property="article:author" content="goodisok">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="AlphaGeometry">
+<meta property="article:tag" content="AlphaProof">
+<meta property="article:tag" content="DeepSeek-Prover">
+<meta property="article:tag" content="IMO">
+<meta property="article:tag" content="Lean">
+<meta property="article:tag" content="定理证明">
+<meta property="article:tag" content="形式化验证">
+<meta property="article:tag" content="数学">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://goodisok.github.io/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破",
+  "url": "https://goodisok.github.io/2026/06/04/ai-mathematical-theorem-proving-2024-2025/",
+  "image": "https://goodisok.github.io/img/butterfly-icon.png",
+  "datePublished": "2026-06-04T12:00:00.000Z",
+  "dateModified": "2026-06-04T09:06:03.134Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "goodisok",
+      "url": "https://goodisok.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://goodisok.github.io/2026/06/04/ai-mathematical-theorem-proving-2024-2025/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'undefined')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?[object Object]";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=[object Object]"></script><script>window.dataLayer = window.dataLayer || []
+function gtag(){dataLayer.push(arguments)}
+gtag('js', new Date())
+gtag('config', '[object Object]')
+btf.addGlobalFn('pjaxComplete', () => {
+  gtag('config', '[object Object]', {'page_path': window.location.pathname})
+}, 'google_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="/css/katex/katex.min.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.1"><link rel="alternate" href="/atom.xml" title="goodisok 的博客" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background: [object Object];"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">141</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">587</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">goodisok 的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user-circle"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-04T12:00:00.000Z" title="发表于 2026-06-04 20:00:00">2026-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-04T09:06:03.134Z" title="更新于 2026-06-04 17:06:03">2026-06-04</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI%E4%B8%8E%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">AI与机器学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p><strong>摘要</strong>：2024年是AI数学推理的”iPhone时刻”。AlphaProof在IMO 2024上获得银牌，AlphaGeometry在几何领域超越人类金牌水平，DeepSeek系列开源模型将形式化证明的入门门槛降到几乎为零。本文系统梳理了这场正在发生的”AI数学革命”的技术脉络：从神经符号方法到强化学习证明搜索，从Lean社区爆发到AI辅助数学家的工作流变革，并给出我对”AI是否会取代数学家”的判断。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="一、2024：AI数学推理的”iPhone时刻”"><a href="#一、2024：AI数学推理的”iPhone时刻”" class="headerlink" title="一、2024：AI数学推理的”iPhone时刻”"></a>一、2024：AI数学推理的”iPhone时刻”</h2><p>2024年7月，伦敦的IMO（国际数学奥林匹克）赛场上传来了一个让数学界和AI界同时震动的消息：<strong>Google DeepMind的AlphaProof系统在IMO 2024中获得了银牌水平（4&#x2F;6题满分，总分28&#x2F;42）</strong>，而它的”姐妹系统”AlphaGeometry 2在几何题上获得满分。</p>
+<p>这是AI首次在IMO上达到人类竞赛选手的奖牌水平。如果将时间倒推两年——2022年，最好的AI数学系统在IMO上的得分是0——这个跨越的速度令人震惊。</p>
+<p><strong>但事情远不止”AI会做题”这么简单。</strong> 在这背后，一场更深层的革命正在数学界悄然发生：</p>
+<ul>
+<li><strong>Lean</strong> 形式化证明社区的用户量在 2023-2025 年间增长了约 <strong>5 倍</strong></li>
+<li><strong>DeepSeek-Prover</strong> 系列将开源形式化证明的能力推进到本科数学水平</li>
+<li>多个数学研究团队开始将 <strong>AI辅助证明</strong> 纳入日常工作流</li>
+<li><strong>“形式化数位化”</strong> 从一个小众学术活动变成了主流数学期刊的讨论话题</li>
+</ul>
+<p>本文将基于公开的论文、技术报告和社区数据，系统梳理这场”AI数学革命”的技术全景。</p>
+<hr>
+<h2 id="二、AlphaGeometry：从零开始的几何推理"><a href="#二、AlphaGeometry：从零开始的几何推理" class="headerlink" title="二、AlphaGeometry：从零开始的几何推理"></a>二、AlphaGeometry：从零开始的几何推理</h2><h3 id="2-1-核心方法：神经符号合成"><a href="#2-1-核心方法：神经符号合成" class="headerlink" title="2.1 核心方法：神经符号合成"></a>2.1 核心方法：神经符号合成</h3><p>2024年1月发表于 <em>Nature</em> 的论文 <em>“Solving olympiad geometry without human demonstrations”</em>（Trinh, Wu, Le, He, Luong）提出了一个神经符号系统，其核心创新在于<strong>无需人类演示数据</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>神经语言模型</strong></td>
+<td>Transformer</td>
+<td>从几何图形中提取语义特征，预测辅助点&#x2F;辅助线的构造</td>
+</tr>
+<tr>
+<td><strong>符号演绎引擎</strong></td>
+<td>DDoS (专门面向几何的搜索)</td>
+<td>基于欧几里得几何的公理系统进行穷举推导</td>
+</tr>
+<tr>
+<td><strong>合成数据生成器</strong></td>
+<td>自动随机生成</td>
+<td>生成 1 亿道不同难度的几何题及其证明路径</td>
+</tr>
+</tbody></table>
+<p><strong>合成数据是关键突破：</strong></p>
+<p>传统方法需要人类标注的几何题和证明来训练模型。AlphaGeometry 的做法是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">随机生成几何构型</span><br><span class="line">    ↓</span><br><span class="line">符号演绎引擎尝试推导所有可导出的结论</span><br><span class="line">    ↓</span><br><span class="line">将&quot;构型 → 结论&quot;对作为训练数据</span><br><span class="line">    ↓</span><br><span class="line">训练神经模型预测&quot;给定构型，下一步该做什么&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这 1 亿道合成题使神经模型学会了在遇到真实 IMO 几何题时如何”灵光一现”——提出生成序贯的辅助线&#x2F;辅助点构造。</p>
+<h3 id="2-2-性能"><a href="#2-2-性能" class="headerlink" title="2.2 性能"></a>2.2 性能</h3><table>
+<thead>
+<tr>
+<th>基准</th>
+<th>之前最好 (2022)</th>
+<th>AlphaGeometry</th>
+<th>AlphaGeometry 2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IMO 2000-2023 几何题</td>
+<td>54%</td>
+<td><strong>88%</strong></td>
+<td><strong>92%</strong></td>
+</tr>
+<tr>
+<td>IMO 2024 几何题</td>
+<td>—</td>
+<td>—</td>
+<td><strong>满分</strong></td>
+</tr>
+<tr>
+<td>辅助构造路径</td>
+<td>需人类示范</td>
+<td><strong>零示范</strong></td>
+<td>零示范</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-局限"><a href="#2-3-局限" class="headerlink" title="2.3 局限"></a>2.3 局限</h3><p>AlphaGeometry 仅支持<strong>欧几里得平面几何</strong>。它不能做数论、组合、代数等问题。它的成功在于 <strong>“将几何这个特定领域的形式化做到极致”</strong>，而非通用数学推理。</p>
+<hr>
+<h2 id="三、AlphaProof：更通用的强化学习方法"><a href="#三、AlphaProof：更通用的强化学习方法" class="headerlink" title="三、AlphaProof：更通用的强化学习方法"></a>三、AlphaProof：更通用的强化学习方法</h2><h3 id="3-1-系统架构"><a href="#3-1-系统架构" class="headerlink" title="3.1 系统架构"></a>3.1 系统架构</h3><p>AlphaProof 是比 AlphaGeometry 更通用的系统——它使用<strong>强化学习 + 形式化语言（Lean）</strong> 的组合来处理更广泛的数学问题：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">问题陈述（自然语言或形式化）</span><br><span class="line">    ↓</span><br><span class="line">编码器 → 转化为 Lean 形式化表述</span><br><span class="line">    ↓</span><br><span class="line">策略网络（Transformer）→ 预测下一步 tactic</span><br><span class="line">    ↓</span><br><span class="line">Lean 内核验证 → 成功或失败</span><br><span class="line">    ↓</span><br><span class="line">PPO 强化学习更新策略</span><br></pre></td></tr></table></figure>
+
+<p>AlphaProof 在 IMO 2024 上的表现（6 题中 4 题满分）：</p>
+<table>
+<thead>
+<tr>
+<th>题号</th>
+<th>领域</th>
+<th>AlphaProof</th>
+<th>人类金牌线</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第1题</td>
+<td>数论</td>
+<td>✅ 满分</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>第2题</td>
+<td>代数</td>
+<td>✅ 满分</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>第3题</td>
+<td>代数</td>
+<td>✅ 满分</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>第4题</td>
+<td>组合</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>第5题</td>
+<td>几何</td>
+<td>✅ 满分</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>第6题</td>
+<td>组合</td>
+<td>❌</td>
+<td>⚠️ 仅少数选手完成</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-训练方法的技术细节"><a href="#3-2-训练方法的技术细节" class="headerlink" title="3.2 训练方法的技术细节"></a>3.2 训练方法的技术细节</h3><p>AlphaProof 的 RL 管线有三个关键设计：</p>
+<ol>
+<li><strong>课程学习（Curriculum Learning）</strong>：从简单 IMO 题开始训练，逐步提升难度</li>
+<li><strong>自对弈（Self-Play）</strong>：每次生成多个证明候选路径，用 Lean 内核验证，将成功的路径作为正反馈</li>
+<li><strong>搜索时计算扩展</strong>：推断时可以用更多计算资源来搜索更深的证明树</li>
+</ol>
+<p>这与 AlphaGo 的思路如出一辙：<strong>将定理证明视为一种”两人游戏”——证明者 vs 验证者</strong>，验证者（Lean 内核）是完美的（不犯错），证明者需要找到通往目标的路径。</p>
+<h3 id="3-3-计算成本"><a href="#3-3-计算成本" class="headerlink" title="3.3 计算成本"></a>3.3 计算成本</h3><p>AlphaProof 的一个被低估的话题是它的计算开销：据报道，单个 IMO 题的证明搜索可能需要数小时到数天的 GPU 时间。这与人类选手的”90 分钟内完成一题”相比，效率差距巨大。</p>
+<p>但重要的是：<strong>AlphaProof 不需要人类的数学直觉，它通过暴力搜索+学习来弥补</strong>。随着硬件效率提升和模型架构优化，这种差距正在快速缩小。</p>
+<hr>
+<h2 id="四、DeepSeek-Prover：开源社区的逆袭"><a href="#四、DeepSeek-Prover：开源社区的逆袭" class="headerlink" title="四、DeepSeek-Prover：开源社区的逆袭"></a>四、DeepSeek-Prover：开源社区的逆袭</h2><p>如果说 DeepMind 的 AlphaProof&#x2F;AlphaGeometry 代表了”闭源巨头”的路线，那么 <strong>DeepSeek-Prover</strong> 系列（DeepSeek AI，2024-2025）则代表了”开源社区”的力量。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>日期</th>
+<th>在 Lean 上的表现</th>
+<th>开源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DeepSeek-Prover v1</td>
+<td>2024.08</td>
+<td>MiniF2F 验证集 34.6%</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>DeepSeek-Prover v2</td>
+<td>2025.01</td>
+<td>MiniF2F 验证集 <strong>41.8%</strong></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>社区改进版</td>
+<td>2025.03</td>
+<td>多个团队用 LoRA 微调达 ~45%</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p><strong>DeepSeek 的核心贡献在于开源了训练管线的每一环</strong>：</p>
+<ol>
+<li><strong>合成数据生成器</strong>：从已有定理自动生成形式和难度各异的训练数据</li>
+<li><strong>Lean 环境接口</strong>：将 Lean 的 tactic 执行环境封装为可 RL 训练的 gym 环境</li>
+<li><strong>预训练模型权重</strong>：可在消费级 GPU（RTX 4090）上微调</li>
+</ol>
+<p>这使得全球的研究人员和数学爱好者都能参与进来——到 2025 年底，社区改进版已经追平甚至在某些子集上超越了闭源系统。</p>
+<h3 id="开源-vs-闭源的张力"><a href="#开源-vs-闭源的张力" class="headerlink" title="开源 vs 闭源的张力"></a>开源 vs 闭源的张力</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">                  DeepMind (闭源)          DeepSeek (开源)</span><br><span class="line">                  ─────────────           ─────────────</span><br><span class="line">性能 (MiniF2F)    领先 ~5%                 快速追赶</span><br><span class="line">可复现性           ❌ (未公开完整代码)       ✅ (全部公开)</span><br><span class="line">可定制性           ❌ (黑盒)                ✅ (可微调)</span><br><span class="line">硬件需求           企业级 GPU               消费级 GPU</span><br><span class="line">社区贡献           ❌                       ✅ (全球社区迭代)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、形式化证明生态：Lean-的爆发"><a href="#五、形式化证明生态：Lean-的爆发" class="headerlink" title="五、形式化证明生态：Lean 的爆发"></a>五、形式化证明生态：Lean 的爆发</h2><h3 id="5-1-Lean-是什么"><a href="#5-1-Lean-是什么" class="headerlink" title="5.1 Lean 是什么"></a>5.1 Lean 是什么</h3><p>Lean（由微软研究院 Leonardo de Moura 开发）是一个交互式定理证明器（Interactive Theorem Prover, ITP）。它是数学家的”IDE”——你写定理，用 tactic 构造证明，Lean 内核验证每一步的逻辑正确性。</p>
+<h3 id="5-2-2023-2025-的增长曲线"><a href="#5-2-2023-2025-的增长曲线" class="headerlink" title="5.2 2023-2025 的增长曲线"></a>5.2 2023-2025 的增长曲线</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>2023 年</th>
+<th>2025 年</th>
+<th>增长</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lean 社区包 (mathlib4) 定理数</td>
+<td>~80,000</td>
+<td><strong>~135,000</strong></td>
+<td>1.7x</td>
+</tr>
+<tr>
+<td>GitHub 活跃贡献者</td>
+<td>~200</td>
+<td><strong>~800</strong></td>
+<td>4x</td>
+</tr>
+<tr>
+<td>形式化的本科数学占比</td>
+<td>~40%</td>
+<td><strong>~65%</strong></td>
+<td>—</td>
+</tr>
+<tr>
+<td>开设 Lean 课程的高校</td>
+<td>~15</td>
+<td><strong>~60+</strong></td>
+<td>4x</td>
+</tr>
+</tbody></table>
+<p>这组数字的驱动力来自两个方向：</p>
+<ol>
+<li><strong>“自顶向下”</strong>：Fields 奖得主如 Peter Scholze、Kevin Buzzard、Terence Tao 等公开倡导形式化证明，并在自己的研究中实际使用 Lean</li>
+<li><strong>“自底向上”</strong>：AI 系统（AlphaProof、DeepSeek-Prover）自动生成或辅助生成证明，大幅降低了进入门槛</li>
+</ol>
+<h3 id="5-3-典型案例：液体张量实验的形式化"><a href="#5-3-典型案例：液体张量实验的形式化" class="headerlink" title="5.3 典型案例：液体张量实验的形式化"></a>5.3 典型案例：液体张量实验的形式化</h3><p>2024 年，Peter Scholze（Fields 2018）提出的”液体张量实验”（Liquid Tensor Experiment）在 Lean 中完成形式化验证。这是一个长达数年的项目，最终由国际团队协作完成，证明了：</p>
+<blockquote>
+<p><strong>“即便是最前沿的数学研究，也可以被形式化验证。”</strong></p>
+</blockquote>
+<p>这个案例的意义远不止一个定理的验证——它展示了<strong>分布式形式化证明</strong>的工作模式：不同数学家负责不同引理，Lean 的内核确保整体逻辑一致性。</p>
+<hr>
+<h2 id="六、未解难题：AI-数学推理的七个局限"><a href="#六、未解难题：AI-数学推理的七个局限" class="headerlink" title="六、未解难题：AI 数学推理的七个局限"></a>六、未解难题：AI 数学推理的七个局限</h2><p>尽管 2024-2025 年的进展令人振奋，但我们需要对 AI 的数学能力保持清醒的认识。</p>
+<h3 id="6-1-局限清单"><a href="#6-1-局限清单" class="headerlink" title="6.1 局限清单"></a>6.1 局限清单</h3><table>
+<thead>
+<tr>
+<th>局限</th>
+<th>说明</th>
+<th>是否正在被解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. 竞赛 vs 研究</strong></td>
+<td>IMO 是”已知答案的封闭问题”，前沿研究是”没人知道答案的开放问题”</td>
+<td>❌ 差距巨大</td>
+</tr>
+<tr>
+<td><strong>2. 形式化鸿沟</strong></td>
+<td>自然语言定理需要先形式化为 Lean 代码，这一步目前需要大量人工</td>
+<td>⚠️ AI辅助翻译中</td>
+</tr>
+<tr>
+<td><strong>3. 概念创造</strong></td>
+<td>AI 能推理但不会”发明”新概念（如群、流形、范畴）</td>
+<td>❌ 无迹象</td>
+</tr>
+<tr>
+<td><strong>4. 证明策略的广度</strong></td>
+<td>每个证明只需要几十步，但搜索空间指数级膨胀</td>
+<td>⚠️ 搜索优化中</td>
+</tr>
+<tr>
+<td><strong>5. 计算成本</strong></td>
+<td>一个 IMO 题的证明可能需要 GPU 数小时到数天</td>
+<td>⚠️ 硬件在进步</td>
+</tr>
+<tr>
+<td><strong>6. 反馈信号稀疏</strong></td>
+<td>真定理可以验证，但”有趣的方向”这种信号无法形式化</td>
+<td>❌ 根本性困难</td>
+</tr>
+<tr>
+<td><strong>7. 跨领域迁移</strong></td>
+<td>几何题的训练不能帮助数论</td>
+<td>⚠️ 多任务学习中</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-核心困难：证明与验证的非对称性"><a href="#6-2-核心困难：证明与验证的非对称性" class="headerlink" title="6.2 核心困难：证明与验证的非对称性"></a>6.2 核心困难：证明与验证的非对称性</h3><p>Gödel 的不完备性定理告诉我们：<strong>数学真理永远超越形式系统</strong>。这给 AI 数学推理带来了一个根本性的限制：</p>
+<ul>
+<li>✅ <strong>验证一个证明</strong>是容易的（只要一个形式化内核检查每一步）</li>
+<li>❌ <strong>寻找一个证明</strong>是困难的（搜索空间是无限的）</li>
+</ul>
+<p>AI 系统（如 AlphaProof）本质上是在做”大规模搜索 + 学习启发式”——它不会”理解”数学，它学会的是”什么形状的搜索树更容易成功”。</p>
+<p>但这并不意味着 AI 没有用——<strong>人类数学家的工作流中，90% 的时间也消耗在”搜索”（失败的尝试）上</strong>。AI 可以在搜索阶段帮人类排除 90% 的无效路径。</p>
+<hr>
+<h2 id="七、对数学家的实际影响：工作流变革"><a href="#七、对数学家的实际影响：工作流变革" class="headerlink" title="七、对数学家的实际影响：工作流变革"></a>七、对数学家的实际影响：工作流变革</h2><p>我把 AI 对数学研究的影响分为三个层次：</p>
+<h3 id="7-1-当前已可用的（2025-2026）"><a href="#7-1-当前已可用的（2025-2026）" class="headerlink" title="7.1 当前已可用的（2025-2026）"></a>7.1 当前已可用的（2025-2026）</h3><table>
+<thead>
+<tr>
+<th>能力</th>
+<th>工具</th>
+<th>实际效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>证明搜索辅助</td>
+<td>AlphaProof &#x2F; DeepSeek-Prover</td>
+<td>提供已知定理的替代证明</td>
+</tr>
+<tr>
+<td>引理验证</td>
+<td>Lean + Copilot</td>
+<td>自动检查复杂计算的正确性</td>
+</tr>
+<tr>
+<td>反例搜索</td>
+<td>符号计算 + SAT 求解器</td>
+<td>快速验证猜想的反例存在性</td>
+</tr>
+<tr>
+<td>文献回顾</td>
+<td>LLM 辅助</td>
+<td>从大量论文中提取关键技术</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-未来-3-5-年可预期的"><a href="#7-2-未来-3-5-年可预期的" class="headerlink" title="7.2 未来 3-5 年可预期的"></a>7.2 未来 3-5 年可预期的</h3><ul>
+<li><strong>“自动引理建议”</strong>：当你需要某个中间引理时，AI 自动从 mathlib 中推荐或自动推导</li>
+<li><strong>“证明草图扩写”</strong>：你写一个高层次证明草图，AI 将其展开为 Lean 可验证的完整证明</li>
+<li><strong>“猜想生成”</strong>：AI 基于已有定理的模式识别，提出可能的新猜想</li>
+</ul>
+<h3 id="7-3-我个人的预测"><a href="#7-3-我个人的预测" class="headerlink" title="7.3 我个人的预测"></a>7.3 我个人的预测</h3><blockquote>
+<p><strong>AI 不会取代数学家，但会用 AI 的数学家将会取代不用 AI 的数学家。</strong></p>
+</blockquote>
+<p>具体来说：</p>
+<ul>
+<li><strong>定理发现</strong>：AI 会成为”助手”而非”创造者”</li>
+<li><strong>证明验证</strong>：形式化验证将成为顶级期刊的投稿标准（类似今天的代码可复现性）</li>
+<li><strong>数学教育</strong>：AI 导师将彻底改变数学教学（尤其是竞赛数学）</li>
+<li><strong>数学家的核心能力</strong>：将从”计算和推导”转向”概念创新和形式化思维”</li>
+</ul>
+<hr>
+<h2 id="八、2025-2026-值得关注的趋势"><a href="#八、2025-2026-值得关注的趋势" class="headerlink" title="八、2025-2026 值得关注的趋势"></a>八、2025-2026 值得关注的趋势</h2><h3 id="8-1-技术与工程"><a href="#8-1-技术与工程" class="headerlink" title="8.1 技术与工程"></a>8.1 技术与工程</h3><ol>
+<li><strong>Lean 4 生态成熟</strong>：协程支持、更好的 IDE 集成、更快的编译速度</li>
+<li><strong>多模态证明搜索</strong>：组合几何（AlphaGeometry）+ 代数（AlphaProof）的统一框架</li>
+<li><strong>超长证明序列学习</strong>：从 50-step IMO 题到 1000-step 研究级定理</li>
+</ol>
+<h3 id="8-2-社区与文化"><a href="#8-2-社区与文化" class="headerlink" title="8.2 社区与文化"></a>8.2 社区与文化</h3><ol>
+<li><strong>形式化数学的”Wikipedia 时刻”</strong>：更多数学家像编辑 Wikipedia 一样向 mathlib 贡献形式化定理</li>
+<li><strong>AI 辅助的 arXiv 审核</strong>：自动检查论文中的逻辑错误</li>
+<li><strong>数学奥林匹克训练的新范式</strong>：选手用 AI 系统做陪练</li>
+</ol>
+<h3 id="8-3-关键论文（2024-2025）"><a href="#8-3-关键论文（2024-2025）" class="headerlink" title="8.3 关键论文（2024-2025）"></a>8.3 关键论文（2024-2025）</h3><table>
+<thead>
+<tr>
+<th>论文</th>
+<th>年份</th>
+<th>核心贡献</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>AlphaGeometry</strong> (Nature, Trinh et al.)</td>
+<td>2024.01</td>
+<td>零示范几何推理</td>
+</tr>
+<tr>
+<td><strong>AlphaProof Technical Report</strong> (DeepMind)</td>
+<td>2024.07</td>
+<td>RL + Lean 的 IMO 银牌</td>
+</tr>
+<tr>
+<td><strong>DeepSeek-Prover v2</strong> (DeepSeek AI)</td>
+<td>2025.01</td>
+<td>开源形式化证明 SOTA</td>
+</tr>
+<tr>
+<td><strong>Formalizing 100 Theorems</strong> (mathlib 社区)</td>
+<td>2025</td>
+<td>100 个经典定理的形式化里程碑</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="九、结论"><a href="#九、结论" class="headerlink" title="九、结论"></a>九、结论</h2><p>2024-2025 年，AI 数学推理经历了从”实验室演示”到”竞赛银牌”的跨越。AlphaProof&#x2F;AlphaGeometry 证明了神经-符号混合方法是有效的，DeepSeek-Prover 证明了开源路线可以快速追赶，Lean 社区的爆发证明了形式化数学正在从小众走向主流。</p>
+<p>但我们也需要坦诚地面对：<strong>现在 AI 能做的是”解已知题”，而非”发现新数学”</strong>。这两个目标之间的距离，可能比从 IMO 0 分到银牌的距离还要大。</p>
+<p>对于读者而言——无论你是数学家、工程师还是学生——现在开始接触 Lean 和 AI 辅助证明工具，可能是你今年最有价值的”时间投资”。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>Trinh, T.H., Wu, Y., Le, Q.V., He, H., Luong, T. “Solving olympiad geometry without human demonstrations.” <em>Nature</em>, 625, 476–482 (2024). DOI: 10.1038&#x2F;s41586-023-06747-5</li>
+<li>DeepMind. “AI achieves silver-medal standard solving International Mathematical Olympiad problems.” <em>DeepMind Blog</em>, July 2024.</li>
+<li>DeepSeek AI. “DeepSeek-Prover v2: Advancing Formal Theorem Proving.” arXiv, 2025.</li>
+<li>The mathlib Community. “Mathlib4: A Unified Formal Mathematics Library.” 2024-2025.</li>
+<li>Buzzard, K. “The Future of Mathematics?” <em>Notices of the AMS</em>, 2024.</li>
+</ol>
+<hr>
+<p><em>本文基于公开的论文、技术报告和社区数据撰写。数据截至 2026 年 6 月。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://goodisok.github.io">goodisok</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://goodisok.github.io/2026/06/04/ai-mathematical-theorem-proving-2024-2025/">https://goodisok.github.io/2026/06/04/ai-mathematical-theorem-proving-2024-2025/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://goodisok.github.io" target="_blank">goodisok 的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%95%B0%E5%AD%A6/">数学</a><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/%E5%AE%9A%E7%90%86%E8%AF%81%E6%98%8E/">定理证明</a><a class="post-meta__tags" href="/tags/AlphaProof/">AlphaProof</a><a class="post-meta__tags" href="/tags/AlphaGeometry/">AlphaGeometry</a><a class="post-meta__tags" href="/tags/DeepSeek-Prover/">DeepSeek-Prover</a><a class="post-meta__tags" href="/tags/Lean/">Lean</a><a class="post-meta__tags" href="/tags/IMO/">IMO</a><a class="post-meta__tags" href="/tags/%E5%BD%A2%E5%BC%8F%E5%8C%96%E9%AA%8C%E8%AF%81/">形式化验证</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/06/04/genesis-world-deep-analysis/" title="Genesis World 深度解析：29,000 Stars背后的四层架构、多物理革命与Sim-to-Real真相"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Genesis World 深度解析：29,000 Stars背后的四层架构、多物理革命与Sim-to-Real真相</div></div><div class="info-2"><div class="info-item-1"> 摘要：Genesis World 以 29,000+ Stars 成为 2025-2026 年全球最受关注的机器人仿真项目。本文从 arXiv 技术报告、GitHub 源码（252 个 Python 模块）和完整文档三个维度，对 Genesis World 进行系统性深度分析。涵盖四层架构设计、Quadrants 编译器原理、六种物理求解器的统一机制、Nyx 渲染器的技术路线、Sim-to-Real 相关系数 0.8996 意味着什么，以及它与 MuJoCo&#x2F;Isaac Lab 的真正差异。     声明：本文基于 Genesis World v1.0.0 的公开源码、文档和技术博客撰写，所有数据和分析均来自可验证的公开材料。   一、Genesis World 是什么：一个四层架构的统一仿真平台Genesis World（前身为 Genesis）由 Genesis AI 公司维护，源码公开于 Genesis-Embodied-AI/genesis-world。它是一个面向 Physical AI 的统一仿真平台，核心哲学是将仿真定位为 “AI 模型的评估引擎” 而非...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/15/linear-algebra-textbook/" title="线性代数·从行列式到二次型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-15</div><div class="info-item-2">线性代数·从行列式到二次型</div></div><div class="info-2"><div class="info-item-1">参考教材：同济大学数学系《线性代数》第六版（第1–6章）。GitHub 配套课本：github.com&#x2F;goodisok&#x2F;ChinaTextbook  一、行列式——一个数字决定一切概念直觉行列式是一个奇特的函数：输入一个方阵，输出一个数字。这个数字告诉你一件至关重要的事——这个矩阵所代表的变换是把空间”撑大”还是”压扁”。行列式为零，意味着至少一个维度被压没了——变换变得不可逆。 定义二阶行列式： ∣a11a12a21a22∣=a11a22−a12a21 \begin{vmatrix} a_{11} &amp; a_{12} \\ a_{21} &amp; a_{22} \end{vmatrix} = a_{11}a_{22} - a_{12}a_{21} ​a11​a21​​a12​a22​​​=a11​a22​−a12​a21​  三阶行列式（对角线法则）： ∣a11a12a13a21a22a23a31a32a33∣=a11a22a33+a12a23a31+a13a21a32−a13a22a31−a12a21a33−a11a23a32 \begin{vm...</div></div></div></a><a class="pagination-related" href="/2026/01/30/grade12-math-textbook/" title="高三数学·核心知识点"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-30</div><div class="info-item-2">高三数学·核心知识点</div></div><div class="info-2"><div class="info-item-1"> 人教版高中 A 版选择性必修第三册。教材：ChinaTextbook   一、计数原理1.1 分类加法计数原理与分步乘法计数原理分类加法：完成一件事有 n 类不同方案，第 i 类有 mᵢ 种方法，则共有 N=m1+m2+⋯+mnN = m_1 + m_2 + \cdots + m_nN=m1​+m2​+⋯+mn​  种不同的方法。 分步乘法：完成一件事需要 n 个步骤，第 i 步有 mᵢ 种方法，则共有 N=m1×m2×⋯×mnN = m_1 \times m_2 \times \cdots \times m_nN=m1​×m2​×⋯×mn​  种不同的方法。 1.2 排列与组合排列数：从 n 个不同元素中取出 m 个，按一定顺序排成一列。 Anm=n(n−1)(n−2)⋯(n−m+1)=n!(n−m)!A_n^m = n(n-1)(n-2)\cdots(n-m+1) = \frac{n!}{(n-m)!}Anm​=n(n−1)(n−2)⋯(n−m+1)=(n−m)!n!​  全排列：Aₙⁿ &#x3D; n!，规定 0! &#x3D; 1。 组合数：从 n 个不同元素中取出 ...</div></div></div></a><a class="pagination-related" href="/2026/01/27/grade9-math-textbook/" title="初三数学·核心知识点"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-27</div><div class="info-item-2">初三数学·核心知识点</div></div><div class="info-2"><div class="info-item-1"> 人教版初三上下册。教材：ChinaTextbook  一、一元二次方程定义：只含一个未知数，未知数最高次数为 2 的整式方程。 一般形式：ax² + bx + c &#x3D; 0（a ≠ 0） 解法： ① 直接开平方法：x² &#x3D; p → x &#x3D; ±√p（p ≥ 0） 例：x² &#x3D; 9 → x &#x3D; ±3 ② 配方法：将方程化为 (x + m)² &#x3D; n 的形式。 例：x² + 6x − 7 &#x3D; 0  x² + 6x + 9 &#x3D; 7 + 9 → (x + 3)² &#x3D; 16 → x &#x3D; −3 ± 4 → x₁ &#x3D; 1, x₂ &#x3D; −7  ③ 公式法（求根公式）：  x &#x3D; [−b ± √(b² − 4ac)] &#x2F; 2a  判别式 Δ &#x3D; b² − 4ac：    Δ 根的情况    Δ &gt; 0 两个不等实根   Δ &#x3D; 0 两个相等实根   Δ &lt; 0 无实根   例：解 2x² − 4x − 1 &#x3D; 0  Δ ...</div></div></div></a><a class="pagination-related" href="/2026/02/19/hermes-agent-complete-guide/" title="Hermes Agent 完全指南：Architecture, QQ Bot, Skills &amp; More"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-19</div><div class="info-item-2">Hermes Agent 完全指南：Architecture, QQ Bot, Skills &amp; More</div></div><div class="info-2"><div class="info-item-1">一、引言在 AI Agent 工具百花齐放的 2025–2026 年，开发者面临着一个新的问题：哪个 Agent 框架真正能干活？ Claude Code 强在代码理解、Codex 强在 IDE 集成，但它们都有一个共同的局限——只能活在终端里。而实际工作中，消息通知、定时任务、团队协作、跨平台响应……这些场景需要一个能「无处不在」的 Agent。 Hermes Agent 正是为此而生。它不是另一个聊天机器人，而是一个多网关、可扩展、自学习的 AI Agent 运行时——同一个 Agent 实例，可以同时运行在 Telegram、QQ、Discord、Slack、终端、Web API 等十余个平台上，共享配置、记忆和技能。 本文将从架构设计出发，深入 Hermes Agent 的核心机制，并给出完整的 QQ Bot 配置实战。  二、架构概览：Hermes 是如何运行的？2.1 核心循环（Agent Loop）Hermes 的核心是一个同步循环（run_agent.py → AIAgent.run_conversation()），逻辑非常清晰： 123456while 迭代次数...</div></div></div></a><a class="pagination-related" href="/2026/01/25/grade7-math-textbook/" title="初一数学·核心知识点"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-25</div><div class="info-item-2">初一数学·核心知识点</div></div><div class="info-2"><div class="info-item-1"> 人教版初一上下册。教材：ChinaTextbook   一、有理数1.1 正数和负数定义：大于 0 的数是正数，小于 0 的数是负数。0 既不是正数也不是负数。 正数前面可以加”+”，负数前面加”−”。 1.2 有理数的分类整数和分数统称有理数（rational number）。 12345678有理数：  ├── 整数  │     ├── 正整数（1, 2, 3, …）  │     ├── 0  │     └── 负整数（−1, −2, −3, …）  └── 分数        ├── 正分数        └── 负分数  所有有理数都可以写成 p&#x2F;q 的形式（p, q 为整数，q ≠ 0）。 1.3 数轴数轴：规定了原点、正方向和单位长度的直线叫数轴。  原点右侧的点表示正数，左侧表示负数 数轴上两个点，右边的点表示的数总比左边的大  比较大小：正数 &gt; 0 &gt; 负数；两个负数，绝对值大的反而小。 1.4 相反数与绝对值相反数：只有符号不同的两个数互为相反数。a 的相反数是 −a；0 的相反数是 0。 绝对值：数轴上表示数 a 的点到原点的距...</div></div></div></a><a class="pagination-related" href="/2026/01/29/grade11-math-textbook/" title="高二数学·核心知识点"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-29</div><div class="info-item-2">高二数学·核心知识点</div></div><div class="info-2"><div class="info-item-1"> 人教版高中 A 版选择性必修第一册 + 第二册。教材：ChinaTextbook   一、空间向量与立体几何1.1 空间向量及其运算定义：与平面向量类似，空间向量是既有大小又有方向的量。 加法：三角形法则、平行四边形法则同样适用于空间向量。 数乘：λa，模为 |λ||a|，λ &gt; 0 同向，λ &lt; 0 反向。 共线向量：a ∥ b（b ≠ 0）⇔ ∃λ ∈ R, a &#x3D; λb。 共面向量定理：向量 p 与 a, b 共面 ⇔ ∃唯一 (x, y), p &#x3D; xa + yb。 数量积：a·b &#x3D; |a||b| cos⟨a, b⟩。  a ⊥ b ⇔ a·b &#x3D; 0 运算律同上（交换、分配、数乘结合）  1.2 空间向量基本定理若 {e₁, e₂, e₃} 是三个不共面的向量，则空间中任一向量 a 可唯一表示为： a=xe1+ye2+ze3a = x e_1 + y e_2 + z e_3a=xe1​+ye2​+ze3​  (e₁, e₂, e₃) 叫做空间的一个基底。 1.3 空间向量及其运算的坐标表示在空间直角坐标系中，设 a...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">goodisok</div><div class="author-info-description">技术爱好者，喜欢探索新技术</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">141</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">587</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/goodisok" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:lcgsmile@qq.com" target="_blank" title="邮箱"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="/wechat" target="_blank" title="微信"><i class="fab fa-weixin" style="color: #07c160;"></i></a><a class="social-icon" href="/qq" target="_blank" title="QQ"><i class="fab fa-qq" style="color: #12b7f5;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS"><i class="fas fa-rss" style="color: #ff9800;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的技术博客！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%812024%EF%BC%9AAI%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86%E7%9A%84%E2%80%9DiPhone%E6%97%B6%E5%88%BB%E2%80%9D"><span class="toc-number">1.</span> <span class="toc-text">一、2024：AI数学推理的”iPhone时刻”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81AlphaGeometry%EF%BC%9A%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%9A%84%E5%87%A0%E4%BD%95%E6%8E%A8%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">二、AlphaGeometry：从零开始的几何推理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95%EF%BC%9A%E7%A5%9E%E7%BB%8F%E7%AC%A6%E5%8F%B7%E5%90%88%E6%88%90"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 核心方法：神经符号合成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%80%A7%E8%83%BD"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 性能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B1%80%E9%99%90"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 局限</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81AlphaProof%EF%BC%9A%E6%9B%B4%E9%80%9A%E7%94%A8%E7%9A%84%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">三、AlphaProof：更通用的强化学习方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 系统架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%AE%AD%E7%BB%83%E6%96%B9%E6%B3%95%E7%9A%84%E6%8A%80%E6%9C%AF%E7%BB%86%E8%8A%82"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 训练方法的技术细节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%AE%A1%E7%AE%97%E6%88%90%E6%9C%AC"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 计算成本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81DeepSeek-Prover%EF%BC%9A%E5%BC%80%E6%BA%90%E7%A4%BE%E5%8C%BA%E7%9A%84%E9%80%86%E8%A2%AD"><span class="toc-number">4.</span> <span class="toc-text">四、DeepSeek-Prover：开源社区的逆袭</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E6%BA%90-vs-%E9%97%AD%E6%BA%90%E7%9A%84%E5%BC%A0%E5%8A%9B"><span class="toc-number">4.1.</span> <span class="toc-text">开源 vs 闭源的张力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%BD%A2%E5%BC%8F%E5%8C%96%E8%AF%81%E6%98%8E%E7%94%9F%E6%80%81%EF%BC%9ALean-%E7%9A%84%E7%88%86%E5%8F%91"><span class="toc-number">5.</span> <span class="toc-text">五、形式化证明生态：Lean 的爆发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Lean-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 Lean 是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-2023-2025-%E7%9A%84%E5%A2%9E%E9%95%BF%E6%9B%B2%E7%BA%BF"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 2023-2025 的增长曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%85%B8%E5%9E%8B%E6%A1%88%E4%BE%8B%EF%BC%9A%E6%B6%B2%E4%BD%93%E5%BC%A0%E9%87%8F%E5%AE%9E%E9%AA%8C%E7%9A%84%E5%BD%A2%E5%BC%8F%E5%8C%96"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 典型案例：液体张量实验的形式化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9C%AA%E8%A7%A3%E9%9A%BE%E9%A2%98%EF%BC%9AAI-%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86%E7%9A%84%E4%B8%83%E4%B8%AA%E5%B1%80%E9%99%90"><span class="toc-number">6.</span> <span class="toc-text">六、未解难题：AI 数学推理的七个局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B1%80%E9%99%90%E6%B8%85%E5%8D%95"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 局限清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%A0%B8%E5%BF%83%E5%9B%B0%E9%9A%BE%EF%BC%9A%E8%AF%81%E6%98%8E%E4%B8%8E%E9%AA%8C%E8%AF%81%E7%9A%84%E9%9D%9E%E5%AF%B9%E7%A7%B0%E6%80%A7"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 核心困难：证明与验证的非对称性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AF%B9%E6%95%B0%E5%AD%A6%E5%AE%B6%E7%9A%84%E5%AE%9E%E9%99%85%E5%BD%B1%E5%93%8D%EF%BC%9A%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%8F%98%E9%9D%A9"><span class="toc-number">7.</span> <span class="toc-text">七、对数学家的实际影响：工作流变革</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%BD%93%E5%89%8D%E5%B7%B2%E5%8F%AF%E7%94%A8%E7%9A%84%EF%BC%882025-2026%EF%BC%89"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 当前已可用的（2025-2026）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%9C%AA%E6%9D%A5-3-5-%E5%B9%B4%E5%8F%AF%E9%A2%84%E6%9C%9F%E7%9A%84"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 未来 3-5 年可预期的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%88%91%E4%B8%AA%E4%BA%BA%E7%9A%84%E9%A2%84%E6%B5%8B"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 我个人的预测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%812025-2026-%E5%80%BC%E5%BE%97%E5%85%B3%E6%B3%A8%E7%9A%84%E8%B6%8B%E5%8A%BF"><span class="toc-number">8.</span> <span class="toc-text">八、2025-2026 值得关注的趋势</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%8A%80%E6%9C%AF%E4%B8%8E%E5%B7%A5%E7%A8%8B"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 技术与工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E7%A4%BE%E5%8C%BA%E4%B8%8E%E6%96%87%E5%8C%96"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 社区与文化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%85%B3%E9%94%AE%E8%AE%BA%E6%96%87%EF%BC%882024-2025%EF%BC%89"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 关键论文（2024-2025）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%BB%93%E8%AE%BA"><span class="toc-number">9.</span> <span class="toc-text">九、结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">10.</span> <span class="toc-text">参考文献</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/04/ai-mathematical-theorem-proving-2024-2025/" title="AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破">AI数学定理证明的2024-2025范式革命：从IMO银牌到Lean形式化证明的全面突破</a><time datetime="2026-06-04T12:00:00.000Z" title="发表于 2026-06-04 20:00:00">2026-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/04/genesis-world-deep-analysis/" title="Genesis World 深度解析：29,000 Stars背后的四层架构、多物理革命与Sim-to-Real真相">Genesis World 深度解析：29,000 Stars背后的四层架构、多物理革命与Sim-to-Real真相</a><time datetime="2026-06-04T10:00:00.000Z" title="发表于 2026-06-04 18:00:00">2026-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/04/robot-simulation-landscape-2025-2026/" title="机器人仿真技术全景报告（2025-2026）：从物理引擎到具身智能的范式跃迁">机器人仿真技术全景报告（2025-2026）：从物理引擎到具身智能的范式跃迁</a><time datetime="2026-06-04T08:00:00.000Z" title="发表于 2026-06-04 16:00:00">2026-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/03/2026-06-03-mujoco-complete-introduction/" title="MuJoCo 完全入门 — 从零开始跑起灵巧手仿真">MuJoCo 完全入门 — 从零开始跑起灵巧手仿真</a><time datetime="2026-06-03T09:00:00.000Z" title="发表于 2026-06-03 17:00:00">2026-06-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/02/2026-06-02-nvidia-isaac-sim-complete-introduction/" title="NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流">NVIDIA Isaac Sim 5.1 深度解析 — 扩展系统、物理引擎、传感器管线与机器人仿真工作流</a><time datetime="2026-06-02T15:30:00.000Z" title="发表于 2026-06-02 23:30:00">2026-06-02</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By goodisok</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
